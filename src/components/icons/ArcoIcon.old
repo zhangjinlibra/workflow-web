@@ -1,0 +1,11 @@
+<script>
+import { h, resolveDynamicComponent } from "vue";
+
+function Icon(props, ctx) {
+  const Component = resolveDynamicComponent(`icon-${props.icon}`);
+  delete props.icon;
+  return h(Component, props);
+}
+
+export default Icon;
+</script>

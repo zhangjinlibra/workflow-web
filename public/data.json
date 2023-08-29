@@ -1,0 +1,50 @@
+{
+  "data": {
+    "nodeConfig": {
+      "name": "发起人",
+      "type": 0,
+      "childNode": {
+        "name": "路由",
+        "type": 4,
+        "childNode": {
+          "name": "审核人0",
+          "type": 1,
+          "assignees": [{ "rid": "592581343611719680", "layer": 0, "layerType": 1, "assigneeType": 1 }],
+          "childNode": null,
+          "approvalType": 0,
+          "flowNodeNoAuditorType": 0,
+          "flowNodeSelfAuditorType": 0,
+          "multiInstanceApprovalType": 1
+        },
+        "conditionNodes": [
+          {
+            "name": "条件1",
+            "type": 3,
+            "childNode": {
+              "name": "审核人1",
+              "type": 1,
+              "assignees": [{ "rid": "592581287705841664", "roles": ["1", "2"], "layerType": 0, "assigneeType": 3 }],
+              "childNode": null,
+              "approvalType": 0,
+              "flowNodeNoAuditorType": 0,
+              "flowNodeSelfAuditorType": 0,
+              "multiInstanceApprovalType": 1
+            },
+            "priorityLevel": 1,
+            "conditionGroups": []
+          },
+          { "name": "条件2", "type": 3, "childNode": null, "priorityLevel": 2, "conditionGroups": [] }
+        ]
+      }
+    },
+    "workFlowDef": { "name": "合同审批" },
+    "flowPermission": {
+      "type": 1,
+      "flowInitiators": [
+        { "id": "1", "name": "审核管理员", "type": 0 },
+        { "id": "2", "name": "人事部", "type": 0 },
+        { "id": "3", "name": "互联网部", "type": 0 }
+      ]
+    }
+  }
+}

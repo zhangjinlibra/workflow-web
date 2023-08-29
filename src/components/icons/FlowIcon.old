@@ -1,0 +1,65 @@
+<!-- 废弃了 -->
+<template>
+  <div class="flow-icon-box" :style="boxStyle">
+    <span class="flowiconfont" :style="fontStyle" v-html="props.icon"> </span>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from "vue";
+
+let props = defineProps({
+  icon: {
+    type: String,
+    default: "",
+  },
+  size: {
+    type: Number,
+    default: 16,
+  },
+  bg: {
+    type: String,
+    default: "#FFF",
+  },
+});
+
+let boxStyle = computed(() => {
+  return {
+    width: props.size + "px",
+    height: props.size + "px",
+    lineHeight: props.size + "px",
+    backgroundColor: props.bg,
+  };
+});
+
+let fontStyle = ref({
+  fontSize: props.size * 0.6 + "px",
+});
+</script>
+
+<style lang="less">
+@font-face {
+  font-family: "FlowIconFont";
+  src: url("@/styles/fonts/flow-icon.ttf") format("truetype");
+}
+
+.flow-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-radius: 50%;
+  color: #fff;
+  overflow: hidden;
+  cursor: default;
+  user-select: none;
+}
+
+.flowiconfont {
+  user-select: none;
+  font-family: "FlowIconFont" !important;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+</style>

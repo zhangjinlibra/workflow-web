@@ -1,0 +1,30 @@
+<template>
+  <!-- <Gantt></Gantt> -->
+  <!-- <Demo></Demo> -->
+  <!-- <Bpmn></Bpmn> -->
+  <!-- <Flow></Flow> -->
+  <!-- <FlowMan></FlowMan> -->
+  <!-- <transition name="fade" mode="out-in">
+      <router-view />
+    </transition> -->
+  <router-view v-slot="{ Component }">
+    <transition name="fade-transform" mode="out-in">
+      <component :is="Component" :key="key" />
+    </transition>
+  </router-view>
+</template>
+
+<script setup>
+// import Gantt from "./components/gantt/Gantt2.vue";
+// import Demo from "./components/kanban/Demo.vue";
+// import Bpmn from "./components/bpmn/index.vue";
+// import Flow from "./components/flow/index.vue";
+// import FlowMan from "./components/flow-manage/index.vue";
+import { onMounted, computed } from "vue";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
+let key = computed(() => route.path);
+
+onMounted(() => {});
+</script>

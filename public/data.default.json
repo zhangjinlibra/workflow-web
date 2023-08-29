@@ -1,0 +1,70 @@
+{
+  "nodeConfig": {
+    "name": "发起人",
+    "type": 0,
+    "childNode": {
+      "name": "路由",
+      "type": 4,
+      "childNode": null,
+      "conditionNodes": [
+        {
+          "name": "条件1",
+          "type": 3,
+          "childNode": {
+            "name": "审核人",
+            "type": 1,
+            "assignees": [{ "rid": "616543805549580288", "assignees": ["1", "2"], "assigneeType": 4 }],
+            "childNode": null,
+            "approvalType": 0,
+            "flowNodeNoAuditorType": 1,
+            "flowNodeSelfAuditorType": 0,
+            "flowNodeNoAuditorAssignee": "4",
+            "multiInstanceApprovalType": 0
+          },
+          "priorityLevel": 1,
+          "conditionGroups": [
+            {
+              "id": "616543762050453504",
+              "conditions": [
+                { "id": "616543762050453505", "val": ["1000", "1001"], "varName": "initiator", "operator": 20, "operators": [20, 21] }
+              ]
+            }
+          ],
+          "conditionExpression": "${(fx.has0(initiator,\"1000\",\"1001\"))}"
+        },
+        {
+          "name": "条件2",
+          "type": 3,
+          "childNode": {
+            "ccs": [{ "rid": "616543830342111232", "ccType": 4, "assignees": ["1", "2"] }],
+            "name": "抄送人",
+            "type": 2,
+            "childNode": null
+          },
+          "priorityLevel": 2,
+          "conditionGroups": []
+        }
+      ]
+    }
+  },
+  "flowWidgets": [
+    { "name": "INPUT_616543730169548800", "type": 0, "label": "单行文本", "summary": true, "required": true, "placeholder": "请输入" }
+  ],
+  "workFlowDef": {
+    "id": "1692358807143809026",
+    "icon": "approval",
+    "name": "审批",
+    "groupId": "1692083129064325121",
+    "cancelable": 1,
+    "flowAdminIds": ["2", "3"]
+  },
+  "flowPermission": {
+    "type": 1,
+    "flowInitiators": [
+      { "id": "1000", "type": 0 },
+      { "id": "1001", "type": 0 },
+      { "id": "1", "type": 2 },
+      { "id": "2", "type": 2 }
+    ]
+  }
+}
