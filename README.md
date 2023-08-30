@@ -1,6 +1,6 @@
 <p align="center">
 <img src="https://ecs-public.oss-cn-shanghai.aliyuncs.com/beeflow.png">
-<p align="center">BeeFlow工作流</p>
+<p align="center"><a>BeeFlow工作流</a></p>
 </p>
 
 ## 🐼 简介
@@ -13,15 +13,7 @@
 
 ## 🐰 slogan
 
-我们致力于打造简单、易用、管家式服务的工作流组件，为您实现企业办公类系统提供坚强的后盾。
-
-### 👨‍👦‍👦 加入交流群
-
-![流程交流QQ群](https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme11.png)
-
-|       QQ       |
-| :------------: |
-| 加群 418513428 |
+我们致力于打造简单、易用、管家式服务的工作流组件，使得流程开发和使用变得简单。
 
 开源不易，觉得不错的话可以给个 ⭐ star 鼓励一下
 
@@ -31,7 +23,7 @@
 
 ---
 
-### beeflow-engine 简介
+## beeflow-engine 简介
 
 #### **流程基本信息**
 
@@ -94,8 +86,25 @@
 
 ## 🐯 技术栈
 
-1. vue3
-2. arco-design
+- vue3
+- arco-design
+
+## 👨‍👦‍👦 加入交流群
+
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="middle">
+        <img src="https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme12.png" class="no-zoom" style="width:120px;margin: 10px;">
+        <p>进群备注: 工作流</p>
+      </td>
+      <td align="center" valign="middle">
+        <img src="https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme13.png" class="no-zoom" style="width:120px;margin: 10px;">
+        <p>QQ群: 418513428</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## 🫶 支持一下呗
 
