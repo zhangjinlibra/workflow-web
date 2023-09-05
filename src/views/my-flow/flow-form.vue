@@ -338,6 +338,7 @@ const handleFormValue = (flowWidgets, flowValue) => {
   for (let name in flowValue) {
     let widget = flowWidgetTmpMap[name];
     if ([WIDGET.PICTURE, WIDGET.ATTACHMENT].includes(widget.type)) {
+      // 取出上传的文件id
       flowValue[name] = (flowValue[name] || []).map((v) => (v.response || {}).data.id);
     } else if (widget.type == WIDGET.DETAIL) {
       flowValue[name].forEach((flowDetailValue) => {

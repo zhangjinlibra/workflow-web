@@ -201,7 +201,7 @@
           </a-form-item>
           <a-form-item label="格式" v-if="[WIDGET.MONEY].includes(widget.type)">
             <a-grid :cols="1">
-              <a-grid-item><a-checkbox v-model:model-value="widget.locale">显示大写数字</a-checkbox></a-grid-item>
+              <!-- <a-grid-item><a-checkbox v-model:model-value="widget.locale">显示大写数字</a-checkbox></a-grid-item> -->
               <a-grid-item><a-checkbox v-model:model-value="widget.comma">显示千位分隔符</a-checkbox></a-grid-item>
             </a-grid>
           </a-form-item>

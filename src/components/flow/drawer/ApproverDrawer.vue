@@ -179,7 +179,7 @@
               </div>
 
               <!-- 会签、或签、序签 -->
-              <div class="item-wrap sign-type" v-if="haveMultiNode || isInitiatorChoice">
+              <div class="item-wrap sign-type" v-if="haveMultiNode || isInitiatorChoiceOrRoleOrAssignee">
                 <div class="item-key-wrapper">
                   <div class="item-key">多人审批时采用的审批方式</div>
                 </div>
@@ -291,10 +291,10 @@ let haveMultiNode = computed(() => {
   return flowNodeConfig.value.assignees.length > 1;
 });
 
-// 是否设置了发起人自选
-let isInitiatorChoice = computed(() => {
+// 是否设置了发起人自选，角色，指定审批人
+let isInitiatorChoiceOrRoleOrAssignee = computed(() => {
   let fristAssigneeType = flowNodeConfig.value.assignees[0].assigneeType;
-  return fristAssigneeType == 7;
+  return [3, 4, 7].includes(fristAssigneeType);
 });
 
 // 多个审核人设置的类型是否一致
@@ -343,8 +343,8 @@ watch(
         flowNodeConfig.value.multiInstanceApprovalType = 3;
       }
 
-      // 是否设置了发起人自选
-      if ([7].includes(fristAssigneeType) && [0, 3].includes(flowNodeConfig.value.multiInstanceApprovalType)) {
+      // 是否设置了发起人自选，角色，指定审批人
+      if ([3, 4, 7].includes(fristAssigneeType) && [0, 3].includes(flowNodeConfig.value.multiInstanceApprovalType)) {
         flowNodeConfig.value.multiInstanceApprovalType = 1;
       }
     } else {

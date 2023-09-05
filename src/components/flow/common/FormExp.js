@@ -117,9 +117,11 @@ export const showExpNodeContent = (branchNode, flowWidgets) => {
               let widget = lookupWidget(flowWidgets, varName);
               name = lookupWidgetLabel(widget);
               operatorName = names[operator];
-              if (widget.type == WIDGET.DEPARTMENT) newVal = getDeptById(val).name;
-              else if (widget.type == WIDGET.EMPLOYEE) newVal = getUserById(val).name;
-              else newVal = [20, 21].includes(operator) ? val.join("/") : val;
+              if (widget.type == WIDGET.DEPARTMENT) {
+                newVal = ObjectUtil.isArray(val) ? val.map((id) => getDeptById(id).name).join("/") : getDeptById(val).name;
+              } else if (widget.type == WIDGET.EMPLOYEE) {
+                newVal = ObjectUtil.isArray(val) ? val.map((id) => getUserById(id).name).join("/") : getUserById(val).name;
+              } else newVal = [20, 21].includes(operator) ? val.join("/") : val;
             }
             return name + " " + operatorName + " " + newVal;
           })

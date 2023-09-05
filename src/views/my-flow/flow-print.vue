@@ -4,6 +4,7 @@
     <template #title> 打印预览 </template>
     <template #footer><a-button type="primary" v-print="'#flow-print-area'">打印</a-button></template>
     <div id="flow-print-area" class="flow-print-area">
+      <div class="flow-status-stamp"><FlowStatusStamp :status="flowInst.status" :size="120" /></div>
       <h2 class="block title">{{ flowInst.name }}</h2>
       <div class="block no">审批编号：{{ flowInst.id }}</div>
       <div class="block create-time">提交时间：{{ flowInst.beginTime }}</div>
@@ -43,7 +44,7 @@
               </tr>
               <tr v-else-if="[WIDGET.MONEY].includes(formWidget.type)">
                 <td class="label">{{ formWidget.label }}</td>
-                <td class="value">{{ ObjectUtil.comma(formValue[formWidget.name]) }}</td>
+                <td class="value">{{ ObjectUtil.comma(formValue[formWidget.name]) }}元</td>
               </tr>
               <tr v-else-if="[WIDGET.MULTI_CHOICE].includes(formWidget.type)">
                 <td class="label">{{ formWidget.label }}</td>
@@ -103,26 +104,16 @@
                           <td v-if="[WIDGET.SINGLELINE_TEXT, WIDGET.MULTILINE_TEXT, WIDGET.SINGLE_CHOICE, WIDGET.DATE].includes(subWidget.type)">
                             {{ record[subWidget.name] }}
                           </td>
-                          <td v-else-if="[WIDGET.NUMBER].includes(subWidget.type)">
-                            {{ record[subWidget.name] }}
-                          </td>
-                          <td v-else-if="[WIDGET.MONEY].includes(subWidget.type)">
-                            {{ ObjectUtil.comma(record[subWidget.name]) }}
-                          </td>
-                          <td v-else-if="[WIDGET.MULTI_CHOICE].includes(subWidget.type)">
-                            {{ (record[subWidget.name] || []).join(", ") }}
-                          </td>
+                          <td v-else-if="[WIDGET.NUMBER].includes(subWidget.type)">{{ record[subWidget.name] }}</td>
+                          <td v-else-if="[WIDGET.MONEY].includes(subWidget.type)">{{ ObjectUtil.comma(record[subWidget.name]) }}元</td>
+                          <td v-else-if="[WIDGET.MULTI_CHOICE].includes(subWidget.type)">{{ (record[subWidget.name] || []).join(", ") }}</td>
                           <td v-else-if="[WIDGET.DATE_RANGE].includes(subWidget.type)">
                             <template v-if="record[subWidget.name] && record[subWidget.name].length == 2">
                               {{ `${record[subWidget.name][0]} 至 ${record[subWidget.name][1]}` }}
                             </template>
                           </td>
-                          <td v-else-if="[WIDGET.DEPARTMENT].includes(subWidget.type)">
-                            {{ getDeptById(record[subWidget.name]).name }}
-                          </td>
-                          <td v-else-if="[WIDGET.EMPLOYEE].includes(subWidget.type)">
-                            {{ getUserById(record[subWidget.name]).name }}
-                          </td>
+                          <td v-else-if="[WIDGET.DEPARTMENT].includes(subWidget.type)">{{ getDeptById(record[subWidget.name]).name }}</td>
+                          <td v-else-if="[WIDGET.EMPLOYEE].includes(subWidget.type)">{{ getUserById(record[subWidget.name]).name }}</td>
                           <td v-else-if="[WIDGET.PICTURE].includes(subWidget.type)">
                             <div class="img-box">
                               <img v-for="id in record[subWidget.name] || []" :src="`${FILE_BASE_URL}/download?id=${id}`" />
@@ -161,11 +152,11 @@
               <td class="value">
                 <div class="assignee-node">
                   <div class="assignee-list">
-                    <template v-if="[CMD.AUTO_APPROVED, CMD.AUTO_APPROVED].includes(node.flowCmd)">系统审批</template>
+                    <template v-if="[CMD.AUTO_REJECTED, CMD.AUTO_APPROVED].includes(node.flowCmd)">系统审批</template>
                     <template v-else>{{ getUserById(node.auditor).name }}</template>
                   </div>
                   <div class="flow-cmd">
-                    <template v-if="node.flowCmd == CMD.AUTO_APPROVED">自动拒绝</template>
+                    <template v-if="node.flowCmd == CMD.AUTO_REJECTED">自动拒绝</template>
                     <template v-else-if="node.flowCmd == CMD.AUTO_APPROVED">自动通过</template>
                     <template v-else-if="node.flowCmd == CMD.REJECTED">拒绝</template>
                     <template v-else-if="node.flowCmd == CMD.APPROVED">通过</template>
@@ -199,6 +190,7 @@ import ObjectUtil from "@/components/flow/common/ObjectUtil";
 import ArrayUtil from "@/components/flow/common/ArrayUtil";
 import { STATUS_LIST, WIDGET, CMD } from "@/components/flow/common/FlowConstant";
 import { FILE_BASE_URL } from "@/api/FileApi";
+import FlowStatusStamp from "./flow-status-stamp.vue";
 import print from "vue3-print-nb";
 const vPrint = print;
 
@@ -238,6 +230,12 @@ onMounted(() => {});
   font-size: 16px;
   color: #606266;
   height: calc(100vh - 200px);
+  position: relative;
+
+  .flow-status-stamp {
+    position: absolute;
+    right: 30px;
+  }
 
   .block {
     + .block {

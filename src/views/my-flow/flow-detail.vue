@@ -62,22 +62,22 @@
                 <div class="value">{{ formValue[formWidget.name] }}</div>
               </div>
               <!-- 数值 -->
-              <div v-if="[WIDGET.NUMBER].includes(formWidget.type)" class="form-item">
+              <div v-else-if="[WIDGET.NUMBER].includes(formWidget.type)" class="form-item">
                 <div class="label">{{ formWidget.label }}</div>
                 <div class="value">{{ formValue[formWidget.name] }}</div>
               </div>
               <!-- 金额 -->
-              <div v-if="[WIDGET.MONEY].includes(formWidget.type)" class="form-item">
+              <div v-else-if="[WIDGET.MONEY].includes(formWidget.type)" class="form-item">
                 <div class="label">{{ formWidget.label }}</div>
-                <div class="value">{{ ObjectUtil.comma(formValue[formWidget.name]) }}</div>
+                <div class="value">{{ formWidget.comma ? ObjectUtil.comma(formValue[formWidget.name]) : formValue[formWidget.name] }}元</div>
               </div>
               <!-- 多选 -->
-              <div v-if="[WIDGET.MULTI_CHOICE].includes(formWidget.type)" class="form-item">
+              <div v-else-if="[WIDGET.MULTI_CHOICE].includes(formWidget.type)" class="form-item">
                 <div class="label">{{ formWidget.label }}</div>
                 <div class="value">{{ (formValue[formWidget.name] || []).join(", ") }}</div>
               </div>
               <!-- 日期区间 -->
-              <div v-if="[WIDGET.DATE_RANGE].includes(formWidget.type)" class="form-item">
+              <div v-else-if="[WIDGET.DATE_RANGE].includes(formWidget.type)" class="form-item">
                 <div class="label">{{ formWidget.label }}</div>
                 <div class="value">
                   <template v-if="formValue[formWidget.name] && formValue[formWidget.name].length == 2">
@@ -148,7 +148,7 @@
                         </template>
                         <!-- 金额 -->
                         <template v-else-if="[WIDGET.MONEY].includes(subWidget.type)">
-                          {{ ObjectUtil.comma(record[subWidget.name]) }}
+                          {{ subWidget.comma ? ObjectUtil.comma(record[subWidget.name]) : record[subWidget.name] }}元
                         </template>
                         <!-- 多选 -->
                         <template v-else-if="[WIDGET.MULTI_CHOICE].includes(subWidget.type)">
@@ -308,7 +308,19 @@
                     </div>
                     <div class="comment" v-if="node.comment">
                       <!-- <div class="commnet-title">审批意见</div> -->
-                      <div class="comment-content">{{ node.comment }}</div>
+                      <div class="comment-content">
+                        {{ node.comment }}
+                      </div>
+                      <div class="comment-attachment" v-if="node.files">
+                        <div class="comment-attachment-item" v-for="attachment in node.files">
+                          <div class="name"><icon-drive-file :size="16" /> {{ attachment ? attachment.name : "" }}</div>
+                          <div class="download-icon">
+                            <a :href="attachment ? `${FILE_BASE_URL}/download?id=${attachment.id}` : 'javascript:void(0)'">
+                              <icon-download :size="16" />
+                            </a>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <!-- 审批结果 -->
@@ -443,8 +455,24 @@
               v-model:model-value="handleModalForm.comment"
               :placeholder="`请输入${[CMD.COMMENT].includes(handleModalForm.flowCmd) ? '评论' : '原由'}`"
               allow-clear
-              :max-length="32"
+              :max-length="64"
               show-word-limit />
+          </a-form-item>
+
+          <a-form-item field="fileIds" label="附件">
+            <a-upload
+              v-model:file-list="handleModalForm.fileIds"
+              :action="fileUploadUrl"
+              :headers="fileUploadHeaders"
+              multiple
+              :limit="3"
+              class="action-attachment">
+              <template #upload-button>
+                <a-button>
+                  <template #icon><icon-attachment /></template>上传
+                </a-button>
+              </template>
+            </a-upload>
           </a-form-item>
         </a-form>
 
@@ -492,6 +520,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { useOrganStore } from "@/stores";
+import { getToken } from "@/utils/auth";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
 import ArrayUtil from "@/components/flow/common/ArrayUtil";
 import { CMD, STATUS, STATUS_LIST, WIDGET, NODE_SIGN } from "@/components/flow/common/FlowConstant";
@@ -515,6 +544,9 @@ import {
   IconUserAdd,
   IconUndo,
   IconPrinter,
+  IconAttachment,
+  IconDriveFile,
+  IconDownload,
 } from "@arco-design/web-vue/es/icon";
 
 let organStore = useOrganStore();
@@ -527,6 +559,9 @@ let props = defineProps({
   cancelable: { type: Boolean, default: false },
 });
 let emits = defineEmits(["onRemove", "update:flowInst"]);
+
+let fileUploadUrl = FILE_BASE_URL + "/upload"; //文件上传地址
+let fileUploadHeaders = ref({ Authorization: getToken() }); // 文件上传请求头
 
 let formWidgets = ref([]);
 let formWidgetMap = ref({});
@@ -638,38 +673,42 @@ const onHandleModelCancel = () => {
 };
 
 const onHandleModelOK = () => {
+  // 取出上传的文件id
+  let handleModalFormValue = ObjectUtil.copy(handleModalForm.value);
+  let { flowCmd: cmd, fileIds } = handleModalFormValue;
+  if (fileIds && fileIds.length > 0) handleModalFormValue.fileIds = fileIds.map((v) => (v.response || {}).data.id);
+
   let req = null;
-  let cmd = handleModalForm.value.flowCmd;
   switch (cmd) {
     case CMD.CANCELED:
-      req = FlowApi.cancel(handleModalForm.value);
+      req = FlowApi.cancel(handleModalFormValue);
       break;
     case CMD.COMMENT:
-      req = FlowApi.comment(handleModalForm.value);
+      req = FlowApi.comment(handleModalFormValue);
       break;
     case CMD.BACK:
-      req = FlowApi.jump(handleModalForm.value);
+      req = FlowApi.jump(handleModalFormValue);
       break;
     case CMD.ADD_BEFORE_SIGN:
-      req = FlowApi.addBeforeSign(handleModalForm.value);
+      req = FlowApi.addBeforeSign(handleModalFormValue);
       break;
     case CMD.ADD_AFTER_SIGN:
-      req = FlowApi.addAfterSign(handleModalForm.value);
+      req = FlowApi.addAfterSign(handleModalFormValue);
       break;
     case CMD.ADD_SIGN:
-      req = FlowApi.addSign(handleModalForm.value);
+      req = FlowApi.addSign(handleModalFormValue);
       break;
     case CMD.DEL_SIGN:
-      req = FlowApi.delSign(handleModalForm.value);
+      req = FlowApi.delSign(handleModalFormValue);
       break;
     case CMD.APPROVED:
-      req = FlowApi.approve(handleModalForm.value);
+      req = FlowApi.approve(handleModalFormValue);
       break;
     case CMD.REJECTED:
-      req = FlowApi.reject(handleModalForm.value);
+      req = FlowApi.reject(handleModalFormValue);
       break;
     case CMD.ASSIGN:
-      req = FlowApi.assign(handleModalForm.value);
+      req = FlowApi.assign(handleModalFormValue);
       break;
   }
   req.then((resp) => {
@@ -692,6 +731,7 @@ const initModalForm = (cmd) => {
     flowInstId: props.flowInst.id,
     taskId: props.flowInst.taskId,
     flowCmd: cmd,
+    fileIds: [],
   };
 };
 const onApproved = () => {
@@ -1026,6 +1066,42 @@ onMounted(() => {
           font-weight: 500;
           color: #1d2129;
         }
+
+        .comment-attachment {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, max-content));
+          gap: 10px;
+          margin: 4px 0;
+
+          .comment-attachment-item {
+            border-radius: 4px;
+            border: 1px solid #e1e1e1;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .name {
+              display: flex;
+              align-items: center;
+              gap: 4px;
+            }
+
+            .download-icon {
+              display: flex;
+              align-items: center;
+              margin-left: 10px;
+
+              a {
+                display: inline-flex;
+              }
+
+              &:hover {
+                opacity: 0.7;
+              }
+            }
+          }
+        }
       }
 
       .cmd {
@@ -1046,16 +1122,6 @@ onMounted(() => {
   button {
     + button {
       margin-left: 10px;
-    }
-  }
-}
-
-.flow-exe-box {
-  .flow-exe-item {
-    .label {
-      font-size: 14px;
-      color: var(--color-text-2);
-      margin-bottom: 4px;
     }
   }
 }
@@ -1096,5 +1162,39 @@ onMounted(() => {
 
 .arco-dropdown-open .arco-icon-down {
   transform: rotate(180deg);
+}
+
+.flow-exe-box {
+  .flow-exe-item {
+    .label {
+      font-size: 14px;
+      color: var(--color-text-2);
+      margin-bottom: 4px;
+    }
+  }
+
+  .action-attachment {
+    .arco-upload-list-item {
+      margin-top: 0;
+
+      &:first-of-type {
+        margin-top: 12px;
+      }
+
+      .arco-upload-list-item-content {
+        padding: 4px 10px 4px 12px;
+      }
+
+      .arco-upload-list-item-operation {
+        .arco-icon {
+          font-size: 16px;
+        }
+      }
+    }
+
+    .arco-upload-hide + .arco-upload-list .arco-upload-list-item:first-of-type {
+      margin-top: 0px;
+    }
+  }
 }
 </style>

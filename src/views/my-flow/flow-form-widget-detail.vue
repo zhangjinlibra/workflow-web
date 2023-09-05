@@ -130,7 +130,7 @@
       <div class="amount-item" v-for="item in amountValues">
         <div class="amount-name">{{ props.widget.label }}汇总-{{ item.label }}</div>
         <div class="amout-total">
-          <div class="money">{{ ObjectUtil.comma(item.total || 0) }}</div>
+          <div class="money">{{ ObjectUtil.comma((item.total || 0).toFixed(2)) }}</div>
           <div class="unit">CNY-人民币元</div>
         </div>
       </div>

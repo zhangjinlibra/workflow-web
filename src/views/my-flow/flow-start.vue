@@ -39,6 +39,8 @@
       <template #title> {{ selectedFlow.name }} </template>
       <flow-form :flow="selectedFlow" :flowWidgets="flowWidgets" @onCancel="onClose()" @onSuccess="onClose()"></flow-form>
     </a-drawer>
+
+    <back-to-top target-container=".flow-start-box"></back-to-top>
   </section>
 </template>
 
@@ -50,6 +52,7 @@ import OrganApi from "@/api/OrganApi";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
 import FlowForm from "./flow-form.vue";
 import { IconSearch } from "@arco-design/web-vue/es/icon";
+import BackToTop from "@/components/common/BackToTop.vue";
 
 let visible = ref(false); // 侧边栏
 let selectedFlow = ref({}); // 选中的流程

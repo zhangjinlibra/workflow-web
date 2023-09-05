@@ -1,3 +1,5 @@
+const opt = Object.prototype.toString;
+
 /**
  * 对象复制
  *
@@ -25,6 +27,10 @@ function hyphenate(text) {
 
 function isString(val) {
   return typeof val == "string";
+}
+
+function isArray(obj) {
+  return opt.call(obj) === "[object Array]";
 }
 
 function comma(num) {
@@ -58,4 +64,4 @@ function isNotNull(val) {
   return val != undefined && val != null;
 }
 
-export default { copy, isNumber, isObject, hyphenate, isString, comma, limitScale, isNotNull };
+export default { copy, isNumber, isObject, isArray, hyphenate, isString, comma, limitScale, isNotNull };

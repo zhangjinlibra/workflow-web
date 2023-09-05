@@ -91,12 +91,12 @@
                     <a-date-picker :style="{ width: '100%' }" v-model="condition.val" />
                   </div>
                   <div v-else-if="getWidget(condition.varName).type == WIDGET.DEPARTMENT">
-                    <a-select v-model:model-value="condition.val" allow-search>
+                    <a-select v-model:model-value="condition.val" allow-search multiple>
                       <a-option :value="dept.id" v-for="dept in allDepts">{{ dept.name }}</a-option>
                     </a-select>
                   </div>
                   <div v-else-if="getWidget(condition.varName).type == WIDGET.EMPLOYEE">
-                    <a-select v-model:model-value="condition.val" allow-search>
+                    <a-select v-model:model-value="condition.val" allow-search multiple>
                       <a-option :value="user.id" v-for="user in allUsers">{{ user.name }}</a-option>
                     </a-select>
                   </div>
@@ -197,7 +197,7 @@ const initCondition = () => {
           widget.operators = [20, 21];
           widget.options = widget.options.filter((item) => !!item);
         } else if ([WIDGET.DATE].includes(type)) widget.operators = [12, 13];
-        else if ([WIDGET.DEPARTMENT, WIDGET.EMPLOYEE].includes(type)) widget.operators = [12, 13];
+        else if ([WIDGET.DEPARTMENT, WIDGET.EMPLOYEE].includes(type)) widget.operators = [20, 21];
 
         // 加入条件列表
         if (widget.operators) conditionOptions.value.push(widget);

@@ -6,12 +6,18 @@
           <a-space>
             <div class="logo"><img alt="Vue logo" class="logo" src="@/assets/logo.png" height="24" /></div>
             <!-- <div class="slogan">审批</div> -->
+            <a-tag class="version">20230904.02版本</a-tag>
           </a-space>
         </div>
         <ul class="right-side">
           <li>
             <a-button type="outline" shape="circle" class="nav-btn">
               <icon-notification />
+            </a-button>
+          </li>
+          <li>
+            <a-button type="outline" shape="circle" class="nav-btn" @click="onGiteeClicked()">
+              <img src="https://gitee.com/static/images/logo-en.svg" style="width: 32px; height: 32px" />
             </a-button>
           </li>
           <li>
@@ -94,18 +100,20 @@
       </section>
     </div>
 
-    <a-back-top target-container=".main-container" :visible-height="50">
-      <a-button shape="circle" class="site-backtop-btn">
-        <template #icon> <icon-up /> </template>
-      </a-button>
-    </a-back-top>
-
     <!-- 切换用户 -->
     <switch-user v-model:visible="showSwitchUserModal"></switch-user>
+
+    <!-- 计算公式 -->
+    <Formula v-model:visible="visible"></Formula>
   </section>
 </template>
 
 <script setup>
+// 计算公式测试
+import Formula from "@/components/flow/dialog/Formula.vue";
+let visible = ref(false);
+const onAlarmClicked = () => (visible.value = true);
+
 import { computed, onBeforeMount, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUserStore, useAppStore, usePermissionStore } from "@/stores";
@@ -158,6 +166,10 @@ const loadUserDetail = () => {
     userDetail.value = user;
     setLoginUser(user);
   });
+};
+
+const onGiteeClicked = () => {
+  window.open("https://gitee.com/zhangjinlibra/beeflow-engine");
 };
 
 // 侧边栏
@@ -280,12 +292,6 @@ const onChangeUserClicked = () => {
   // transition: all 0.2s cubic-bezier(0.34, 0.69, 0.1, 1);
 }
 
-.site-backtop-btn {
-  background: var(--color-bg-5) !important;
-  border: 1px solid var(--color-fill-3) !important;
-  box-shadow: 0 2px 12px #0000001a;
-}
-
 .fd-header-box {
   height: 100%;
   padding: 0 20px;
@@ -295,12 +301,12 @@ const onChangeUserClicked = () => {
   user-select: none;
 
   .nav-btn {
-    border-color: rgb(var(--gray-2));
+    border-color: rgb(var(--gray-3));
     color: rgb(var(--gray-8));
     font-size: 16px;
 
     &:hover {
-      border-color: var(--color-fill-3);
+      border-color: var(--color-fill-4);
       color: rgb(var(--gray-8));
     }
   }
@@ -310,6 +316,10 @@ const onChangeUserClicked = () => {
       color: var(--color-text-1);
       font-size: 18px;
       font-weight: 350;
+    }
+
+    .version {
+      margin-left: 10px;
     }
   }
 

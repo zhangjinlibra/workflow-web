@@ -69,9 +69,22 @@ export default defineConfig(({ command, mode }) => {
     },
     server: {
       open: true,
-      host: "0.0.0.0",
+      host: "localhost",
       https: false,
       port: 5174,
+      proxy: {
+        "/flow2": {
+          target: "http://49.235.72.105",
+          changeOrigin: true,
+          rewrite: (path) => {
+            console.log("path", path);
+            return path.replace(/^\/flow2/, "/flow2");
+          },
+          cookieDomainRewrite: {
+            localhost: "49.235.72.105",
+          },
+        },
+      },
     },
   };
 });

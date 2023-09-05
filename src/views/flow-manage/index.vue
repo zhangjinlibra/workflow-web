@@ -92,6 +92,7 @@
       </div>
     </a-card>
     <flow-group-edit ref="groupModel" v-model:group="group" @ok="onGroupAdded($event)"></flow-group-edit>
+    <back-to-top target-container=".fd-main-box"></back-to-top>
   </div>
 </template>
 
@@ -107,6 +108,7 @@ import ArrayUtil from "@/components/flow/common/ArrayUtil";
 import FlowIcon from "@/components/icons/FlowIcon.vue";
 import FlowGroupEdit from "./flow-gorup-edit.vue";
 import { IconSearch, IconPlus, IconDelete, IconEdit, IconStop, IconCheckCircle } from "@arco-design/web-vue/es/icon";
+import BackToTop from "@/components/common/BackToTop.vue";
 
 const router = useRouter();
 const flowStore = useFlowStore();
@@ -170,7 +172,7 @@ const loadFlowConfig = (flowDefinition, callback) => {
 const onFlowCreate = () => {
   let user = userStore.loginUser;
   let flowDef = {
-    workFlowDef: { name: "审批", icon: "approval", flowAdminIds: [user.id], cancelable: 1 },
+    workFlowDef: { name: null, icon: "approval", flowAdminIds: [user.id], cancelable: 1 },
     nodeConfig: { name: "发起人", type: 0 },
     flowPermission: { type: 0 },
   };

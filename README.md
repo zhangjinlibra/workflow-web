@@ -19,11 +19,11 @@
 
 😁 [码云 gitee](https://gitee.com/zhangjinlibra/beeflow-engine)
 
-👉 演示地址： [beeflow 工作流](http://49.235.72.105) 👈
+👉 演示地址： [beeflow 工作流](http://www.beeflow.top) 👈
 
 ---
 
-## beeflow-engine 简介
+## 🦝 beeflow-engine 简介
 
 #### **流程基本信息**
 
@@ -84,10 +84,15 @@
 
 ---
 
-## 🐯 技术栈
+## 🐯 项目运行
 
-- vue3
-- arco-design
+```
+# 环境依赖 
+npm i -S
+
+# 运行测试环境
+npm run test
+```
 
 ## 👨‍👦‍👦 加入交流群
 
