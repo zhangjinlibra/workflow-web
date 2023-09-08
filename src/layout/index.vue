@@ -6,7 +6,7 @@
           <a-space>
             <div class="logo"><img alt="Vue logo" class="logo" src="@/assets/logo.png" height="24" /></div>
             <!-- <div class="slogan">审批</div> -->
-            <a-tag class="version">20230904.02版本</a-tag>
+            <a-tag class="version">20230905.01版本</a-tag>
           </a-space>
         </div>
         <ul class="right-side">
@@ -29,11 +29,11 @@
                 <template #content>
                   <div class="avatat-menu-content">
                     <a-doption @click="onChangeUserClicked()">
-                      <template #icon> <icon-sync /> </template>
+                      <template #icon> <icon-user-group :size="16" /> </template>
                       <template #default>切换用户</template>
                     </a-doption>
                     <a-doption>
-                      <template #icon> <icon-export /> </template>
+                      <template #icon> <icon-export :size="16" /> </template>
                       <template #default>退出登录</template>
                     </a-doption>
                   </div>
@@ -120,7 +120,7 @@ import { useUserStore, useAppStore, usePermissionStore } from "@/stores";
 import { getLoginUserDetail } from "@/api/OrganApi";
 import lessVars from "@/styles/variables.module.less";
 import SwitchUser from "@/views/user/SwitchUser.vue";
-import { IconNotification, IconUser, IconSync, IconExport, IconDoubleLeft, IconDoubleRight, IconUp } from "@arco-design/web-vue/es/icon";
+import { IconNotification, IconUser, IconUserGroup, IconExport, IconDoubleLeft, IconDoubleRight } from "@arco-design/web-vue/es/icon";
 
 let userDetail = ref({});
 const route = useRoute();

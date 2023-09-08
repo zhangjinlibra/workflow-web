@@ -44,7 +44,7 @@
               </tr>
               <tr v-else-if="[WIDGET.MONEY].includes(formWidget.type)">
                 <td class="label">{{ formWidget.label }}</td>
-                <td class="value">{{ ObjectUtil.comma(formValue[formWidget.name]) }}元</td>
+                <td class="value">{{ ObjectUtil.comma(formValue[formWidget.name]) }}</td>
               </tr>
               <tr v-else-if="[WIDGET.MULTI_CHOICE].includes(formWidget.type)">
                 <td class="label">{{ formWidget.label }}</td>
@@ -105,7 +105,7 @@
                             {{ record[subWidget.name] }}
                           </td>
                           <td v-else-if="[WIDGET.NUMBER].includes(subWidget.type)">{{ record[subWidget.name] }}</td>
-                          <td v-else-if="[WIDGET.MONEY].includes(subWidget.type)">{{ ObjectUtil.comma(record[subWidget.name]) }}元</td>
+                          <td v-else-if="[WIDGET.MONEY].includes(subWidget.type)">{{ ObjectUtil.comma(record[subWidget.name]) }}</td>
                           <td v-else-if="[WIDGET.MULTI_CHOICE].includes(subWidget.type)">{{ (record[subWidget.name] || []).join(", ") }}</td>
                           <td v-else-if="[WIDGET.DATE_RANGE].includes(subWidget.type)">
                             <template v-if="record[subWidget.name] && record[subWidget.name].length == 2">

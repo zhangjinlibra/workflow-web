@@ -69,7 +69,7 @@
               <!-- 金额 -->
               <div v-else-if="[WIDGET.MONEY].includes(formWidget.type)" class="form-item">
                 <div class="label">{{ formWidget.label }}</div>
-                <div class="value">{{ formWidget.comma ? ObjectUtil.comma(formValue[formWidget.name]) : formValue[formWidget.name] }}元</div>
+                <div class="value">{{ formWidget.comma ? ObjectUtil.comma(formValue[formWidget.name]) : formValue[formWidget.name] }}</div>
               </div>
               <!-- 多选 -->
               <div v-else-if="[WIDGET.MULTI_CHOICE].includes(formWidget.type)" class="form-item">
@@ -148,7 +148,7 @@
                         </template>
                         <!-- 金额 -->
                         <template v-else-if="[WIDGET.MONEY].includes(subWidget.type)">
-                          {{ subWidget.comma ? ObjectUtil.comma(record[subWidget.name]) : record[subWidget.name] }}元
+                          {{ subWidget.comma ? ObjectUtil.comma(record[subWidget.name]) : record[subWidget.name] }}
                         </template>
                         <!-- 多选 -->
                         <template v-else-if="[WIDGET.MULTI_CHOICE].includes(subWidget.type)">
@@ -1162,6 +1162,12 @@ onMounted(() => {
 
 .arco-dropdown-open .arco-icon-down {
   transform: rotate(180deg);
+}
+
+.flow-actions-box {
+  .arco-dropdown {
+    padding: 4px;
+  }
 }
 
 .flow-exe-box {

@@ -2,7 +2,7 @@
   <section class="flow-edit-box">
     <div class="fd-nav">
       <div class="fd-nav-left">
-        <div class="back" @click="back()"><icon-left :size="24" /></div>
+        <div class="back" @click="back()"><icon-left :size="16" /></div>
         <div class="name-desc" v-if="flowDefinition.workFlowDef">
           <div class="name">{{ flowDefinition.workFlowDef.name }}</div>
           <div class="desc">{{ flowDefinition.workFlowDef.remark }}</div>
@@ -165,13 +165,14 @@ onBeforeMount(async () => {
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-right: 10px;
       cursor: pointer;
-      transition: 0.3s;
+      color: var(--color-text-2);
+      background-color: var(--color-secondary);
+      font-size: 14px;
+      border-radius: var(--border-radius-small);
 
       &:hover {
-        background: #f2f3f5;
-        border-radius: 2px;
+        background-color: var(--color-secondary-hover);
       }
     }
 
@@ -179,6 +180,7 @@ onBeforeMount(async () => {
       display: flex;
       flex-direction: column;
       max-width: 200px;
+      margin-left: 15px;
 
       .name {
         font-size: 16px;

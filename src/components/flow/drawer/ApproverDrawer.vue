@@ -345,7 +345,9 @@ watch(
 
       // 是否设置了发起人自选，角色，指定审批人
       if ([3, 4, 7].includes(fristAssigneeType) && [0, 3].includes(flowNodeConfig.value.multiInstanceApprovalType)) {
-        flowNodeConfig.value.multiInstanceApprovalType = 1;
+        if (flowNodeConfig.value.multiInstanceApprovalType == 0) {
+          flowNodeConfig.value.multiInstanceApprovalType = 1;
+        }
       }
     } else {
       // 如果设置了多个审批人，默认会签

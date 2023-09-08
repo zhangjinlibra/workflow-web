@@ -48,13 +48,6 @@
                   format="YYYY-MM-DD"
                   value-format="YYYY-MM-DD"
                   @change="onBeginTimeChanged" />
-                <a-range-picker
-                  v-model:model-value="flowEndTime"
-                  :placeholder="['最小完成时间', '最大完成时间']"
-                  allow-clear
-                  format="YYYY-MM-DD"
-                  value-format="YYYY-MM-DD"
-                  @change="onEndTimeChanged" />
               </div>
               <div class="search-more-action">
                 <a-button @click="onSearchReset()"> 重置 </a-button>
