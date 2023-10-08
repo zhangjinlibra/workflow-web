@@ -32,6 +32,7 @@
                   WIDGET.DATE_RANGE,
                   WIDGET.DEPARTMENT,
                   WIDGET.EMPLOYEE,
+                  WIDGET.AREA,
                 ].includes(formWidget.type)
               ">
               <tr v-if="[WIDGET.SINGLELINE_TEXT, WIDGET.MULTILINE_TEXT, WIDGET.SINGLE_CHOICE, WIDGET.DATE].includes(formWidget.type)">
@@ -65,6 +66,10 @@
               <tr v-else-if="[WIDGET.EMPLOYEE].includes(formWidget.type)">
                 <td class="label">{{ formWidget.label }}</td>
                 <td class="value">{{ getUserById(formValue[formWidget.name]).name }}</td>
+              </tr>
+              <tr v-else-if="[WIDGET.AREA].includes(formWidget.type)">
+                <td class="label">{{ formWidget.label }}</td>
+                <td class="value">{{ (formValue[formWidget.name] || []).join(" / ") }}</td>
               </tr>
             </template>
             <template v-else-if="[WIDGET.PICTURE].includes(formWidget.type)">
@@ -124,6 +129,7 @@
                               <div>{{ attachment ? attachment.name : "" }}</div>
                             </template>
                           </td>
+                          <td v-else-if="[WIDGET.AREA].includes(subWidget.type)">{{ (record[subWidget.name] || []).join(" / ") }}</td>
                         </template>
                       </tr>
                     </template>
@@ -226,10 +232,11 @@ onMounted(() => {});
 <style lang="less">
 .flow-print-area {
   width: 100%;
-  font-family: "宋体";
+  // font-family: "宋体";
   font-size: 16px;
   color: #606266;
   height: calc(100vh - 200px);
+  user-select: none;
   position: relative;
 
   .flow-status-stamp {
@@ -258,6 +265,7 @@ onMounted(() => {});
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 20px;
   }
 
   table {
@@ -283,9 +291,9 @@ onMounted(() => {});
       justify-content: space-between;
 
       .assignee-list {
-        display: grid;
         width: calc(100% - 80px);
-        grid-template-columns: repeat(auto-fit, minmax(60px, max-content));
+        display: flex;
+        flex-wrap: wrap;
         gap: 4px;
       }
 

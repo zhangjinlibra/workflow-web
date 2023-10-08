@@ -50,6 +50,7 @@ import Setting from "./setting.vue";
 import FlowManApi from "@/api/FlowManApi";
 import FlowValidate from "./flow-validate";
 import { cleanUnrequiredWidget, initBranchExp } from "@/components/flow/common/FormExp";
+import { WIDGET } from "@/components/flow/common/FlowConstant";
 import { IconLeft } from "@arco-design/web-vue/es/icon";
 
 let { flowDefinition } = useFlowStore();
@@ -57,8 +58,8 @@ const router = useRouter();
 
 let loading = ref(false);
 let launching = ref(false); // 流程发布中
-let baseBox = ref();
-let flowBox = ref();
+let baseBox = ref(); // 基本信息组件
+let flowBox = ref(); // 流程组件
 let step = ref(1);
 const hanldeStepClick = (nStep) => {
   if (step.value == 1) {
@@ -76,11 +77,14 @@ const back = () => {
 
 const validate = (flowDef) => {
   let errs = [];
-  errs.push(...FlowValidate.validateFlowBaseInfo(flowDef.workFlowDef));
-  errs.push(...FlowValidate.validateFlowWidgets(flowDef.flowWidgets));
-  errs.push(...FlowValidate.validateFlowNode(flowDef.nodeConfig));
+  let { workFlowDef, flowWidgets, nodeConfig, flowPermission } = flowDef;
 
-  // 当前组件校验
+  // 流程定义检查是否合法
+  errs.push(...FlowValidate.verifyBaseInfo(workFlowDef));
+  errs.push(...FlowValidate.verifyFormInfo(flowWidgets));
+  errs.push(...FlowValidate.verifyFlowInfo(nodeConfig, flowPermission));
+
+  // 基本信息组件内部校验
   baseBox.value && baseBox.value.validate();
 
   if (errs.length > 0) {
@@ -91,10 +95,9 @@ const validate = (flowDef) => {
   }
 
   // 清除focus
-  let flowWidgets = flowDef.flowWidgets;
   flowWidgets.forEach((widget) => {
     delete widget.focus;
-    if ([9].includes(widget.type)) widget.details.forEach((i) => delete i.focus);
+    if ([WIDGET.DETAIL].includes(widget.type)) widget.details.forEach((i) => delete i.focus);
   });
   return true;
 };

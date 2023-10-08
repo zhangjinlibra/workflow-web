@@ -281,9 +281,9 @@ onBeforeMount(() => {
           .assignee-list {
             flex: 1;
             margin-left: 10px;
-            display: grid;
+            display: flex;
+            flex-wrap: wrap;
             gap: 4px;
-            grid-template-columns: repeat(auto-fill, minmax(68px, max-content));
 
             .arco-tag {
               height: 28px;
@@ -294,6 +294,7 @@ onBeforeMount(() => {
 
       .radio-group {
         padding: 10px 16px;
+        width: 100%;
 
         .arco-radio {
           margin-right: 2px;

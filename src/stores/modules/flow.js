@@ -16,16 +16,17 @@ const useFlowStore = defineStore("flow", {
     copyerConfig0: {},
     // 设置条件
     isConditionDrawerOpened: false,
-    conditionsConfig0: {
-      conditionNodes: [],
-    },
+    conditionsConfig0: { conditionNodes: [] },
+    // 设置办理人
+    isTransactorDrawerOpened: false,
+    transactorConfig0: {},
 
     // 流程分组
     flowGroups: [],
   }),
   actions: {
     setFlowDef(flowDefinition) {
-      console.log("flowDefinition", flowDefinition);
+      console.log("流程设置", flowDefinition);
       this.flowDefinition = flowDefinition;
     },
 
@@ -59,6 +60,13 @@ const useFlowStore = defineStore("flow", {
     },
     setConditionsConfig(conditionsConfig) {
       this.conditionsConfig0 = conditionsConfig;
+    },
+
+    showTransactorDrawer(isOpened) {
+      this.isTransactorDrawerOpened = isOpened;
+    },
+    setTransactorConfig(transactorConfig) {
+      this.transactorConfig0 = transactorConfig;
     },
 
     setFlowGroups(flowGroups) {

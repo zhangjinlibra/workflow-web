@@ -31,6 +31,7 @@
     <ApproverDrawer></ApproverDrawer>
     <CopyerDrawer></CopyerDrawer>
     <ConditionDrawer></ConditionDrawer>
+    <TransactDrawer></TransactDrawer>
   </div>
 </template>
 
@@ -42,6 +43,7 @@ import ApproverDrawer from "@/components/flow/drawer/ApproverDrawer.vue";
 import ConditionDrawer from "@/components/flow/drawer/ConditionDrawer.vue";
 import CopyerDrawer from "@/components/flow/drawer/CopyerDrawer.vue";
 import PromoterDrawer from "@/components/flow/drawer/PromoterDrawer.vue";
+import TransactDrawer from "@/components/flow/drawer/TransactDrawer.vue";
 import { IconPlus, IconMinus } from "@arco-design/web-vue/es/icon";
 
 let { flowDefinition, setFlowDefId } = useFlowStore();

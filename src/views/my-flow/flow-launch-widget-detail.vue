@@ -15,14 +15,14 @@
                 :allow-clear="!widget.required"
                 :placeholder="widget.placeholder" />
             </template>
-            <template v-if="widget.type == WIDGET.MULTILINE_TEXT">
+            <template v-else-if="widget.type == WIDGET.MULTILINE_TEXT">
               <a-textarea
                 v-model:model-value="formDetailVal[widget.name]"
                 :max-length="128"
                 :allow-clear="!widget.required"
                 :placeholder="widget.placeholder" />
             </template>
-            <template v-if="widget.type == WIDGET.NUMBER">
+            <template v-else-if="widget.type == WIDGET.NUMBER">
               <a-input-number
                 v-model:model-value="formDetailVal[widget.name]"
                 :max-length="15"
@@ -30,7 +30,7 @@
                 :hide-button="true"
                 :placeholder="widget.placeholder" />
             </template>
-            <template v-if="widget.type == WIDGET.MONEY">
+            <template v-else-if="widget.type == WIDGET.MONEY">
               <a-input-number
                 v-model:model-value="formDetailVal[widget.name]"
                 ::allow-clear="!widget.required"
@@ -42,12 +42,12 @@
                 <template #append> CNY-人民币元 </template>
               </a-input-number>
             </template>
-            <template v-if="widget.type == WIDGET.SINGLE_CHOICE">
+            <template v-else-if="widget.type == WIDGET.SINGLE_CHOICE">
               <a-select v-model:model-value="formDetailVal[widget.name]" :placeholder="widget.placeholder" :allow-clear="!widget.required">
                 <a-option v-for="option in widget.options" :value="option">{{ option }}</a-option>
               </a-select>
             </template>
-            <template v-if="widget.type == WIDGET.MULTI_CHOICE">
+            <template v-else-if="widget.type == WIDGET.MULTI_CHOICE">
               <a-select
                 v-model:model-value="formDetailVal[widget.name]"
                 multiple
@@ -56,7 +56,7 @@
                 <a-option v-for="option in widget.options" :value="option">{{ option }}</a-option>
               </a-select>
             </template>
-            <template v-if="widget.type == WIDGET.DATE">
+            <template v-else-if="widget.type == WIDGET.DATE">
               <a-date-picker
                 v-model:model-value="formDetailVal[widget.name]"
                 :allow-clear="!widget.required"
@@ -66,7 +66,7 @@
                 :style="{ width: '100%' }"
                 :placeholder="widget.placeholder" />
             </template>
-            <template v-if="widget.type == WIDGET.DATE_RANGE">
+            <template v-else-if="widget.type == WIDGET.DATE_RANGE">
               <a-range-picker
                 v-model:model-value="formDetailVal[widget.name]"
                 :allow-clear="!widget.required"
@@ -76,7 +76,7 @@
                 :style="{ width: '100%' }"
                 :placeholder="widget.placeholder" />
             </template>
-            <template v-if="widget.type == WIDGET.PICTURE">
+            <template v-else-if="widget.type == WIDGET.PICTURE">
               <a-upload
                 v-model:file-list="formDetailVal[widget.name]"
                 list-type="picture-card"
@@ -86,7 +86,7 @@
                 :limit="10"
                 :multiple="true" />
             </template>
-            <template v-if="widget.type == WIDGET.ATTACHMENT">
+            <template v-else-if="widget.type == WIDGET.ATTACHMENT">
               <a-upload v-model:file-list="formDetailVal[widget.name]" :action="url" :headers="headers" :limit="10" :multiple="true">
                 <template #upload-button>
                   <a-button>
@@ -112,6 +112,17 @@
                 :allow-clear="!widget.required">
                 <a-option v-for="user in allUsers || []" :value="user.id">{{ user.name }}</a-option>
               </a-select>
+            </template>
+            <template v-else-if="widget.type == WIDGET.AREA">
+              <a-cascader
+                v-model:model-value="formDetailVal[widget.name]"
+                :options="CHINA_AREA"
+                allow-search
+                path-mode
+                expand-trigger="hover"
+                :placeholder="widget.placeholder"
+                :allow-clear="!widget.required">
+              </a-cascader>
             </template>
           </a-form-item>
           <template v-else-if="widget.type == WIDGET.DESCRIBE">
@@ -144,6 +155,7 @@ import { useOrganStore } from "@/stores";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
 import { IconDelete, IconPlus, IconInfoCircle } from "@arco-design/web-vue/es/icon";
+import CHINA_AREA from "@/components/flow/common/ChinaArea";
 
 let props = defineProps({
   url: { type: String },

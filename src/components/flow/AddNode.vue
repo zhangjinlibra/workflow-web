@@ -11,16 +11,20 @@
         @popup-visible-change="onPopupStatusChange">
         <template #content>
           <div class="add-node-popover-wrap">
-            <div class="add-node-popover-item approver" @click="addType(1)">
-              <div class="node-icon"><span class="iconfont-approval-admin" v-html="icons[0]"></span></div>
+            <div class="add-node-popover-item approver" @click="addType(NODE.APPROVE)">
+              <div class="node-icon"><span class="iconfont-approval-admin" v-html="icons[NODE.APPROVE].icon"></span></div>
               <div class="node-text">审批人</div>
             </div>
-            <div class="add-node-popover-item notifier" @click="addType(2)">
-              <div class="node-icon"><span class="iconfont-approval-admin" v-html="icons[1]"></span></div>
+            <div class="add-node-popover-item copyer" @click="addType(NODE.COPY)">
+              <div class="node-icon"><span class="iconfont-approval-admin" v-html="icons[NODE.COPY].icon"></span></div>
               <div class="node-text">抄送人</div>
             </div>
-            <div class="add-node-popover-item condition" @click="addType(4)">
-              <div class="node-icon"><span class="iconfont-approval-admin" v-html="icons[2]"></span></div>
+            <div class="add-node-popover-item transactor" @click="addType(NODE.TRANSACT)">
+              <div class="node-icon"><span class="iconfont-approval-admin" v-html="icons[NODE.TRANSACT].icon"></span></div>
+              <div class="node-text">办理人</div>
+            </div>
+            <div class="add-node-popover-item condition" @click="addType(NODE.EXCLUSIVE_GATEWANY)">
+              <div class="node-icon"><span class="iconfont-approval-admin" v-html="icons[NODE.EXCLUSIVE_GATEWANY].icon"></span></div>
               <div class="node-text">条件分支</div>
             </div>
           </div>
@@ -32,11 +36,12 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, reactive, computed } from "vue";
 import Snowflake from "./common/Snowflake";
 import { IconPlus } from "@arco-design/web-vue/es/icon";
+import { NODE } from "./common/FlowConstant";
+import { useFlowStore } from "@/stores/index";
 
-let icons = ref(["&#xe658", "&#xe656", "&#xe63f"]);
 let emits = defineEmits(["update:childNodeP"]);
 let visible = ref(false);
 let uid = ref(Snowflake.generate()); //当前组件的id
@@ -47,31 +52,57 @@ let props = defineProps({
   },
 });
 
+// 节点图标
+let icons = reactive({});
+icons[NODE.APPROVE] = { icon: "&#xe658" };
+icons[NODE.COPY] = { icon: "&#xe656" };
+icons[NODE.EXCLUSIVE_GATEWANY] = { icon: "&#xe63f" };
+icons[NODE.TRANSACT] = { icon: "&#xe6cd" };
+
+// 流程定义
+let flowStore = useFlowStore();
+let workFlowDef = computed(() => flowStore.flowDefinition.workFlowDef);
+
 const onPopupStatusChange = (is) => {
   visible.value = is;
 };
 
 const addType = (type) => {
   visible.value = false;
-  if (type != 4) {
+  if (type != NODE.EXCLUSIVE_GATEWANY) {
     var newNode;
-    if (type == 1) {
+    if (type == NODE.APPROVE) {
       console.log("增加审核人节点", props.childNodeP);
       newNode = {
-        name: "审核人",
-        type: 1,
+        name: "审核",
+        type: NODE.APPROVE,
         approvalType: 0,
         multiInstanceApprovalType: 0,
         flowNodeNoAuditorType: 0,
         flowNodeSelfAuditorType: 0,
-        assignees: [{ rid: Snowflake.generate(), assigneeType: 0, layerType: 0 }], // 审核人
+        assignees: [{ rid: Snowflake.generate(), assigneeType: 0 }], // 审核人
+        assignable: true, // 可转交
+        signable: true, // 可变签
+        backable: true, // 可回退
         childNode: props.childNodeP,
       };
-    } else if (type == 2) {
+    } else if (type == NODE.COPY) {
       newNode = {
-        name: "抄送人",
-        type: 2,
-        ccs: [{ rid: Snowflake.generate(), ccType: 0, layerType: 0 }], // 抄送人
+        name: "抄送",
+        type: NODE.COPY,
+        ccs: [{ rid: Snowflake.generate(), ccType: 0 }], // 抄送人
+        childNode: props.childNodeP,
+      };
+    } else if (type == NODE.TRANSACT) {
+      newNode = {
+        name: "办理",
+        type: NODE.TRANSACT,
+        approvalType: 0,
+        multiInstanceApprovalType: 0,
+        flowNodeNoAuditorType: 2,
+        flowNodeAuditAdmin: workFlowDef.value.flowAdminIds[0],
+        transactors: [{ rid: Snowflake.generate(), transactorType: 0 }], // 办理人
+        assignable: true, // 可转交
         childNode: props.childNodeP,
       };
     }
@@ -80,11 +111,11 @@ const addType = (type) => {
     console.log("增加路由节点", props.childNodeP);
     let newNode = {
       name: "路由",
-      type: 4,
+      type: NODE.EXCLUSIVE_GATEWANY,
       childNode: null,
       conditionNodes: [
-        { name: "条件1", type: 3, priorityLevel: 1, conditionGroups: [], childNode: props.childNodeP },
-        { name: "条件2", type: 3, priorityLevel: 2, conditionGroups: [], childNode: null },
+        { name: "条件1", type: NODE.CONDITION, priorityLevel: 1, conditionGroups: [], childNode: props.childNodeP },
+        { name: "条件2", type: NODE.CONDITION, priorityLevel: 2, conditionGroups: [], childNode: null },
       ],
     };
     emits("update:childNodeP", newNode);
@@ -220,7 +251,7 @@ const addType = (type) => {
       }
     }
 
-    .notifier {
+    .copyer {
       .iconfont-approval-admin {
         color: #3296fa;
       }
@@ -229,6 +260,12 @@ const addType = (type) => {
     .condition {
       .iconfont-approval-admin {
         color: #2eb795;
+      }
+    }
+
+    .transactor {
+      .iconfont-approval-admin {
+        color: #926bd5;
       }
     }
   }

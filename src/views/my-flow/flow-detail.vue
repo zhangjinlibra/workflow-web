@@ -53,6 +53,7 @@
                   WIDGET.DATE_RANGE,
                   WIDGET.DEPARTMENT,
                   WIDGET.EMPLOYEE,
+                  WIDGET.AREA,
                 ].includes(formWidget.type)
               ">
               <div
@@ -95,6 +96,11 @@
                 <div class="label">{{ formWidget.label }}</div>
                 <div class="value">{{ getUserById(formValue[formWidget.name]).name }}</div>
               </div>
+              <!-- 省市区 -->
+              <div v-else-if="[WIDGET.AREA].includes(formWidget.type)" class="form-item">
+                <div class="label">{{ formWidget.label }}</div>
+                <div class="value">{{ (formValue[formWidget.name] || []).join(" / ") }}</div>
+              </div>
             </template>
             <!-- 图片 -->
             <template v-else-if="[WIDGET.PICTURE].includes(formWidget.type)">
@@ -115,9 +121,9 @@
                 <div class="value">
                   <div class="attachment-box">
                     <div class="attachment-item" v-for="attachment in formValue[formWidget.name]">
-                      <a class="link" :href="attachment ? `${FILE_BASE_URL}/download?id=${attachment.id}` : 'javascript:void(0)'">
+                      <div class="link" @click="onAttachmentDownload(attachment, $event)">
                         {{ attachment ? attachment.name : "" }}
-                      </a>
+                      </div>
                       <div class="action"></div>
                     </div>
                   </div>
@@ -181,12 +187,16 @@
                         <template v-else-if="[WIDGET.ATTACHMENT].includes(subWidget.type)">
                           <template v-for="attachment in record[subWidget.name]">
                             <div class="attachment-item">
-                              <a class="link" :href="attachment ? `${FILE_BASE_URL}/download?id=${attachment.id}` : 'javascript:void(0)'">
+                              <div class="link" @click="onAttachmentDownload(attachment, $event)">
                                 {{ attachment ? attachment.name : "" }}
-                              </a>
+                              </div>
                               <div class="action"></div>
                             </div>
                           </template>
+                        </template>
+                        <!-- 省市区 -->
+                        <template v-else-if="[WIDGET.AREA].includes(subWidget.type)">
+                          {{ (record[subWidget.name] || []).join(" / ") }}
                         </template>
                       </template>
                     </a-table-column>
@@ -210,7 +220,12 @@
                   <!-- <IconCheck class="node-dot" :style="{ backgroundColor: '#e8f3ff' }" /> -->
                   <div class="assignee-container">
                     <template v-if="node.underway">
-                      <a-avatar :size="36" style="background: #1989fa"><icon-stamp :size="24" /></a-avatar>
+                      <template v-if="node.type == NODE.APPROVE">
+                        <a-avatar :size="36" style="background: #1989fa"><icon-stamp :size="24" /></a-avatar>
+                      </template>
+                      <template v-else-if="node.type == NODE.TRANSACT">
+                        <a-avatar :size="36" style="background: #926bd5"><icon-pen-fill :size="24" /></a-avatar>
+                      </template>
                       <div class="badge"><svg-icon icon-class="underway" color="#2a5eff" /></div>
                     </template>
                     <template v-else-if="[CMD.COPY].includes(node.flowCmd)">
@@ -266,14 +281,26 @@
                       <template v-else-if="node.flowCmd == CMD.DEL_SIGN">减签</template>
                       <template v-else-if="node.flowCmd == CMD.COPY">抄送</template>
                       <template v-else-if="node.flowCmd == CMD.COMMENT">评论</template>
-                      <template v-else-if="node.underway"><div class="in-approval">审批中...</div></template>
+                      <template v-else-if="node.flowCmd == CMD.TRANSACT">办理</template>
+                      <template v-else-if="node.underway">
+                        <div class="in-approval">
+                          <template v-if="node.type == NODE.APPROVE">审批中...</template>
+                          <template v-else-if="node.type == NODE.TRANSACT">办理中...</template>
+                        </div>
+                      </template>
                     </div>
                     <!-- 审批人姓名 -->
                     <div class="auditor-name">
                       <template v-if="node.underway">
                         <div class="node-sign-type">
-                          <template v-if="node.multiInstanceApprovalType == 1">需所有人审批同意</template>
-                          <template v-if="node.multiInstanceApprovalType == 2">只需一人审批同意</template>
+                          <template v-if="node.multiInstanceApprovalType == 2">
+                            <template v-if="node.type == NODE.APPROVE">只需一人审批同意</template>
+                            <template v-if="node.type == NODE.TRANSACT">只需一人办理同意</template>
+                          </template>
+                          <template v-else-if="node.userIds.length + node.roleIds.length > 1">
+                            <template v-if="node.type == NODE.APPROVE">需所有人审批同意</template>
+                            <template v-if="node.type == NODE.TRANSACT">需所有人办理同意</template>
+                          </template>
                         </div>
                         <div class="node-assignee">
                           <flow-node-avatar v-for="userId in node.userIds" :size="20" :id="userId" class="assignee-item" />
@@ -315,9 +342,9 @@
                         <div class="comment-attachment-item" v-for="attachment in node.files">
                           <div class="name"><icon-drive-file :size="16" /> {{ attachment ? attachment.name : "" }}</div>
                           <div class="download-icon">
-                            <a :href="attachment ? `${FILE_BASE_URL}/download?id=${attachment.id}` : 'javascript:void(0)'">
+                            <div class="link" @click.prevent.stop="onAttachmentDownload(attachment, $event)">
                               <icon-download :size="16" />
-                            </a>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -347,42 +374,54 @@
         </a-button>
 
         <template v-if="!finished && action">
-          <a-button type="primary" @click="onApproved()">
-            <template #icon><icon-check /></template> 同意
-          </a-button>
-          <a-button type="primary" status="danger" @click="onRejected()">
-            <template #icon><icon-close /></template> 拒绝
+          <template v-if="flowInst.nodeType == NODE.APPROVE">
+            <a-button type="primary" @click="onApproved()">
+              <template #icon><icon-check /></template> 同意
+            </a-button>
+            <a-button type="primary" status="danger" @click="onRejected()">
+              <template #icon><icon-close /></template> 拒绝
+            </a-button>
+          </template>
+          <template v-else-if="flowInst.nodeType == NODE.TRANSACT">
+            <a-button type="primary" @click="onTransacted()">
+              <template #icon><icon-check /></template> 提交
+            </a-button>
+          </template>
+        </template>
+
+        <template v-if="!finished && flowInst.cancelable && cancelable">
+          <a-button @click="onCanceled()">
+            <template #icon><icon-undo /></template> 撤销
           </a-button>
         </template>
 
-        <a-dropdown :popup-max-height="false" v-if="!finished && (action || (flowInst.cancelable && cancelable))" class="flow-actions-box">
+        <a-dropdown
+          :popup-max-height="false"
+          v-if="
+            !finished &&
+            action &&
+            (flowInst.assignable || flowInst.backable || (flowInst.signable && [NODE_SIGN.NONE].includes(flowInst.nodeSignType)))
+          "
+          class="flow-actions-box">
           <a-button>
             <template #icon><icon-down /></template> 更多
           </a-button>
           <template #content>
-            <a-doption @click="onAssigned()" v-if="action">
+            <a-doption @click="onAssigned()" v-if="flowInst.assignable">
               <template #icon><icon-swap /></template>
               <template #default><div class="action-name">转交</div></template>
             </a-doption>
-            <a-doption @click="onJumped()" v-if="action">
+            <a-doption @click="onJumped()" v-if="flowInst.backable">
               <template #icon><icon-backward /></template>
               <template #default><div class="action-name">回退</div></template>
             </a-doption>
-            <a-doption
-              @click="onAddSigned()"
-              v-if="action && ![NODE_SIGN.ADD_BEFORE_SIGN, NODE_SIGN.ADD_AFTER_SIGN, NODE_SIGN.ADD_SIGN].includes(flowInst.nodeSignType)">
+            <a-doption @click="onAddSigned()" v-if="flowInst.signable && [NODE_SIGN.NONE].includes(flowInst.nodeSignType)">
               <template #icon><icon-user-add /></template>
               <template #default><div class="action-name">加签</div></template>
             </a-doption>
-            <a-doption
-              @click="onDelSigned()"
-              v-if="action && ![NODE_SIGN.ADD_BEFORE_SIGN, NODE_SIGN.ADD_AFTER_SIGN, NODE_SIGN.ADD_SIGN].includes(flowInst.nodeSignType)">
+            <a-doption @click="onDelSigned()" v-if="flowInst.signable && [NODE_SIGN.NONE].includes(flowInst.nodeSignType)">
               <template #icon><svg-icon icon-class="delete-user" /></template>
               <template #default><div class="action-name">减签</div></template>
-            </a-doption>
-            <a-doption @click="onCanceled()" v-if="flowInst.cancelable && cancelable">
-              <template #icon><icon-undo /></template>
-              <template #default><div class="action-name">撤销</div></template>
             </a-doption>
           </template>
         </a-dropdown>
@@ -390,7 +429,7 @@
     </template>
 
     <!-- 处理流程的弹窗 -->
-    <a-modal v-model:visible="showHandleModal" @ok="onHandleModelOK" @cancel="onHandleModelCancel" draggable>
+    <a-modal :visible="showHandleModal" @ok="onHandleModelOK" @cancel="onHandleModelCancel" draggable>
       <template #title> {{ handleModalTitle }} </template>
       <div class="flow-exe-box">
         <a-form :model="handleModalForm" layout="vertical">
@@ -408,16 +447,25 @@
               field="flowCmd"
               label="加签方式"
               :required="[CMD.ADD_BEFORE_SIGN, CMD.ADD_AFTER_SIGN, CMD.ADD_SIGN].includes(handleModalForm.flowCmd)">
-              <a-radio-group v-model:model-value="handleModalForm.flowCmd">
-                <a-tooltip content="在当前节点之前增加一个审批节点，当新增的节点同意后，再流转至当前节点。" mini>
-                  <a-radio :value="CMD.ADD_BEFORE_SIGN">前加签</a-radio>
-                </a-tooltip>
-                <a-tooltip content="在当前节点同步增加其他审批人。" mini>
-                  <a-radio :value="CMD.ADD_SIGN">并加签</a-radio>
-                </a-tooltip>
-                <a-tooltip content="在当前节点之后增加一个审批节点，当前节点会默认同意，并流转至新增的节点。" mini>
-                  <a-radio :value="CMD.ADD_AFTER_SIGN">后加签</a-radio>
-                </a-tooltip>
+              <a-radio-group v-model:model-value="handleModalForm.flowCmd" class="modify-sign-group">
+                <a-radio :value="CMD.ADD_BEFORE_SIGN">
+                  前加签
+                  <a-tooltip content="在当前节点之前增加一个审批节点，当新增的节点同意后，再流转至当前节点。" mini>
+                    <icon-question-circle class="modify-sign-tip" />
+                  </a-tooltip>
+                </a-radio>
+                <a-radio :value="CMD.ADD_SIGN">
+                  并加签
+                  <a-tooltip content="在当前节点同步增加其他审批人。" mini>
+                    <icon-question-circle class="modify-sign-tip" />
+                  </a-tooltip>
+                </a-radio>
+                <a-radio :value="CMD.ADD_AFTER_SIGN">
+                  后加签
+                  <a-tooltip content="在当前节点之后增加一个审批节点，当前节点会默认同意，并流转至新增的节点。" mini>
+                    <icon-question-circle class="modify-sign-tip" />
+                  </a-tooltip>
+                </a-radio>
               </a-radio-group>
             </a-form-item>
 
@@ -450,10 +498,13 @@
             </a-form-item>
           </template>
 
-          <a-form-item field="comment" :label="[CMD.COMMENT].includes(handleModalForm.flowCmd) ? '评论' : '原由'">
+          <a-form-item
+            field="comment"
+            :label="handleModelCommentLabel(handleModalForm.flowCmd)"
+            :required="handleModalForm.flowCmd == CMD.COMMENT">
             <a-textarea
               v-model:model-value="handleModalForm.comment"
-              :placeholder="`请输入${[CMD.COMMENT].includes(handleModalForm.flowCmd) ? '评论' : '原由'}`"
+              :placeholder="`请输入${handleModelCommentLabel(handleModalForm.flowCmd)}`"
               allow-clear
               :max-length="64"
               show-word-limit />
@@ -475,43 +526,6 @@
             </a-upload>
           </a-form-item>
         </a-form>
-
-        <!-- <div class="flow-exe-item" v-if="handleModalForm.flowCmd == CMD.ASSIGN">
-          <div class="label">转交给</div>
-          <a-select v-model:model-value="handleModalForm.assignee" allow-clear allow-search placeholder="请选择转交人员">
-            <a-option v-for="user in users" :value="user.id" :label="user.name" />
-          </a-select>
-        </div>
-        <div class="flow-exe-item" v-if="[CMD.ADD_BEFORE_SIGN, CMD.ADD_AFTER_SIGN, CMD.ADD_SIGN].includes(handleModalForm.flowCmd)">
-          <div class="label">加签类型</div>
-          <a-radio-group v-model:model-value="handleModalForm.flowCmd">
-            <a-radio :value="CMD.ADD_BEFORE_SIGN">前加签</a-radio>
-            <a-radio :value="CMD.ADD_SIGN">并加签</a-radio>
-            <a-radio :value="CMD.ADD_AFTER_SIGN">后加签</a-radio>
-          </a-radio-group>
-        </div>
-        <div class="flow-exe-item" v-if="[CMD.ADD_BEFORE_SIGN, CMD.ADD_AFTER_SIGN, CMD.ADD_SIGN].includes(handleModalForm.flowCmd)">
-          <div class="label">给谁加签</div>
-          <a-select v-model:model-value="handleModalForm.userId" allow-clear allow-search placeholder="请选择加签人员">
-            <a-option v-for="user in users" :value="user.id" :label="user.name" />
-          </a-select>
-        </div>
-        <div class="flow-exe-item" v-if="handleModalForm.flowCmd == CMD.DEL_SIGN">
-          <div class="label">给谁减签</div>
-          <a-select v-model:model-value="handleModalForm.userId" allow-clear allow-search placeholder="请选择减签人员">
-            <a-option v-for="user in users.filter((i) => deleteableUserIds.includes(i.id))" :value="user.id" :label="user.name" />
-          </a-select>
-        </div>
-        <div class="flow-exe-item" v-if="handleModalForm.flowCmd == CMD.BACK">
-          <div class="label">回退到</div>
-          <a-select v-model:model-value="handleModalForm.flowNodeId" allow-clear allow-search placeholder="请选择回退节点">
-            <a-option v-for="node in jumpableNodes" :value="node.id" :label="node.name" />
-          </a-select>
-        </div>
-        <div class="flow-exe-item">
-          <div class="label">原因</div>
-          <a-textarea v-model:model-value="handleModalForm.comment" placeholder="请输入原因" allow-clear :max-length="32" show-word-limit />
-        </div> -->
       </div>
     </a-modal>
   </section>
@@ -523,7 +537,7 @@ import { useOrganStore } from "@/stores";
 import { getToken } from "@/utils/auth";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
 import ArrayUtil from "@/components/flow/common/ArrayUtil";
-import { CMD, STATUS, STATUS_LIST, WIDGET, NODE_SIGN } from "@/components/flow/common/FlowConstant";
+import { CMD, STATUS, STATUS_LIST, WIDGET, NODE_SIGN, NODE } from "@/components/flow/common/FlowConstant";
 import FlowApi from "@/api/FlowApi";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
@@ -547,6 +561,8 @@ import {
   IconAttachment,
   IconDriveFile,
   IconDownload,
+  IconPenFill,
+  IconQuestionCircle,
 } from "@arco-design/web-vue/es/icon";
 
 let organStore = useOrganStore();
@@ -555,8 +571,8 @@ let users = computed(() => organStore.users);
 
 let props = defineProps({
   flowInst: { type: Object, default: () => {} },
-  action: { type: Boolean, default: false },
-  cancelable: { type: Boolean, default: false },
+  action: { type: Boolean, default: false }, // 流程除去评论,撤销的其他按钮
+  cancelable: { type: Boolean, default: false }, // 撤销按钮
 });
 let emits = defineEmits(["onRemove", "update:flowInst"]);
 
@@ -635,16 +651,14 @@ let currentImageIdx = ref(0);
 let imageList = ref([]);
 const onImgPreview = (idx, idList) => {
   currentImageIdx.value = idx || 0;
-  imageList = (idList || []).map((id) => {
-    return `${FILE_BASE_URL}/download?id=${id}`;
-  });
-  console.log("imageList", imageList);
+  imageList = (idList || []).map((id) => `${FILE_BASE_URL}/download?id=${id}`);
   imagePreviewVisible.value = true;
 };
 
 // 附件下载
-const onAttachmentDownload = (attachment) => {
-  window.open(FILE_BASE_URL + "/download?id=" + attachment.id);
+const onAttachmentDownload = (attachment, evt) => {
+  evt.stopPropagation();
+  window.open(FILE_BASE_URL + "/download?id=" + attachment.id, "_blank");
 };
 
 // 打印相关
@@ -670,6 +684,28 @@ const onHandleModelCancel = () => {
     assignee: null, //指派人
     comment: null, //备注
   };
+};
+
+// 处理流程弹窗表单评论label
+const handleModelCommentLabel = (cmd) => {
+  switch (cmd) {
+    case CMD.APPROVED:
+    case CMD.REJECTED:
+    case CMD.ASSIGN:
+    case CMD.ADD_BEFORE_SIGN:
+    case CMD.ADD_AFTER_SIGN:
+    case CMD.ADD_SIGN:
+    case CMD.DEL_SIGN:
+      return "审批意见";
+    case CMD.CANCELED:
+      return "撤回理由";
+    case CMD.BACK:
+      return "回退原因";
+    case CMD.COMMENT:
+      return "评论";
+    case CMD.TRANSACT:
+      return "办理意见";
+  }
 };
 
 const onHandleModelOK = () => {
@@ -710,14 +746,18 @@ const onHandleModelOK = () => {
     case CMD.ASSIGN:
       req = FlowApi.assign(handleModalFormValue);
       break;
+    case CMD.TRANSACT:
+      req = FlowApi.transact(handleModalFormValue);
+      break;
   }
   req.then((resp) => {
     if (resp.code == 1) {
+      onHandleModelCancel();
       if (cmd == CMD.CANCELED) {
         props.flowInst.status = STATUS.CANCELLED;
         emits("update:flowInst", props.flowInst);
       }
-      if ([CMD.ASSIGN, CMD.BACK, CMD.ADD_BEFORE_SIGN, CMD.ADD_AFTER_SIGN, CMD.APPROVED, CMD.REJECTED].includes(cmd)) {
+      if ([CMD.ASSIGN, CMD.BACK, CMD.ADD_BEFORE_SIGN, CMD.ADD_AFTER_SIGN, CMD.APPROVED, CMD.REJECTED, CMD.TRANSACT].includes(cmd)) {
         emits("onRemove");
       } else {
         loadFlowDetail();
@@ -742,6 +782,11 @@ const onApproved = () => {
 const onRejected = () => {
   handleModalTitle.value = "拒绝审批";
   handleModalForm.value = initModalForm(CMD.REJECTED);
+  showHandleModal.value = true;
+};
+const onTransacted = () => {
+  handleModalTitle.value = "审批办理";
+  handleModalForm.value = initModalForm(CMD.TRANSACT);
   showHandleModal.value = true;
 };
 const onCanceled = () => {
@@ -912,6 +957,16 @@ onMounted(() => {
       .detail-value {
         display: block;
       }
+
+      .link {
+        color: #1d2129;
+        text-decoration: none;
+        cursor: pointer;
+        &:hover {
+          color: #165cfd;
+          text-decoration: underline;
+        }
+      }
     }
 
     .img-preview {
@@ -944,16 +999,6 @@ onMounted(() => {
 
         + .attachment-item {
           margin-top: 4px;
-        }
-
-        a {
-          color: #1d2129;
-          text-decoration: none;
-
-          &:hover {
-            color: #165cfd;
-            text-decoration: underline;
-          }
         }
       }
     }
@@ -1068,10 +1113,10 @@ onMounted(() => {
         }
 
         .comment-attachment {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, max-content));
           gap: 10px;
           margin: 4px 0;
+          display: flex;
+          flex-wrap: wrap;
 
           .comment-attachment-item {
             border-radius: 4px;
@@ -1080,6 +1125,7 @@ onMounted(() => {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 10px;
 
             .name {
               display: flex;
@@ -1090,11 +1136,8 @@ onMounted(() => {
             .download-icon {
               display: flex;
               align-items: center;
-              margin-left: 10px;
-
-              a {
-                display: inline-flex;
-              }
+              cursor: pointer;
+              color: #165cfd;
 
               &:hover {
                 opacity: 0.7;
@@ -1171,11 +1214,13 @@ onMounted(() => {
 }
 
 .flow-exe-box {
-  .flow-exe-item {
-    .label {
-      font-size: 14px;
-      color: var(--color-text-2);
-      margin-bottom: 4px;
+  .modify-sign-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    width: 100%;
+
+    .modify-sign-tip {
+      color: var(--color-text-4);
     }
   }
 

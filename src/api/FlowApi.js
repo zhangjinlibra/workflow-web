@@ -72,6 +72,14 @@ function reject(data) {
   });
 }
 
+function transact(data) {
+  return request({
+    url: "/flowinstance/transact",
+    method: "post",
+    data,
+  });
+}
+
 function assign(data) {
   return request({
     url: "/flowinstance/assign",
@@ -159,6 +167,7 @@ export default {
   getDetail,
   approve,
   reject,
+  transact,
   assign,
   listMineFlowInsts,
   listMineFlowInstCcs,

@@ -6,64 +6,64 @@
     :visible="visible"
     :closable="false"
     @cancel="close()"
-    @ok="saveApprover()"
+    @ok="saveTransactor()"
     ok-text="保存">
     <template #title>
       <EditableText :value="flowNodeConfig.name" @change="(v) => (flowNodeConfig.name = v)" />
     </template>
 
-    <div class="approver-drawer__content">
-      <!-- 节点审批类型 -->
-      <div class="approval-editor-node-type-wrapper">
-        <div class="item-key-wrapper">
-          <div class="item-key">审批类型</div>
-        </div>
-        <div class="item-content">
-          <a-radio-group v-model="flowNodeConfig.approvalType">
-            <a-radio :value="0">人工审批</a-radio>
-            <a-radio :value="1">自动通过</a-radio>
-            <a-radio :value="2">自动拒绝</a-radio>
-          </a-radio-group>
+    <div class="transact-drawer__content">
+      <!-- 办理人设置 -->
+      <div class="transact-setting-tip-wrapper">
+        <div class="content-wrap">
+          <div class="item-content">
+            <div class="item-wrap tip">
+              <div class="item-key-wrapper">
+                <p class="item-key">办理人设置</p>
+              </div>
+              <div class="more-info">
+                <p>当流程中某个节点不需要审批，但需要对审批单进行业务办理时，可设置办理人节点，场景如财务打款、处理盖章等。</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- 审批人选择界面 -->
-      <div class="approval-editor-tab-wrapper" v-if="flowNodeConfig.approvalType == 0">
+      <!-- 办理人选择界面 -->
+      <div class="transact-editor-tab-wrapper" v-if="flowNodeConfig.approvalType == 0">
         <a-radio-group type="button" v-model="viewEditorType" size="large">
-          <a-radio :value="0">设置审批人</a-radio>
+          <a-radio :value="0">设置办理人</a-radio>
           <!-- <a-radio value="right">表单权限</a-radio> -->
           <a-radio :value="1">操作权限</a-radio>
         </a-radio-group>
 
-        <!-- 设置审批人 -->
+        <!-- 设置办理人 -->
         <div class="item-content-editor" v-if="viewEditorType == 0">
           <div class="content-wrap">
             <div class="item-content">
-              <!-- 审批人列表 -->
+              <!-- 办理人列表 -->
               <div class="item-wrap approver">
-                <div class="approver-list">
-                  <div class="approver-wrapper" v-for="(item, idx) in flowNodeConfig.assignees">
+                <div class="transactor-list">
+                  <div class="transactor-wrapper" v-for="(item, idx) in flowNodeConfig.transactors">
                     <div class="header">
-                      <span>审批人{{ idx + 1 }}</span>
-                      <icon-delete :style="{ fontSize: '18px' }" @click="delApprover(item)" v-if="flowNodeConfig.assignees.length > 1" />
+                      <span>办理人{{ idx + 1 }}</span>
+                      <icon-delete :style="{ fontSize: '18px' }" @click="delTransactor(item)" v-if="flowNodeConfig.transactors.length > 1" />
                     </div>
                     <div class="main-content">
-                      <a-radio-group class="radio-group" v-model="item.assigneeType" @change="onAssigneeTypeChanged(item)">
+                      <a-radio-group class="radio-group" v-model="item.transactorType" @change="onTransactorTypeChanged(item)">
                         <a-grid :cols="3" :colGap="0" :rowGap="10">
-                          <a-grid-item><a-radio :value="0">发起人本人</a-radio></a-grid-item>
-                          <a-grid-item><a-radio :value="1">上级</a-radio></a-grid-item>
-                          <a-grid-item><a-radio :value="2">部门负责人</a-radio></a-grid-item>
-                          <a-grid-item><a-radio :value="3">角色</a-radio></a-grid-item>
-                          <a-grid-item><a-radio :value="4">指定成员</a-radio></a-grid-item>
-                          <a-grid-item><a-radio :value="5" :disabled="haveMultiNode">连续多级上级</a-radio></a-grid-item>
-                          <a-grid-item><a-radio :value="6" :disabled="haveMultiNode">连续多级部门负责人</a-radio></a-grid-item>
-                          <a-grid-item><a-radio :value="7" :disabled="haveMultiNode">发起人自选</a-radio></a-grid-item>
+                          <a-grid-item><a-radio :value="ASSIGNEE.SELF">发起人本人</a-radio></a-grid-item>
+                          <a-grid-item><a-radio :value="ASSIGNEE.SUPERIOR">上级</a-radio></a-grid-item>
+                          <a-grid-item><a-radio :value="ASSIGNEE.DEPARTMENT_LEADER">部门负责人</a-radio></a-grid-item>
+                          <a-grid-item><a-radio :value="ASSIGNEE.ROLE">角色</a-radio></a-grid-item>
+                          <a-grid-item><a-radio :value="ASSIGNEE.ASSIGNEE">指定成员</a-radio></a-grid-item>
+                          <a-grid-item><a-radio :value="ASSIGNEE.INITIATOR_CHOICE" :disabled="haveMultiNode">发起人自选</a-radio></a-grid-item>
                         </a-grid>
                       </a-radio-group>
                     </div>
-                    <div class="sub-content" v-if="![0, 7].includes(item.assigneeType)">
+                    <div class="sub-content" v-if="![ASSIGNEE.SELF, ASSIGNEE.INITIATOR_CHOICE].includes(item.transactorType)">
                       <div class="sub-content-top-line"></div>
-                      <template v-if="item.assigneeType == 1">
+                      <template v-if="item.transactorType == ASSIGNEE.SUPERIOR">
                         <p class="bold">请选择上级</p>
                         <a-form-item label="发起人的">
                           <a-select placeholder="请选择上级" v-model="item.layer">
@@ -82,7 +82,7 @@
                           </a-select>
                         </a-form-item>
                       </template>
-                      <template v-else-if="item.assigneeType == 2">
+                      <template v-else-if="item.transactorType == ASSIGNEE.DEPARTMENT_LEADER">
                         <p class="bold">请选择部门负责人</p>
                         <a-form-item label="发起人的">
                           <a-select placeholder="请选择部门负责人" v-model="item.layer">
@@ -103,7 +103,7 @@
                           </a-select>
                         </a-form-item>
                       </template>
-                      <template v-else-if="item.assigneeType == 3">
+                      <template v-else-if="item.transactorType == ASSIGNEE.ROLE">
                         <p class="bold">选择角色</p>
                         <a-form-item tooltip="请选择角色" label="提交人部门由该角色管理">
                           <a-select multiple placeholder="请选择角色" v-model="item.roles">
@@ -111,7 +111,7 @@
                           </a-select>
                         </a-form-item>
                       </template>
-                      <template v-else-if="item.assigneeType == 4">
+                      <template v-else-if="item.transactorType == ASSIGNEE.ASSIGNEE">
                         <p class="bold">添加成员<span>（不能超过 25 人）</span></p>
                         <div class="assignee-box">
                           <a-button size="small" @click="onAssigneeClick(item)"><icon-plus /></a-button>
@@ -119,61 +119,21 @@
                             <a-tag v-for="userId in item.assignees">{{ getUserById(userId).name }}</a-tag>
                           </span>
                           <OrganChooseBox
-                            v-if="showChooseAssignee"
-                            v-model:visible="showChooseAssignee"
+                            v-if="showChooseTransactor"
+                            v-model:visible="showChooseTransactor"
                             v-model:selected="selectedAssignee.assignees"
                             :hidden-dept="true"
                             :hidden-role="true" />
                         </div>
                       </template>
-                      <template v-else-if="item.assigneeType == 5">
-                        <p class="bold">审批终点</p>
-                        <a-form-item label="发起人的">
-                          <a-select placeholder="请选择上级" v-model="item.layer">
-                            <template #header>
-                              <div class="switch-container">
-                                <div class="select-tip">从直属上级向上选择</div>
-                                <a-link @click="switchLayerType(item)">
-                                  <template #icon><icon-swap /></template>{{ item.layerType == 0 ? "切为最高上级向下" : "切为直属上级向上" }}
-                                </a-link>
-                              </div>
-                            </template>
-                            <a-option v-for="i in 20" :value="i - 1">
-                              <template v-if="item.layerType == 0">{{ i == 1 ? "直属上级" : "直属上级加 " + (i - 1) + " 级" }}</template>
-                              <template v-else>{{ i == 1 ? "最高上级" : "最高上级减 " + (i - 1) + " 级" }}</template>
-                            </a-option>
-                          </a-select>
-                        </a-form-item>
-                      </template>
-                      <template v-else-if="item.assigneeType == 6">
-                        <p class="bold">审批终点</p>
-                        <a-form-item label="发起人的">
-                          <a-select placeholder="请选择部门负责人" v-model="item.layer">
-                            <template #header>
-                              <div class="switch-container">
-                                <div class="select-tip">从直属部门负责人向上选择</div>
-                                <a-link @click="switchLayerType(item)">
-                                  <template #icon><icon-swap /></template>{{ item.layerType == 0 ? "切为最高部门向下" : "切为直属部门向上" }}
-                                </a-link>
-                              </div>
-                            </template>
-                            <a-option v-for="i in 20" :value="i - 1">
-                              <template v-if="item.layerType == 0">
-                                {{ i == 1 ? "直属部门负责人" : "直属部门负责人加 " + (i - 1) + " 级" }}
-                              </template>
-                              <template v-else>{{ i == 1 ? "最高部门负责人" : "最高部门负责人减 " + (i - 1) + " 级" }}</template>
-                            </a-option>
-                          </a-select>
-                        </a-form-item>
-                      </template>
                     </div>
                   </div>
                 </div>
 
-                <!-- 添加审核人按钮 -->
+                <!-- 添加办理人按钮 -->
                 <div class="add-operator">
-                  <a-link @click="addApprover()" v-if="!onlyOneNode">
-                    <template #icon><icon-plus /></template>添加审批人
+                  <a-link @click="addTransactor()" v-if="!onlyOneNode">
+                    <template #icon><icon-plus /></template>添加办理人
                   </a-link>
                 </div>
               </div>
@@ -181,26 +141,25 @@
               <!-- 会签、或签、序签 -->
               <div class="item-wrap sign-type" v-if="haveMultiNode || isInitiatorChoiceOrRoleOrAssignee">
                 <div class="item-key-wrapper">
-                  <div class="item-key">多人审批时采用的审批方式</div>
+                  <div class="item-key">多人办理时采用的处理方式</div>
                 </div>
                 <div class="item-content">
                   <a-radio-group direction="vertical" v-model="flowNodeConfig.multiInstanceApprovalType">
-                    <a-radio :value="1">会签（需所有审批人同意）</a-radio>
-                    <a-radio :value="2">或签（一名审批人同意即可）</a-radio>
-                    <a-radio :value="3" v-if="isSameAssigneeType">依次审批（按顺序依次审批）</a-radio>
+                    <a-radio :value="1">会签（需所有办理人同意）</a-radio>
+                    <a-radio :value="2">或签（一名办理人同意即可）</a-radio>
+                    <a-radio :value="3" v-if="isSameTransactorType">依次办理（按顺序依次办理）</a-radio>
                   </a-radio-group>
                 </div>
               </div>
 
-              <!-- 审批人为空时 -->
+              <!-- 办理人为空时 -->
               <div class="item-wrap approver-null">
                 <div class="item-key-wrapper">
-                  <div class="item-key">审批人为空时</div>
+                  <div class="item-key">办理人为空时</div>
                 </div>
                 <div class="item-content">
-                  <a-radio-group v-model="flowNodeConfig.flowNodeNoAuditorType" @change="onNoAuditorTypeChanged">
-                    <a-radio :value="0">自动通过</a-radio>
-                    <a-radio :value="1">指定人员审批</a-radio>
+                  <a-radio-group v-model="flowNodeConfig.flowNodeNoAuditorType" @change="onNoTransactorTypeChanged">
+                    <a-radio :value="1">指定人员办理</a-radio>
                     <a-radio :value="2">转交给审批管理员</a-radio>
                   </a-radio-group>
 
@@ -218,23 +177,6 @@
                   </div>
                 </div>
               </div>
-
-              <!-- 审批人为自己时 -->
-              <div class="item-wrap approver-self">
-                <div class="item-key-wrapper">
-                  <div class="item-key">审批人与提交人为同一人时</div>
-                </div>
-                <div class="item-content">
-                  <a-radio-group class="radio-group" v-model="flowNodeConfig.flowNodeSelfAuditorType">
-                    <a-grid :cols="2" :colGap="0" :rowGap="10">
-                      <a-grid-item><a-radio :value="0">由发起人对自己审批</a-radio></a-grid-item>
-                      <a-grid-item><a-radio :value="1">自动跳过</a-radio></a-grid-item>
-                      <a-grid-item><a-radio :value="2">转交给直接上级审批</a-radio></a-grid-item>
-                      <a-grid-item><a-radio :value="3">转交给部门负责人审批</a-radio></a-grid-item>
-                    </a-grid>
-                  </a-radio-group>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -244,17 +186,6 @@
             <div class="item-content">
               <div class="item-wrap auth-list">
                 <a-checkbox class="auth-item" v-model="flowNodeConfig.assignable" :value="1">允许转交</a-checkbox>
-                <a-checkbox class="auth-item" v-model="flowNodeConfig.signable" :value="1">允许加签 / 减签</a-checkbox>
-                <a-checkbox class="auth-item" v-model="flowNodeConfig.backable" :value="1">允许回退</a-checkbox>
-              </div>
-              <div class="item-wrap tip">
-                <div class="item-key-wrapper">
-                  <p class="item-key">提示：</p>
-                </div>
-                <div class="more-info">
-                  <p>若审批人设置为连续多级上级、连续多级部门负责人时，允许的加签 / 减签不能生效。</p>
-                  <p>若多人审批方式为依次审批时，允许的加签 / 减签不能生效。</p>
-                </div>
               </div>
             </div>
           </div>
@@ -272,60 +203,48 @@ import Snowflake from "../common/Snowflake";
 import OrganChooseBox from "../dialog/OrganChooseBox.vue";
 import { IconDelete, IconSwap, IconPlus } from "@arco-design/web-vue/es/icon";
 import EditableText from "@/components/common/EditableText.vue";
+import { ASSIGNEE } from "../common/FlowConstant";
 
 let flowStore = useFlowStore();
 const { roles: allRoles, users: allUsers, getUserById } = useOrganStore();
-let { showApproverDrawer, setApproverConfig } = flowStore;
-let isApproverDrawerOpened = computed(() => flowStore.isApproverDrawerOpened);
-let approverConfig0 = computed(() => flowStore.approverConfig0);
+let { showTransactorDrawer, setTransactorConfig } = flowStore;
+let isTransactorDrawerOpened = computed(() => flowStore.isTransactorDrawerOpened);
+let transactorConfig0 = computed(() => flowStore.transactorConfig0);
 let workFlowDef = computed(() => flowStore.flowDefinition.workFlowDef);
 let visible = computed({
-  get: () => isApproverDrawerOpened.value,
+  get: () => isTransactorDrawerOpened.value,
   set: () => closeDrawer(),
 });
 
-let viewEditorType = ref(0); // 界面编辑类型    0:审批人; 1:操作权限
+let viewEditorType = ref(0); // 界面编辑类型    0:办理人; 1:操作权限
 let _uid = ref(0);
-let flowNodeConfig = ref({
-  // type: 1,
-  // approvalType: 0,
-  // multiInstanceApprovalType: 0,
-  // flowNodeNoAuditorType: 0,
-  // flowNodeSelfAuditorType: 0,
-  // assignees: [
-  // {
-  //   id: Snowflake.generate(),
-  //   assigneeType: 0,
-  //   layerType: 0,
-  // },
-  // ],
-});
+let flowNodeConfig = ref({});
 
-// 是否为单个审批人节点
+// 是否为单个办理人节点
 let onlyOneNode = computed(() => {
-  let fristAssigneeType = flowNodeConfig.value.assignees[0].assigneeType;
-  return [5, 6, 7].includes(fristAssigneeType);
+  let fristAssigneeType = flowNodeConfig.value.transactors[0].transactorType;
+  return [ASSIGNEE.INITIATOR_CHOICE].includes(fristAssigneeType);
 });
 
-// 是否含有多个审批人
+// 是否含有多个办理人
 let haveMultiNode = computed(() => {
-  return flowNodeConfig.value.assignees.length > 1;
+  return flowNodeConfig.value.transactors.length > 1;
 });
 
-// 是否设置了发起人自选，角色，指定审批人
+// 是否设置了发起人自选，角色，指定办理人
 let isInitiatorChoiceOrRoleOrAssignee = computed(() => {
-  let fristAssigneeType = flowNodeConfig.value.assignees[0].assigneeType;
-  return [3, 4, 7].includes(fristAssigneeType);
+  let fristAssigneeType = flowNodeConfig.value.transactors[0].transactorType;
+  return [ASSIGNEE.ROLE, ASSIGNEE.ASSIGNEE, ASSIGNEE.INITIATOR_CHOICE].includes(fristAssigneeType);
 });
 
-// 多个审核人设置的类型是否一致, 类型一致时才会有依次审批
-let isSameAssigneeType = computed(() => {
-  if (flowNodeConfig.value.assignees.length == 1) return false;
+// 多个审核人设置的类型是否一致, 类型一致时才会有依次办理
+let isSameTransactorType = computed(() => {
+  if (flowNodeConfig.value.transactors.length == 1) return false;
   let haveSameType = true;
-  let tmpAssigneeType = flowNodeConfig.value.assignees[0].assigneeType;
-  for (let i = 1; i < flowNodeConfig.value.assignees.length; i++) {
-    let tmpAssignee = flowNodeConfig.value.assignees[i];
-    if (tmpAssigneeType != tmpAssignee.assigneeType) {
+  let tmpAssigneeType = flowNodeConfig.value.transactors[0].transactorType;
+  for (let i = 1; i < flowNodeConfig.value.transactors.length; i++) {
+    let tmpAssignee = flowNodeConfig.value.transactors[i];
+    if (tmpAssigneeType != tmpAssignee.transactorType) {
       haveSameType = false;
       break;
     }
@@ -339,40 +258,44 @@ let isSameAssigneeType = computed(() => {
   return haveSameType;
 });
 
-// 审批人选择指定成员
-let showChooseAssignee = ref(false); // 是否显示指定成员对话框
-let selectedAssignee = ref({}); // 当前选中的单个审批人设置
+// 办理人选择指定成员
+let showChooseTransactor = ref(false); // 是否显示指定成员对话框
+let selectedAssignee = ref({}); // 当前选中的单个办理人设置
 const onAssigneeClick = (item) => {
   selectedAssignee.value = item;
-  showChooseAssignee.value = true;
+  showChooseTransactor.value = true;
 };
 
-watch(approverConfig0, (val) => {
+watch(transactorConfig0, (val) => {
   flowNodeConfig.value = val.value;
   viewEditorType.value = 0;
-  console.log("审批人节点", flowNodeConfig);
+  //   // 如果办理人为空, 且设置的是交给管理员时
+  //   let { flowNodeNoAuditorType, flowNodeAuditAdmin } = flowNodeConfig.value;
+  //   if (flowNodeNoAuditorType == 2 && !flowNodeAuditAdmin) {
+  //     flowNodeConfig.value.flowNodeAuditAdmin = workFlowDef.value.flowAdminIds[0];
+  //   }
+  console.log("办理人节点", flowNodeConfig);
   _uid = val.id;
 });
 
 watch(
   flowNodeConfig,
   (newVal) => {
-    if (newVal.assignees.length == 1) {
-      // 只设置了一个审批人
-      let fristAssigneeType = flowNodeConfig.value.assignees[0].assigneeType;
-      // 是否设置连续多级上级,连续多级部门负责人
-      if ([5, 6].includes(fristAssigneeType)) {
-        flowNodeConfig.value.multiInstanceApprovalType = 3;
-      }
+    if (newVal.transactors.length == 1) {
+      // 只设置了一个办理人
+      let fristAssigneeType = flowNodeConfig.value.transactors[0].transactorType;
 
-      // 是否设置了发起人自选，角色，指定审批人
-      if ([3, 4, 7].includes(fristAssigneeType) && [0, 3].includes(flowNodeConfig.value.multiInstanceApprovalType)) {
+      // 是否设置了发起人自选，角色，指定办理人
+      if (
+        [ASSIGNEE.ROLE, ASSIGNEE.ASSIGNEE, ASSIGNEE.INITIATOR_CHOICE].includes(fristAssigneeType) &&
+        [0, 3].includes(flowNodeConfig.value.multiInstanceApprovalType)
+      ) {
         if (flowNodeConfig.value.multiInstanceApprovalType == 0) {
           flowNodeConfig.value.multiInstanceApprovalType = 1;
         }
       }
     } else {
-      // 如果设置了多个审批人，默认会签
+      // 如果设置了多个办理人，默认会签
       if (flowNodeConfig.value.multiInstanceApprovalType == 0) {
         flowNodeConfig.value.multiInstanceApprovalType = 1;
       }
@@ -386,34 +309,34 @@ const switchLayerType = (assignee) => {
   assignee.layerType = assignee.layerType == 0 ? 1 : 0;
 };
 
-// 审批人类型切换时
-const onAssigneeTypeChanged = (assignee) => {
-  console.log("审批人类型切换时", assignee);
-  let { assigneeType } = assignee;
-  if ([1, 2, 5, 6].includes(assigneeType)) {
+// 办理人类型切换时
+const onTransactorTypeChanged = (assignee) => {
+  console.log("办理人类型切换时", assignee);
+  let { transactorType } = assignee;
+  if ([1, 2].includes(transactorType)) {
     assignee.layerType = 0;
     assignee.layer = 0;
     delete assignee.roles;
-    delete assignee.assignees;
-  } else if ([0, 7].includes(assigneeType)) {
+    delete assignee.transactors;
+  } else if ([0, 7].includes(transactorType)) {
     delete assignee.layerType;
     delete assignee.layer;
     delete assignee.roles;
-    delete assignee.assignees;
-  } else if ([3].includes(assigneeType)) {
+    delete assignee.transactors;
+  } else if ([3].includes(transactorType)) {
     delete assignee.layerType;
     delete assignee.layer;
-    delete assignee.assignees;
-  } else if ([4].includes(assigneeType)) {
-    assignee.assignees = [];
+    delete assignee.transactors;
+  } else if ([4].includes(transactorType)) {
+    assignee.transactors = [];
     delete assignee.layerType;
     delete assignee.layer;
     delete assignee.roles;
   }
 };
 
-// 节点审批人为空选项改变时
-const onNoAuditorTypeChanged = (type) => {
+// 节点办理人为空选项改变时
+const onNoTransactorTypeChanged = (type) => {
   if (type == 1) {
     delete flowNodeConfig.value.flowNodeAuditAdmin;
   } else if (type == 2) {
@@ -424,25 +347,25 @@ const onNoAuditorTypeChanged = (type) => {
   }
 };
 
-// 添加审批人
-const addApprover = () => {
-  flowNodeConfig.value.assignees.push({
+// 添加办理人
+const addTransactor = () => {
+  flowNodeConfig.value.transactors.push({
     rid: Snowflake.generate(),
-    assigneeType: 0,
+    transactorType: 0,
   });
 };
 
-// 删除审批人
-const delApprover = (approver) => {
-  ArrayUtil.remove(flowNodeConfig.value.assignees, "rid", approver.rid);
-  // 当设置的审批人删除到一个时。节点类型设置为：非多实例审批
-  if (flowNodeConfig.value.assignees.length === 1) {
+// 删除办理人
+const delTransactor = (approver) => {
+  ArrayUtil.remove(flowNodeConfig.value.transactors, "rid", approver.rid);
+  // 当设置的办理人删除到一个时。节点类型设置为：非多实例审批
+  if (flowNodeConfig.value.transactors.length === 1) {
     flowNodeConfig.value.multiInstanceApprovalType = 0;
   }
 };
 
-const saveApprover = () => {
-  setApproverConfig({
+const saveTransactor = () => {
+  setTransactorConfig({
     value: toRaw(flowNodeConfig.value),
     flag: true,
     id: _uid,
@@ -451,7 +374,7 @@ const saveApprover = () => {
 };
 
 const close = () => {
-  showApproverDrawer(false);
+  showTransactorDrawer(false);
 };
 
 onBeforeMount(() => {});
@@ -459,23 +382,23 @@ onMounted(() => {});
 </script>
 
 <style lang="less">
-.approver-drawer__content {
+.transact-drawer__content {
   user-select: none;
 
-  .approval-editor-tab-wrapper {
+  .transact-editor-tab-wrapper {
     margin-top: 24px;
 
     .item-content-editor,
     .item-content-auth {
       margin-top: 8px;
 
-      .approver-list {
-        .approver-wrapper {
+      .transactor-list {
+        .transactor-wrapper {
           border: 1px solid #e4e5e7;
           border-radius: 6px;
           overflow: hidden;
 
-          + .approver-wrapper {
+          + .transactor-wrapper {
             margin-top: 6px;
           }
 
@@ -563,12 +486,6 @@ onMounted(() => {});
         margin-top: 8px;
       }
 
-      .item-wrap {
-        + .item-wrap {
-          margin-top: 24px;
-        }
-      }
-
       .approver-null-select-box {
         margin-top: 8px;
       }
@@ -579,28 +496,6 @@ onMounted(() => {});
 
         .auth-item {
           margin-top: 10px;
-        }
-      }
-
-      .more-info {
-        line-height: 20px;
-        color: #646a73;
-
-        p {
-          position: relative;
-          padding-left: 10px;
-          margin-top: 8px;
-
-          &::before {
-            content: "";
-            width: 4px;
-            height: 4px;
-            position: absolute;
-            top: 9px;
-            left: 0;
-            border-radius: 2px;
-            background: #3370ff;
-          }
         }
       }
     }
@@ -624,6 +519,35 @@ onMounted(() => {});
 
   .item-content {
     margin-top: 8px;
+
+    .item-wrap {
+      + .item-wrap {
+        margin-top: 24px;
+      }
+    }
+
+    .more-info {
+      line-height: 20px;
+      color: #646a73;
+      font-weight: 400;
+
+      p {
+        position: relative;
+        padding-left: 10px;
+        margin-top: 8px;
+
+        &::before {
+          content: "";
+          width: 4px;
+          height: 4px;
+          position: absolute;
+          top: 9px;
+          left: 0;
+          border-radius: 2px;
+          background: #3370ff;
+        }
+      }
+    }
   }
 }
 

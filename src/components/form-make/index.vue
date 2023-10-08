@@ -1,5 +1,6 @@
 <template>
   <section class="form-make-box">
+    <!-- 左侧控件列表 -->
     <div class="form-fields-box">
       <div class="fields-top">控件</div>
       <div class="fields-main">
@@ -22,6 +23,7 @@
       </div>
     </div>
 
+    <!-- 中间表单区域 -->
     <div class="form-layout-box">
       <div class="mobile-box">
         <div class="mobile">
@@ -157,6 +159,14 @@
                     </div>
                   </div>
                 </template>
+                <template v-else-if="element.type == WIDGET.AREA">
+                  <div :class="['form-item', element.required ? 'required' : '']">
+                    <div class="form-item-name">{{ element.label }}</div>
+                    <div class="form-item-widget">
+                      <a-cascader :options="CHINA_AREA" :placeholder="element.placeholder" :disabled="true" />
+                    </div>
+                  </div>
+                </template>
               </div>
             </template>
           </draggable>
@@ -165,6 +175,7 @@
     </div>
     <div class="form-setting-box"></div>
 
+    <!-- 右侧控件设置 -->
     <a-drawer
       :width="360"
       popup-container=".form-setting-box"
@@ -175,7 +186,7 @@
       @ok="onSettingDetailSave"
       @cancel="onSettingDetailClose"
       unmountOnClose>
-      <template #title> {{ fieldNames[widget.type] }} </template>
+      <template #title> {{ (fieldSetting[widget.type] || {}).label || "" }} </template>
       <div>
         <a-form :model="widget" layout="vertical">
           <a-form-item field="name" label="标题" v-if="![WIDGET.DESCRIBE].includes(widget.type)">
@@ -229,7 +240,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, ref } from "vue";
+import { onBeforeMount, onMounted, ref, reactive } from "vue";
 import { useFlowStore } from "@/stores/index";
 import draggable from "vuedraggable";
 import WidgetDetail from "./WidgetDetail.vue";
@@ -237,66 +248,55 @@ import ArrayUtil from "@/components/flow/common/ArrayUtil";
 import Snowflake from "@/components/flow/common/Snowflake";
 import { IconDragArrow, IconClose, IconPlus } from "@arco-design/web-vue/es/icon";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
+import CHINA_AREA from "@/components/flow/common/ChinaArea";
 
 // 流程定义对象
 let { flowDefinition, setFlowDef } = useFlowStore();
 
 // 左侧属性
-let fieldNames = [
-  "单行文本",
-  "多行文本",
-  "提示文字",
-  "数字",
-  "金额",
-  "单选",
-  "多选",
-  "日期",
-  "日期区间",
-  "明细",
-  "图片",
-  "附件",
-  "部门",
-  "员工",
-];
-let fieldPrefixs = [
-  "INPUT",
-  "TEXT",
-  "TIP",
-  "NUM",
-  "MONEY",
-  "SELECT",
-  "MULTISELECT",
-  "DATE",
-  "DATERANGE",
-  "DETAIL",
-  "IMG",
-  "ATTACH",
-  "DEPT",
-  "STAFF",
-];
+let fieldSetting = reactive({});
+fieldSetting[WIDGET.SINGLELINE_TEXT] = { label: "单行文本", prefix: "INPUT" };
+fieldSetting[WIDGET.MULTILINE_TEXT] = { label: "多行文本", prefix: "TEXT" };
+fieldSetting[WIDGET.DESCRIBE] = { label: "提示文字", prefix: "TIP" };
+fieldSetting[WIDGET.NUMBER] = { label: "数字", prefix: "NUM" };
+fieldSetting[WIDGET.MONEY] = { label: "金额", prefix: "MONEY" };
+fieldSetting[WIDGET.SINGLE_CHOICE] = { label: "单选", prefix: "SELECT" };
+fieldSetting[WIDGET.MULTI_CHOICE] = { label: "多选", prefix: "MULTISELECT" };
+fieldSetting[WIDGET.DATE] = { label: "日期", prefix: "DATE" };
+fieldSetting[WIDGET.DATE_RANGE] = { label: "日期区间", prefix: "DATERANGE" };
+fieldSetting[WIDGET.DETAIL] = { label: "明细", prefix: "DETAIL" };
+fieldSetting[WIDGET.PICTURE] = { label: "图片", prefix: "IMG" };
+fieldSetting[WIDGET.ATTACHMENT] = { label: "附件", prefix: "ATTACH" };
+fieldSetting[WIDGET.DEPARTMENT] = { label: "部门", prefix: "DEPT" };
+fieldSetting[WIDGET.EMPLOYEE] = { label: "员工", prefix: "STAFF" };
+fieldSetting[WIDGET.ADDRESS] = { label: "地址", prefix: "ADDR" };
+fieldSetting[WIDGET.FLOW_INST] = { label: "关联审批", prefix: "FLOW" };
+fieldSetting[WIDGET.AREA] = { label: "省市区", prefix: "AERA" };
+
 let fieldText = ref([
-  { type: WIDGET.SINGLELINE_TEXT, label: "单行文本", placeholder: "请输入", icon: "&#xe61f" },
-  { type: WIDGET.MULTILINE_TEXT, label: "多行文本", placeholder: "请输入", icon: "&#xe616" },
-  { type: WIDGET.DESCRIBE, label: "提示文字", placeholder: "说明", icon: "&#xe612" },
+  { type: WIDGET.SINGLELINE_TEXT, label: fieldSetting[WIDGET.SINGLELINE_TEXT].label, placeholder: "请输入", icon: "&#xe61f" },
+  { type: WIDGET.MULTILINE_TEXT, label: fieldSetting[WIDGET.MULTILINE_TEXT].label, placeholder: "请输入", icon: "&#xe616" },
+  { type: WIDGET.DESCRIBE, label: fieldSetting[WIDGET.DESCRIBE].label, placeholder: "说明", icon: "&#xe612" },
 ]);
 let fieldNum = ref([
-  { type: WIDGET.NUMBER, label: "数字", placeholder: "请输入数字", icon: "&#xe625" },
-  { type: WIDGET.MONEY, label: "金额", placeholder: "请输入金额", icon: "&#xe60b" },
+  { type: WIDGET.NUMBER, label: fieldSetting[WIDGET.NUMBER].label, placeholder: "请输入数字", icon: "&#xe625" },
+  { type: WIDGET.MONEY, label: fieldSetting[WIDGET.MONEY].label, placeholder: "请输入金额", icon: "&#xe60b" },
 ]);
 let fieldSelect = ref([
-  { type: WIDGET.SINGLE_CHOICE, label: "单选", placeholder: "请选择", icon: "&#xe637" },
-  { type: WIDGET.MULTI_CHOICE, label: "多选", placeholder: "请选择", icon: "&#xe621" },
+  { type: WIDGET.SINGLE_CHOICE, label: fieldSetting[WIDGET.SINGLE_CHOICE].label, placeholder: "请选择", icon: "&#xe637" },
+  { type: WIDGET.MULTI_CHOICE, label: fieldSetting[WIDGET.MULTI_CHOICE].label, placeholder: "请选择", icon: "&#xe621" },
 ]);
 let fieldDate = ref([
-  { type: WIDGET.DATE, label: "日期", placeholder: "请选择日期", icon: "&#xe60c" },
-  { type: WIDGET.DATE_RANGE, label: "日期区间", placeholder: "请选择日期", icon: "&#xe610" },
+  { type: WIDGET.DATE, label: fieldSetting[WIDGET.DATE].label, placeholder: "请选择日期", icon: "&#xe60c" },
+  { type: WIDGET.DATE_RANGE, label: fieldSetting[WIDGET.DATE_RANGE].label, placeholder: "请选择日期", icon: "&#xe610" },
 ]);
 let fieldEtc = ref([
-  { type: WIDGET.DETAIL, label: "明细", icon: "&#xe60d" },
-  { type: WIDGET.PICTURE, label: "图片", icon: "&#xe611" },
-  { type: WIDGET.ATTACHMENT, label: "附件", icon: "&#xe60a" },
-  { type: WIDGET.DEPARTMENT, label: "部门", placeholder: "请选择", icon: "&#xe614" },
-  { type: WIDGET.EMPLOYEE, label: "员工", placeholder: "请选择", icon: "&#xe609" },
+  { type: WIDGET.DETAIL, label: fieldSetting[WIDGET.DETAIL].label, icon: "&#xe60d" },
+  { type: WIDGET.PICTURE, label: fieldSetting[WIDGET.PICTURE].label, icon: "&#xe611" },
+  { type: WIDGET.ATTACHMENT, label: fieldSetting[WIDGET.ATTACHMENT].label, icon: "&#xe60a" },
+  { type: WIDGET.DEPARTMENT, label: fieldSetting[WIDGET.DEPARTMENT].label, placeholder: "请选择", icon: "&#xe614" },
+  { type: WIDGET.EMPLOYEE, label: fieldSetting[WIDGET.EMPLOYEE].label, placeholder: "请选择", icon: "&#xe609" },
+  { type: WIDGET.AREA, label: fieldSetting[WIDGET.AREA].label, placeholder: "请选择", icon: "&#xe64a" },
 ]);
 let fields = ref([
   { label: "文本", fields: fieldText },
@@ -311,7 +311,7 @@ let widget = ref({}); // 选中的组件
 // 中间组件
 const onWidgetClone = (widget) => {
   let nv = JSON.parse(JSON.stringify(widget));
-  nv.name = fieldPrefixs[widget.type] + "_" + Snowflake.generate();
+  nv.name = fieldSetting[widget.type].prefix + "_" + Snowflake.generate();
   delete nv.icon;
   if ([WIDGET.DETAIL].includes(nv.type)) {
     nv.details = [];

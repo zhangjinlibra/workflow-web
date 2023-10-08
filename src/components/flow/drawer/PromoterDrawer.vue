@@ -9,12 +9,12 @@
     @cancel="closeDrawer()"
     ok-text="保存">
     <!-- 发起人设置 -->
-    <div class="approval-editor-tab-wrapper">
+    <!-- <div class="approval-editor-tab-wrapper">
       <a-radio-group v-model="viewEditorType" type="button" size="large">
         <a-radio :value="0">基础设置</a-radio>
-        <!-- <a-radio :value="1">表单权限</a-radio> -->
+        <a-radio :value="1">表单权限</a-radio>
       </a-radio-group>
-    </div>
+    </div> -->
 
     <div class="approval-editor-content">
       <!-- 发起人设置 -->
@@ -103,6 +103,7 @@ const closeDrawer = () => {
 <style lang="less">
 .approval-editor-tab-wrapper {
   user-select: none;
+  margin-bottom: 24px;
 
   .arco-radio-group-button {
     width: 100%;
@@ -117,7 +118,7 @@ const closeDrawer = () => {
 .approval-editor-content {
   .item-content-editor {
     user-select: none;
-    margin-top: 24px;
+    margin-top: 0;
 
     .type-content {
       margin-top: 8px;
@@ -127,13 +128,13 @@ const closeDrawer = () => {
       margin-top: 10px;
       display: flex;
       align-items: center;
+      gap: 4px;
 
       .selected-list {
         flex: 1;
-
-        .arco-tag {
-          margin: 2px 5px 2px 0;
-        }
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
       }
     }
   }

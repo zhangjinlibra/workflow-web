@@ -127,6 +127,14 @@
               </div>
             </div>
           </template>
+          <template v-else-if="element.type == WIDGET.AREA">
+            <div :class="['form-item', element.required ? 'required' : '']">
+              <div class="form-item-name">{{ element.label }}</div>
+              <div class="form-item-widget">
+                <a-cascader :options="CHINA_AREA" :placeholder="element.placeholder" disabled />
+              </div>
+            </div>
+          </template>
         </div>
       </template>
     </draggable>
@@ -139,6 +147,7 @@ import ArrayUtil from "@/components/flow/common/ArrayUtil";
 import { Notification } from "@arco-design/web-vue";
 import { IconDragArrow, IconClose, IconPlus } from "@arco-design/web-vue/es/icon";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
+import CHINA_AREA from "@/components/flow/common/ChinaArea";
 
 const props = defineProps({
   widget: { type: Object, required: true },

@@ -1,15 +1,15 @@
 <template>
-  <!-- 非分支节点 -->
-  <div class="node-wrap" v-if="nodeConfig.type < 3">
-    <div class="node-wrap-box" :class="{ 'start-node': nodeConfig.type == 0 }">
-      <div class="title" :style="{ background: bgColors[nodeConfig.type] }">
+  <!-- 非网关节点 -->
+  <div class="node-wrap" v-if="[NODE.START, NODE.APPROVE, NODE.COPY, NODE.TRANSACT].includes(nodeConfig.type)">
+    <div class="node-wrap-box" :class="{ 'start-node': nodeConfig.type == NODE.START }">
+      <div class="title" :style="{ background: nodeBgColor }">
         <!-- 开始节点 -->
-        <span v-if="nodeConfig.type == 0">{{ nodeConfig.name }}</span>
-        <!-- 任务、抄送节点 -->
+        <span v-if="nodeConfig.type == NODE.START">{{ nodeConfig.name }}</span>
+        <!-- 任务、办理、抄送节点 -->
         <template v-else>
           <!-- <span class="iconfont-approval-admin">{{ nodeConfig.type == 1 ? "&#xe658" : "&#xe656" }}</span> -->
           <input
-            v-if="isInput"
+            v-if="isNodeNameEdit"
             type="text"
             class="editable-title-input"
             @blur="onNameInputBlur()"
@@ -22,20 +22,20 @@
             <span class="editable-title">
               <span @click="onNameInputClick()">{{ nodeConfig.name }}</span>
             </span>
-            <icon-close class="close" :size="14" @click="onNodeRemoved" />
+            <icon-close class="close" :size="14" @click="onNodeRemove" />
           </template>
         </template>
       </div>
-      <div class="content" @click="onNodeBoxClicked">
+      <div class="content" @click="onNodeBoxClick">
         <!-- 发起人节点 -->
-        <a-tooltip v-if="nodeConfig.type == 0" :content="showNodeContent" mini content-class="node-content-tooltip">
-          <span class="text">提交人：{{ showNodeContent }}</span>
+        <a-tooltip v-if="nodeConfig.type == NODE.START" :content="showNodeContent" mini content-class="node-content-tooltip">
+          <span class="text">{{ nodeDefaultName }}：{{ showNodeContent }}</span>
         </a-tooltip>
-        <!-- 审核人、抄送人节点 -->
-        <template v-else-if="[1, 2].includes(nodeConfig.type)">
+        <!-- 审核人、抄送人、办理人节点 -->
+        <template v-else-if="[NODE.APPROVE, NODE.COPY, NODE.TRANSACT].includes(nodeConfig.type)">
           <span class="placeholder" v-if="!showNodeContent">请选择{{ nodeDefaultName }}</span>
           <a-tooltip v-else mini :content="showNodeContent" content-class="node-content-tooltip">
-            <span class="text">{{ nodeConfig.type == 1 ? "审批人：" : "抄送人：" }}{{ showNodeContent }} </span>
+            <span class="text">{{ nodeDefaultName }}：{{ showNodeContent }} </span>
           </a-tooltip>
         </template>
         <div style="color: #a1a5ad"><icon-right /></div>
@@ -44,11 +44,12 @@
     <AddNode v-model:childNodeP="nodeConfig.childNode" />
   </div>
 
-  <!-- 分支节点 -->
-  <div class="branch-wrap" v-if="nodeConfig.type == 4">
+  <!-- 网关节点 -->
+  <div class="branch-wrap" v-if="nodeConfig.type == NODE.EXCLUSIVE_GATEWANY">
     <div class="branch-box-wrap">
       <div class="branch-box">
-        <button class="add-branch" @click="onConditionAdded()"><icon-plus />添加条件</button>
+        <button class="add-branch" @click="onConditionAdd()"><icon-plus />添加条件</button>
+        <!-- 网关分支节点 -->
         <div class="col-box" v-for="(item, index) in nodeConfig.conditionNodes" :key="index">
           <div class="condition-node">
             <div class="condition-node-box">
@@ -77,7 +78,7 @@
                   <template v-else>
                     <span class="editable-title" @click="onNameInputClick(index)"> {{ item.name }} </span>
                     <span class="priority-title">优先级{{ item.priorityLevel }}</span>
-                    <a-link class="close" @click="onConditionRemoved(index)">
+                    <a-link class="close" @click="onConditionRemove(index)">
                       <template #icon><icon-close /></template>
                     </a-link>
                   </template>
@@ -86,7 +87,7 @@
                   <div class="sort-left" v-if="index != 0" @click="branchSwitchIdx(index, -1)">
                     <icon-left />
                   </div>
-                  <div class="content" @click="onNodeBoxClicked(item.priorityLevel)">
+                  <div class="content" @click="onNodeBoxClick(item.priorityLevel)">
                     <span v-if="(getGatewayBranch(nodeConfig, index).conditionGroups || []).length == 0" class="placeholder">请设置条件</span>
                     <!-- 卡片上显示分支条件 -->
                     <a-tooltip v-else mini :content="showConditionContent(nodeConfig, index)" content-class="node-content-tooltip">
@@ -128,6 +129,7 @@ import { computed, getCurrentInstance, onMounted, reactive, ref, watch } from "v
 import { useFlowStore, useOrganStore } from "@/stores/index";
 import ArrayUtil from "./common/ArrayUtil";
 import { showExpNodeContent } from "./common/FormExp";
+import { NODE } from "./common/FlowConstant";
 import { IconClose, IconRight, IconPlus, IconLeft } from "@arco-design/web-vue/es/icon";
 let _uid = getCurrentInstance().uid;
 
@@ -146,34 +148,39 @@ let {
   showApproverDrawer,
   showCopyerDrawer,
   showConditionDrawer,
+  showTransactorDrawer,
   setPromoterConfig,
   setApproverConfig,
   setCopyerConfig,
   setConditionsConfig,
+  setTransactorConfig,
 } = flowStore;
 let promoterConfig0 = computed(() => flowStore.promoterConfig0);
 let approverConfig0 = computed(() => flowStore.approverConfig0);
 let copyerConfig0 = computed(() => flowStore.copyerConfig0);
 let conditionsConfig0 = computed(() => flowStore.conditionsConfig0);
+let transactorConfig0 = computed(() => flowStore.transactorConfig0);
 
-// 节点默认名称
-let nodePlaceholderList = ["发起人", "审核人", "抄送人"];
-let bgColors = reactive(["#a9b4cd", "#ff943e", "#3296fa"]);
-let nodeDefaultName = computed(() => {
-  return nodePlaceholderList[props.nodeConfig.type];
-});
+// 节点基本信息
+let nodeSettings = reactive({});
+nodeSettings[NODE.START] = { placeholder: "发起人", bgColor: "#a9b4cd" };
+nodeSettings[NODE.APPROVE] = { placeholder: "审核人", bgColor: "#ff943e" };
+nodeSettings[NODE.COPY] = { placeholder: "抄送人", bgColor: "#3296fa" };
+nodeSettings[NODE.TRANSACT] = { placeholder: "办理人", bgColor: "#926bd5" };
+let nodeDefaultName = computed(() => nodeSettings[props.nodeConfig.type].placeholder);
+let nodeBgColor = computed(() => nodeSettings[props.nodeConfig.type].bgColor);
 
 // nodeType 0发起人 1审批 2抄送 3条件 4路由
 // 节点卡片显示的内容
 let showNodeContent = computed(() => {
   let nodeType = props.nodeConfig.type;
-  if (nodeType == 0) {
+  if (nodeType == NODE.START) {
     // 开始节点
     let { type, flowInitiators } = props.flowPermission;
     if (type == 0) return "全员可提交";
     else if (type == 2) return "均不可提交";
     else return (flowInitiators || []).map((i) => getById(i.id).name).join(", ");
-  } else if (nodeType == 1) {
+  } else if (nodeType == NODE.APPROVE) {
     // 审批人节点
     let { assignees, approvalType } = props.nodeConfig;
     if (approvalType == 1) return "自动通过";
@@ -203,7 +210,7 @@ let showNodeContent = computed(() => {
         })
         .join(", ");
     }
-  } else if (nodeType == 2) {
+  } else if (nodeType == NODE.COPY) {
     // 抄送人节点
     let { ccs } = props.nodeConfig;
     return ccs
@@ -220,6 +227,28 @@ let showNodeContent = computed(() => {
           return roles.map((roleId) => ArrayUtil.get(allRoles, "id", roleId).name).join(", ");
         } else if (ccType == 4) {
           return assignees.map((userId) => ArrayUtil.get(allUsers, "id", userId).name).join(", ");
+        }
+      })
+      .join(", ");
+  } else if (nodeType == NODE.TRANSACT) {
+    // 办理人节点
+    let { transactors } = props.nodeConfig;
+    return transactors
+      .map((transactor) => {
+        let { transactorType, layerType, layer, roles, assignees } = transactor;
+        if (transactorType == 0) return "发起人本人";
+        else if (transactorType == 1) {
+          if (layerType == 0) return `直属${layer != 0 ? layer + "级" : ""}上级`;
+          else return `最高上级减${layer != 0 ? layer + "级" : ""}`;
+        } else if (transactorType == 2) {
+          if (layerType == 0) return `直属${layer != 0 ? layer + "级" : ""}部门负责人`;
+          else return `最高部门负责人减${layer != 0 ? layer + "级" : ""}`;
+        } else if (transactorType == 3) {
+          return roles.map((roleId) => ArrayUtil.get(allRoles, "id", roleId).name).join(", ");
+        } else if (transactorType == 4) {
+          return assignees.map((userId) => ArrayUtil.get(allUsers, "id", userId).name).join(", ");
+        } else if (transactorType == 7) {
+          return "发起人自选";
         }
       })
       .join(", ");
@@ -251,6 +280,11 @@ watch(approverConfig0, (approver) => {
     emits("update:nodeConfig", approver.value);
   }
 });
+watch(transactorConfig0, (transactor) => {
+  if (transactor.flag && transactor.id === _uid) {
+    emits("update:nodeConfig", transactor.value);
+  }
+});
 watch(copyerConfig0, (copyer) => {
   if (copyer.flag && copyer.id === _uid) {
     emits("update:nodeConfig", copyer.value);
@@ -263,14 +297,14 @@ watch(conditionsConfig0, (condition) => {
 });
 
 let nodeNameInputList = ref([]);
-let isInput = ref(false);
+let isNodeNameEdit = ref(false);
 
 // 节点名称点击事件
 const onNameInputClick = (index) => {
   if (index || index === 0) {
     nodeNameInputList.value[index] = true;
   } else {
-    isInput.value = true;
+    isNodeNameEdit.value = true;
   }
 };
 
@@ -280,18 +314,18 @@ const onNameInputBlur = (index) => {
     nodeNameInputList.value[index] = false;
     props.nodeConfig.conditionNodes[index].name = props.nodeConfig.conditionNodes[index].name || "条件";
   } else {
-    isInput.value = false;
+    isNodeNameEdit.value = false;
     props.nodeConfig.name = props.nodeConfig.name || nodeDefaultName;
   }
 };
 
 // 删除节点
-const onNodeRemoved = () => {
+const onNodeRemove = () => {
   emits("update:nodeConfig", props.nodeConfig.childNode);
 };
 
 // 新增分支条件
-const onConditionAdded = () => {
+const onConditionAdd = () => {
   let len = props.nodeConfig.conditionNodes.length + 1;
   props.nodeConfig.conditionNodes.push({
     name: "条件" + len,
@@ -304,7 +338,7 @@ const onConditionAdded = () => {
 };
 
 // 删除分支条件
-const onConditionRemoved = (index) => {
+const onConditionRemove = (index) => {
   props.nodeConfig.conditionNodes.splice(index, 1);
   props.nodeConfig.conditionNodes.map((item, index) => {
     item.priorityLevel = index + 1;
@@ -334,11 +368,11 @@ const reconnectNode = (data, addData) => {
 
 // type 0 发起人 1审批 2抄送 3条件 4路由
 // 如果是非分支节点，则不需要传递参数
-// 节点点击
-const onNodeBoxClicked = (priorityLevel) => {
+// 节点卡片点击
+const onNodeBoxClick = (priorityLevel) => {
   var { type } = props.nodeConfig;
-  console.log("node_uid", _uid);
-  if (type == 0) {
+  console.log("node_uid", _uid, type);
+  if (type == NODE.START) {
     // 发起人
     showPromoterDrawer(true);
     setPromoterConfig({
@@ -346,7 +380,7 @@ const onNodeBoxClicked = (priorityLevel) => {
       flag: false,
       id: _uid,
     });
-  } else if (type == 1) {
+  } else if (type == NODE.APPROVE) {
     // 审批人
     showApproverDrawer(true);
     setApproverConfig({
@@ -354,7 +388,7 @@ const onNodeBoxClicked = (priorityLevel) => {
       flag: false,
       id: _uid,
     });
-  } else if (type == 2) {
+  } else if (type == NODE.COPY) {
     // 抄送人
     showCopyerDrawer(true);
     setCopyerConfig({
@@ -362,7 +396,15 @@ const onNodeBoxClicked = (priorityLevel) => {
       flag: false,
       id: _uid,
     });
-  } else {
+  } else if (type == NODE.TRANSACT) {
+    // 办理人
+    showTransactorDrawer(true);
+    setTransactorConfig({
+      value: { ...JSON.parse(JSON.stringify(props.nodeConfig)) },
+      flag: false,
+      id: _uid,
+    });
+  } else if (type == NODE.EXCLUSIVE_GATEWANY) {
     // 分支条件
     showConditionDrawer(true);
     setConditionsConfig({

@@ -6,26 +6,25 @@
       </a-input>
     </div>
 
-    <a-card class="empty-flow-box general-card" v-if="groups.length == 0">
-      <a-empty />
-    </a-card>
-
-    <template v-for="group in filteredFlowGroups">
-      <div class="flow-group-box" v-if="group.flowDefinitions && group.flowDefinitions.length > 0">
-        <div class="group-header">{{ group.name }}</div>
-        <div class="group-body">
-          <a-card hoverable v-for="flow in group.flowDefinitions" class="flow-item-box" @click="onFlowClick(flow)">
-            <div class="flow-logo">
-              <flow-icon :icon="flow.icon" :size="44" />
-              <div class="name-desc">
-                <span class="name">{{ flow.name }}</span>
-                <span class="desc">{{ flow.remark }}</span>
+    <div class="flow-group-wrapper">
+      <a-card class="empty-flow-box general-card" v-if="groups.length == 0"> <a-empty /> </a-card>
+      <template v-else v-for="group in filteredFlowGroups">
+        <div class="flow-group-box" v-if="group.flowDefinitions && group.flowDefinitions.length > 0">
+          <div class="group-header">{{ group.name }}</div>
+          <div class="group-body">
+            <a-card hoverable v-for="flow in group.flowDefinitions" class="flow-item-box" @click="onFlowClick(flow)">
+              <div class="flow-logo">
+                <flow-icon :icon="flow.icon" :size="44" />
+                <div class="name-desc">
+                  <span class="name">{{ flow.name }}</span>
+                  <span class="desc">{{ flow.remark }}</span>
+                </div>
               </div>
-            </div>
-          </a-card>
+            </a-card>
+          </div>
         </div>
-      </div>
-    </template>
+      </template>
+    </div>
 
     <a-drawer
       :width="500"
@@ -40,7 +39,7 @@
       <flow-form :flow="selectedFlow" :flowWidgets="flowWidgets" @onCancel="onClose()" @onSuccess="onClose()"></flow-form>
     </a-drawer>
 
-    <back-to-top target-container=".flow-start-box"></back-to-top>
+    <back-to-top target-container=".flow-group-wrapper"></back-to-top>
   </section>
 </template>
 
@@ -50,7 +49,7 @@ import FlowIcon from "@/components/icons/FlowIcon.vue";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
-import FlowForm from "./flow-form.vue";
+import FlowForm from "./flow-launch.vue";
 import { IconSearch } from "@arco-design/web-vue/es/icon";
 import BackToTop from "@/components/common/BackToTop.vue";
 
@@ -110,37 +109,43 @@ onBeforeMount(() => {
 @import "@/styles/variables.module.less";
 
 @FlowCardGutter: 16px;
+@SearchBoxHeigth: 55px;
 
 .flow-start-box {
   width: 100%;
-  height: calc(100vh - @HeaderHeight - @BreadcrumbHeight);
+  // height: calc(100vh - @HeaderHeight - @BreadcrumbHeight);
   overflow: hidden;
-  overflow-y: auto;
-  padding: 0 @ContentPadding;
 
   .search-wrapper {
-    padding: 12px;
     border: 1px solid var(--preview-color-border);
     border-radius: @CommonBorderRedius;
     background: #fff;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    height: @SearchBoxHeigth;
+    margin: 0 @ContentPadding @FlowCardGutter;
+  }
+
+  .flow-group-wrapper {
+    height: calc(100vh - @HeaderHeight - @BreadcrumbHeight - @SearchBoxHeigth - @FlowCardGutter);
+    overflow: hidden auto;
+    padding: 0 @ContentPadding;
   }
 
   .empty-flow-box {
-    margin-top: 16px;
-    padding: 48px;
     border-radius: @CommonBorderRedius;
+    padding: 48px;
+    background-color: #fff;
+    border: 0;
   }
 
   .flow-group-box {
-    margin-top: 16px;
     background-color: #fff;
     border-radius: @CommonBorderRedius;
     overflow: hidden;
     border: 1px solid var(--preview-color-border);
-
-    &:last-of-type {
-      margin-bottom: 16px;
-    }
+    margin-bottom: 16px;
 
     .group-header {
       height: 46px;

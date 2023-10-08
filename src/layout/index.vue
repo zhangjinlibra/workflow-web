@@ -6,19 +6,35 @@
           <a-space>
             <div class="logo"><img alt="Vue logo" class="logo" src="@/assets/logo.png" height="24" /></div>
             <!-- <div class="slogan">审批</div> -->
-            <a-tag class="version">20230905.01版本</a-tag>
+            <a-trigger trigger="hover" position="bottom" :show-arrow="false" :popup-translate="[0, 10]" animation-name="uido">
+              <a-tag class="version">20231008.01版本</a-tag>
+              <template #content>
+                <div class="change-log">
+                  <div class="version-title">本次更新</div>
+                  <a-divider />
+                  <div class="version-content">
+                    <p>新增节点: 办理人</p>
+                    <p>新增表单组件: 省市区</p>
+                    <p>审批节点支持操作权限设置</p>
+                    <p>修复已知问题, 优化体验</p>
+                  </div>
+                </div>
+              </template>
+            </a-trigger>
           </a-space>
         </div>
         <ul class="right-side">
           <li>
-            <a-button type="outline" shape="circle" class="nav-btn">
+            <a-button type="outline" shape="circle" class="nav-btn" disabled>
               <icon-notification />
             </a-button>
           </li>
           <li>
-            <a-button type="outline" shape="circle" class="nav-btn" @click="onGiteeClicked()">
-              <img src="https://gitee.com/static/images/logo-en.svg" style="width: 32px; height: 32px" />
-            </a-button>
+            <a-tooltip content="Star 一下">
+              <a-button type="outline" shape="circle" class="nav-btn" @click="onGiteeClicked()">
+                <img src="https://gitee.com/static/images/logo-en.svg" style="width: 32px; height: 32px" />
+              </a-button>
+            </a-tooltip>
           </li>
           <li>
             <div class="avatar">
@@ -32,7 +48,7 @@
                       <template #icon> <icon-user-group :size="16" /> </template>
                       <template #default>切换用户</template>
                     </a-doption>
-                    <a-doption>
+                    <a-doption disabled>
                       <template #icon> <icon-export :size="16" /> </template>
                       <template #default>退出登录</template>
                     </a-doption>
@@ -53,6 +69,7 @@
           :collapsed-width="sidebarCollapsedWidth"
           :auto-open-selected="true"
           :default-selected-keys="[selectedMenu]"
+          :selected-keys="[selectedMenu]"
           :default-open-keys="['/']"
           @menu-item-click="onMenuItemClick">
           <template v-for="route in filteredRoutes">
@@ -133,7 +150,8 @@ const { body } = document;
 const getSidebarWidth = () => (sidebar.opened ? lessVars.SidebarWidth : lessVars.SidebarCollapsedWidth);
 let sidebarWidth = ref(getSidebarWidth());
 let sidebarCollapsedWidth = ref(Number.parseInt(lessVars.SidebarCollapsedWidth.replace("px", "")));
-let selectedMenu = computed(() => route.path);
+// let selectedMenu = computed(() => route.path);
+let selectedMenu = ref(route.path);
 let breadcrumbList = computed(() => route.matched.filter((item) => item.meta && item.meta.title));
 
 // 菜单
@@ -152,6 +170,11 @@ const roamChildren = (parent, children) => {
     roamChildren(child, child.children);
   });
 };
+// 监听路由变化, 设置菜单选中
+watch(
+  () => router.currentRoute.value.path,
+  (nv, ov) => (selectedMenu.value = nv)
+);
 
 let sidebarOpened = computed(() => sidebar.opened);
 
@@ -320,6 +343,7 @@ const onChangeUserClicked = () => {
 
     .version {
       margin-left: 10px;
+      cursor: pointer;
     }
   }
 
@@ -353,5 +377,40 @@ const onChangeUserClicked = () => {
   border-radius: 4px;
   box-shadow: 0 2px 8px #00000026;
   padding: 4px;
+}
+
+.change-log {
+  background-color: var(--color-bg-popup);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px #00000026;
+
+  .arco-divider {
+    margin: 0;
+  }
+
+  .version-title {
+    padding: 10px 12px;
+  }
+
+  .version-content {
+    padding: 10px 12px;
+
+    p {
+      padding: 0 8px 0 12px;
+      line-height: 22px;
+      color: #646a73;
+
+      &::before {
+        content: "";
+        width: 4px;
+        height: 4px;
+        position: absolute;
+        top: 9px;
+        left: 0;
+        border-radius: 2px;
+        background: #3370ff;
+      }
+    }
+  }
 }
 </style>

@@ -7,6 +7,8 @@ export const NODE = {
   COPY: 2, //"抄送"
   CONDITION: 3, //"条件"
   EXCLUSIVE_GATEWANY: 4, //"排他网关"
+  TRANSACT: 5, //"办理"
+  TRIGGER: 6, //"触发器"
   END: 9, //"结束"
 };
 
@@ -27,6 +29,8 @@ export const WIDGET = {
   DEPARTMENT: 12, //"部门"
   EMPLOYEE: 13, //"员工"
   ADDRESS: 14, //"地址"
+  FLOW_INST: 15, //"关联审批"
+  AREA: 16, //"省市区"
 };
 
 // 流程指令
@@ -46,6 +50,7 @@ export const CMD = {
   COPY: 12, // "抄送"
   FORWARD: 13, // "转发"
   COMMENT: 14, // "评论"
+  TRANSACT: 15, // "办理"
 };
 
 // 流程状态

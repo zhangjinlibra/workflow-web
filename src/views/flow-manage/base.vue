@@ -253,9 +253,10 @@ defineExpose({
     }
 
     .flow-admin-box {
-      .arco-tag {
-        margin: 2px 4px 2px 0;
-      }
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-right: 4px;
     }
 
     .arco-btn {

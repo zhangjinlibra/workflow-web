@@ -17,14 +17,14 @@
               :placeholder="widget.placeholder"
               :allow-clear="!widget.required" />
           </template>
-          <template v-if="widget.type == WIDGET.MULTILINE_TEXT">
+          <template v-else-if="widget.type == WIDGET.MULTILINE_TEXT">
             <a-textarea
               v-model:model-value="flowForm[widget.name]"
               :max-length="128"
               :placeholder="widget.placeholder"
               :allow-clear="!widget.required" />
           </template>
-          <template v-if="widget.type == WIDGET.NUMBER">
+          <template v-else-if="widget.type == WIDGET.NUMBER">
             <a-input-number
               v-model:model-value="flowForm[widget.name]"
               :hide-button="true"
@@ -33,7 +33,7 @@
               :allow-clear="!widget.required"
               :placeholder="widget.placeholder" />
           </template>
-          <template v-if="widget.type == WIDGET.MONEY">
+          <template v-else-if="widget.type == WIDGET.MONEY">
             <a-input-number
               v-model:model-value="flowForm[widget.name]"
               :allow-clear="!widget.required"
@@ -45,17 +45,17 @@
               <template #append> CNY-人民币元 </template>
             </a-input-number>
           </template>
-          <template v-if="widget.type == WIDGET.SINGLE_CHOICE">
+          <template v-else-if="widget.type == WIDGET.SINGLE_CHOICE">
             <a-select v-model:model-value="flowForm[widget.name]" :placeholder="widget.placeholder" :allow-clear="!widget.required">
               <a-option v-for="option in widget.options" :value="option">{{ option }}</a-option>
             </a-select>
           </template>
-          <template v-if="widget.type == WIDGET.MULTI_CHOICE">
+          <template v-else-if="widget.type == WIDGET.MULTI_CHOICE">
             <a-select v-model:model-value="flowForm[widget.name]" multiple :placeholder="widget.placeholder" :allow-clear="!widget.required">
               <a-option v-for="option in widget.options" :value="option">{{ option }}</a-option>
             </a-select>
           </template>
-          <template v-if="widget.type == WIDGET.DATE">
+          <template v-else-if="widget.type == WIDGET.DATE">
             <a-date-picker
               v-model:model-value="flowForm[widget.name]"
               :allow-clear="!widget.required"
@@ -65,7 +65,7 @@
               :style="{ width: '100%' }"
               :placeholder="widget.placeholder" />
           </template>
-          <template v-if="widget.type == WIDGET.DATE_RANGE">
+          <template v-else-if="widget.type == WIDGET.DATE_RANGE">
             <a-range-picker
               v-model:model-value="flowForm[widget.name]"
               :allow-clear="!widget.required"
@@ -74,7 +74,7 @@
               :show-time="widget.format.includes('H')"
               :style="{ width: '100%' }" />
           </template>
-          <template v-if="widget.type == WIDGET.PICTURE">
+          <template v-else-if="widget.type == WIDGET.PICTURE">
             <a-upload
               v-model:file-list="flowForm[widget.name]"
               list-type="picture-card"
@@ -84,7 +84,7 @@
               :limit="10"
               :multiple="true" />
           </template>
-          <template v-if="widget.type == WIDGET.ATTACHMENT">
+          <template v-else-if="widget.type == WIDGET.ATTACHMENT">
             <a-upload
               v-model:file-list="flowForm[widget.name]"
               :action="fileUploadUrl"
@@ -108,11 +108,21 @@
               <a-option v-for="user in allUsers || []" :value="user.id">{{ user.name }}</a-option>
             </a-select>
           </template>
+          <template v-else-if="widget.type == WIDGET.AREA">
+            <a-cascader
+              v-model:model-value="flowForm[widget.name]"
+              :options="CHINA_AREA"
+              allow-search
+              path-mode
+              expand-trigger="hover"
+              :placeholder="widget.placeholder"
+              :allow-clear="!widget.required" />
+          </template>
         </a-form-item>
         <template v-else-if="widget.type == WIDGET.DESCRIBE">
           <div class="describe"><icon-info-circle />{{ widget.placeholder }}</div>
         </template>
-        <template v-else>
+        <template v-else-if="widget.type == WIDGET.DETAIL">
           <flow-widget-detail :widget="widget" :headers="fileUploadHeaders" :url="fileUploadUrl" :form="flowForm" />
         </template>
       </template>
@@ -124,18 +134,20 @@
       <div class="flow-preview-nodes">
         <a-timeline mode="left">
           <template v-for="node in flowNodes">
-            <a-timeline-item label="" :dotColor="flowTimeLineDotColors[node.nodeType]">
+            <a-timeline-item label="" :dotColor="flowTimeLineDotColors[node.nodeType].color">
+              <!-- 开始节点 -->
               <div class="node-box" v-if="node.nodeType == NODE.START">
                 <div class="node-name">开始</div>
               </div>
+              <!-- 审批人节点 -->
               <div class="node-box" v-else-if="node.nodeType == NODE.APPROVE">
                 <div class="node-name">
-                  审批人
+                  审批
                   <div class="node-type" v-if="node.approvalType == 1">自动通过</div>
                   <div class="node-type" v-if="node.approvalType == 2">自动拒绝</div>
-                  <div class="node-type" v-if="node.multiInstanceApprovalType == 1">会签</div>
-                  <div class="node-type" v-if="node.multiInstanceApprovalType == 2">或签</div>
-                  <div class="node-type" v-if="node.multiInstanceApprovalType == 3">依次审批</div>
+                  <div class="node-type" v-if="node.multiInstanceApprovalType == 1">需所有人审批同意</div>
+                  <div class="node-type" v-if="node.multiInstanceApprovalType == 2">只需一人审批同意</div>
+                  <div class="node-type" v-if="node.multiInstanceApprovalType == 3">需依次审批同意</div>
                 </div>
                 <div class="node-content">
                   <div v-if="node.initatorChoice" class="initator-chioce">
@@ -153,9 +165,7 @@
                       :hidden-role="true" />
                   </div>
                   <template v-else>
-                    <div
-                      class="node-null-assignee"
-                      v-if="node.approvalType == 0 && node.nodeType == NODE.APPROVE && node.userIds.length == 0 && node.roleIds.length == 0">
+                    <div class="node-null-assignee" v-if="node.approvalType == 0 && node.userIds.length == 0 && node.roleIds.length == 0">
                       <template v-if="node.flowNodeNoAuditorType == 0">
                         <div class="null-tooltip">没有审批人，自动通过</div>
                       </template>
@@ -175,8 +185,50 @@
                   </template>
                 </div>
               </div>
+              <!-- 办理人节点 -->
+              <div class="node-box" v-else-if="node.nodeType == NODE.TRANSACT">
+                <div class="node-name">
+                  办理
+                  <div class="node-type" v-if="node.multiInstanceApprovalType == 1">需所有人办理同意</div>
+                  <div class="node-type" v-if="node.multiInstanceApprovalType == 2">只需一人办理同意</div>
+                  <div class="node-type" v-if="node.multiInstanceApprovalType == 3">需依次办理同意</div>
+                </div>
+                <div class="node-content">
+                  <div v-if="node.initatorChoice" class="initator-chioce">
+                    <a-button size="small" @click="onChooseUserClicked()">
+                      <template #icon><icon-plus /></template>
+                    </a-button>
+                    <span class="assignee-list">
+                      <flow-node-avatar v-for="userId in flowNodeDesignees[node.id]" :size="20" :id="userId" class="assignee-item" />
+                    </span>
+                    <OrganChooseBox
+                      v-if="showChooseUser"
+                      v-model:visible="showChooseUser"
+                      v-model:selected="flowNodeDesignees[node.id]"
+                      :hidden-dept="true"
+                      :hidden-role="true" />
+                  </div>
+                  <template v-else>
+                    <div class="node-null-assignee" v-if="node.approvalType == 0 && node.userIds.length == 0 && node.roleIds.length == 0">
+                      <template v-if="node.flowNodeNoAuditorType == 1">
+                        <div class="null-tooltip">没有办理人，指定人员办理</div>
+                        <flow-node-avatar :size="20" :id="node.flowNodeNoAuditorAssignee" class="assignee-item" />
+                      </template>
+                      <template v-else-if="node.flowNodeNoAuditorType == 2">
+                        <div class="null-tooltip">没有办理人，转交给审批管理员</div>
+                        <flow-node-avatar :size="20" :id="node.flowNodeAuditAdmin" class="assignee-item" />
+                      </template>
+                    </div>
+                    <div v-else class="node-assignee">
+                      <flow-node-avatar v-for="userId in node.userIds" :size="20" :id="userId" class="assignee-item" />
+                      <flow-node-role-avatar v-for="roleId in node.roleIds" :size="20" :id="roleId" class="assignee-item" />
+                    </div>
+                  </template>
+                </div>
+              </div>
+              <!-- 抄送人节点 -->
               <div class="node-box" v-else-if="node.nodeType == NODE.COPY">
-                <div class="node-name">抄送人</div>
+                <div class="node-name">抄送</div>
                 <div class="node-content">
                   <div class="node-cc">
                     <template v-if="node.userIds.length > 0">
@@ -186,6 +238,7 @@
                   </div>
                 </div>
               </div>
+              <!-- 结束节点 -->
               <div class="node-box" v-else-if="node.nodeType == NODE.END">
                 <div class="node-name">结束</div>
               </div>
@@ -215,10 +268,11 @@ import { FILE_BASE_URL } from "@/api/FileApi";
 import { NODE, WIDGET } from "@/components/flow/common/FlowConstant";
 import { Message } from "@arco-design/web-vue";
 import { IconPlus, IconInfoCircle } from "@arco-design/web-vue/es/icon";
-import FlowWidgetDetail from "./flow-form-widget-detail.vue";
+import FlowWidgetDetail from "./flow-launch-widget-detail.vue";
 import OrganChooseBox from "@/components/flow/dialog/OrganChooseBox.vue";
 import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import FlowNodeRoleAvatar from "@/components/common/FlowNodeRoleAvatar.vue";
+import CHINA_AREA from "@/components/flow/common/ChinaArea";
 
 let props = defineProps({
   flow: { type: Object, default: () => {} },
@@ -231,7 +285,6 @@ let { users: allUsers, depts: allDepts } = useOrganStore();
 
 let fileUploadUrl = FILE_BASE_URL + "/upload"; //文件上传地址
 let fileUploadHeaders = ref({ Authorization: getToken() }); // 文件上传请求头
-let flowTimeLineDotColors = reactive(["#a9b4cd", "#ff943e", "#3296fa", null, null, null, null, null, null, "#a9b4cd"]); // 时间线点的颜色
 let flowWidgetMap = null; // 表单组件Map，会在第一次提交表单时生成。
 let flowForm = ref({}); // 流程的表单
 let flowNodes = ref([]); // 预览的流程节点
@@ -240,6 +293,13 @@ let formValidated = ref(false); // 表单是否校验通过
 let flowPreviewed = ref(false); // 流程是否已经预览
 let formErrors = ref([]); // 流程表单校验错误
 let launching = ref(false); // 流程发起中
+
+let flowTimeLineDotColors = reactive({}); // 时间线点的颜色
+flowTimeLineDotColors[NODE.START] = { color: "#a9b4cd" };
+flowTimeLineDotColors[NODE.APPROVE] = { color: "#ff943e" };
+flowTimeLineDotColors[NODE.COPY] = { color: "#3296fa" };
+flowTimeLineDotColors[NODE.TRANSACT] = { color: "#926bd5" };
+flowTimeLineDotColors[NODE.END] = { color: "#a9b4cd" };
 
 watch(
   () => flowForm,
