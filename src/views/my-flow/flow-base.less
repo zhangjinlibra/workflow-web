@@ -53,78 +53,18 @@
     }
 
     .item-box {
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid #e9ebef;
-      padding: 10px 16px;
-      user-select: none;
-      cursor: pointer;
-      transition: box-shadow 0.2s cubic-bezier(0, 0, 1, 1);
       margin-bottom: @FlowCardGap;
-      scroll-snap-align: start;
+      transition: box-shadow 0.2s cubic-bezier(0, 0, 1, 1);
 
       &:hover {
         box-shadow: 4px 4px 12px rgb(var(--gray-3));
       }
-
-      .header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        .name {
-          font-size: 15px;
-        }
-      }
-
-      .summary {
-        margin-top: 10px;
-
-        .summary-item {
-          display: flex;
-
-          + .summary-item {
-            margin-top: 6px;
-          }
-
-          .label {
-            color: #9ba5b3;
-            width: @FlowCardFieldLabelWidth;
-            overflow: hidden;
-            white-space: nowrap;
-          }
-
-          .value {
-            color: #1d2129;
-            max-width: calc(100% - @FlowCardFieldLabelWidth);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            margin-left: 2px;
-          }
-        }
-      }
-
-      .footer {
-        margin-top: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 13px;
-
-        .initiator {
-          display: flex;
-          align-items: center;
-        }
-
-        .begin-time {
-          color: var(--color-neutral-6);
-        }
-      }
     }
 
     .item-box-choosed {
-      border-color: #3572ff;
+      .flow-card-box {
+        border-color: #3572ff;
+      }
     }
 
     .spin-box {

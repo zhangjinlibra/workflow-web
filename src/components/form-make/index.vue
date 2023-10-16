@@ -119,13 +119,9 @@
                   <div :class="['form-item', element.required ? 'required' : '']">
                     <div class="form-item-name">{{ element.label }}</div>
                     <div class="form-item-widget">
-                      <a-upload disabled>
-                        <template #upload-button>
-                          <a-button>
-                            <template #icon><icon-plus /></template>点击上传
-                          </a-button>
-                        </template>
-                      </a-upload>
+                      <a-button disabled>
+                        <template #icon><icon-plus /></template>点击上传
+                      </a-button>
                     </div>
                   </div>
                 </template>
@@ -133,13 +129,9 @@
                   <div :class="['form-item', element.required ? 'required' : '']">
                     <div class="form-item-name">{{ element.label }}</div>
                     <div class="form-item-widget">
-                      <a-upload disabled>
-                        <template #upload-button>
-                          <a-button>
-                            <template #icon><icon-plus /></template>点击上传
-                          </a-button>
-                        </template>
-                      </a-upload>
+                      <a-button disabled>
+                        <template #icon><icon-plus /></template>点击上传
+                      </a-button>
                     </div>
                   </div>
                 </template>
@@ -164,6 +156,16 @@
                     <div class="form-item-name">{{ element.label }}</div>
                     <div class="form-item-widget">
                       <a-cascader :options="CHINA_AREA" :placeholder="element.placeholder" :disabled="true" />
+                    </div>
+                  </div>
+                </template>
+                <template v-else-if="element.type == WIDGET.FLOW_INST">
+                  <div :class="['form-item', element.required ? 'required' : '']">
+                    <div class="form-item-name">{{ element.label }}</div>
+                    <div class="form-item-widget">
+                      <a-button disabled>
+                        <template #icon><icon-plus /></template>选择审批
+                      </a-button>
                     </div>
                   </div>
                 </template>
@@ -228,7 +230,10 @@
                 <a-checkbox v-model:model-value="widget.required">必填</a-checkbox>
               </a-grid-item>
               <a-grid-item
-                v-if="![WIDGET.MULTILINE_TEXT, WIDGET.PICTURE, WIDGET.ATTACHMENT].includes(widget.type) && isNotInDetailWidget(widget)">
+                v-if="
+                  ![WIDGET.MULTILINE_TEXT, WIDGET.PICTURE, WIDGET.ATTACHMENT, WIDGET.FLOW_INST].includes(widget.type) &&
+                  isNotInDetailWidget(widget)
+                ">
                 <a-checkbox v-model:model-value="widget.summary">显示为摘要</a-checkbox>
               </a-grid-item>
             </a-grid>
@@ -296,6 +301,7 @@ let fieldEtc = ref([
   { type: WIDGET.ATTACHMENT, label: fieldSetting[WIDGET.ATTACHMENT].label, icon: "&#xe60a" },
   { type: WIDGET.DEPARTMENT, label: fieldSetting[WIDGET.DEPARTMENT].label, placeholder: "请选择", icon: "&#xe614" },
   { type: WIDGET.EMPLOYEE, label: fieldSetting[WIDGET.EMPLOYEE].label, placeholder: "请选择", icon: "&#xe609" },
+  { type: WIDGET.FLOW_INST, label: fieldSetting[WIDGET.FLOW_INST].label, placeholder: "请选择", icon: "&#xe61a" },
   { type: WIDGET.AREA, label: fieldSetting[WIDGET.AREA].label, placeholder: "请选择", icon: "&#xe64a" },
 ]);
 let fields = ref([

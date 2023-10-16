@@ -118,6 +118,19 @@
               :placeholder="widget.placeholder"
               :allow-clear="!widget.required" />
           </template>
+          <template v-else-if="widget.type == WIDGET.FLOW_INST">
+            <div class="flow-inst-widget">
+              <div class="flow-inst-widget-btn">
+                <a-link class="" @click="onFlowSelectClicked()">
+                  <template #icon><icon-plus /></template>添加审批
+                </a-link>
+              </div>
+              <div class="flow-inst-list">
+                <FlowCard v-for="id in flowForm[widget.name]" :flow-inst-id="id"></FlowCard>
+              </div>
+              <FlowSelect v-model:visible="showFlowSelect" v-model:selected="flowForm[widget.name]"></FlowSelect>
+            </div>
+          </template>
         </a-form-item>
         <template v-else-if="widget.type == WIDGET.DESCRIBE">
           <div class="describe"><icon-info-circle />{{ widget.placeholder }}</div>
@@ -273,6 +286,8 @@ import OrganChooseBox from "@/components/flow/dialog/OrganChooseBox.vue";
 import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import FlowNodeRoleAvatar from "@/components/common/FlowNodeRoleAvatar.vue";
 import CHINA_AREA from "@/components/flow/common/ChinaArea";
+import FlowSelect from "./flow-inst-select.vue";
+import FlowCard from "./flow-card.vue";
 
 let props = defineProps({
   flow: { type: Object, default: () => {} },
@@ -293,6 +308,7 @@ let formValidated = ref(false); // 表单是否校验通过
 let flowPreviewed = ref(false); // 流程是否已经预览
 let formErrors = ref([]); // 流程表单校验错误
 let launching = ref(false); // 流程发起中
+let showFlowSelect = ref(false); // 是否显示流程选择框
 
 let flowTimeLineDotColors = reactive({}); // 时间线点的颜色
 flowTimeLineDotColors[NODE.START] = { color: "#a9b4cd" };
@@ -455,6 +471,10 @@ const handleOk = () => {
 const handleCancel = () => {
   emits("onCancel");
 };
+
+const onFlowSelectClicked = () => {
+  showFlowSelect.value = true;
+};
 </script>
 
 <style lang="less" scoped>
@@ -466,6 +486,27 @@ const handleCancel = () => {
   .flow-form-box {
     .field-item {
       margin-bottom: 10px;
+    }
+
+    .flow-inst-widget {
+      width: 100%;
+
+      .flow-inst-widget-btn {
+        height: 32px;
+        display: flex;
+        align-items: center;
+      }
+
+      .flow-inst-list {
+        display: grid;
+        gap: 6px;
+        .flow-card-box {
+          transition: box-shadow 0.2s cubic-bezier(0, 0, 1, 1);
+          &:hover {
+            box-shadow: 4px 4px 12px rgb(var(--gray-3));
+          }
+        }
+      }
     }
 
     .describe {

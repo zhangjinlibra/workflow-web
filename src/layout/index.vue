@@ -7,16 +7,26 @@
             <div class="logo"><img alt="Vue logo" class="logo" src="@/assets/logo.png" height="24" /></div>
             <!-- <div class="slogan">审批</div> -->
             <a-trigger trigger="hover" position="bottom" :show-arrow="false" :popup-translate="[0, 10]" animation-name="uido">
-              <a-tag class="version">20231008.01版本</a-tag>
+              <a-tag class="version">20231011.01版本</a-tag>
               <template #content>
-                <div class="change-log">
-                  <div class="version-title">本次更新</div>
-                  <a-divider />
-                  <div class="version-content">
-                    <p>新增节点: 办理人</p>
-                    <p>新增表单组件: 省市区</p>
-                    <p>审批节点支持操作权限设置</p>
-                    <p>修复已知问题, 优化体验</p>
+                <div class="change-log-list">
+                  <div class="change-log">
+                    <div class="version-title">本次更新</div>
+                    <a-divider />
+                    <div class="version-content">
+                      <p>新增表单组件: 关联审批</p>
+                      <p>修复已知问题, 优化体验</p>
+                    </div>
+                  </div>
+                  <div class="change-log">
+                    <div class="version-title">20231008.01版本更新</div>
+                    <a-divider />
+                    <div class="version-content">
+                      <p>新增节点: 办理人</p>
+                      <p>新增表单组件: 省市区</p>
+                      <p>审批节点支持操作权限设置</p>
+                      <p>修复已知问题, 优化体验</p>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -379,37 +389,43 @@ const onChangeUserClicked = () => {
   padding: 4px;
 }
 
-.change-log {
+.change-log-list {
   background-color: var(--color-bg-popup);
   border-radius: 4px;
   box-shadow: 0 2px 8px #00000026;
 
-  .arco-divider {
-    margin: 0;
-  }
+  .change-log {
+    .arco-divider {
+      margin: 0;
+    }
 
-  .version-title {
-    padding: 10px 12px;
-  }
+    .version-title {
+      padding: 10px 12px;
+    }
 
-  .version-content {
-    padding: 10px 12px;
+    .version-content {
+      padding: 10px 12px;
 
-    p {
-      padding: 0 8px 0 12px;
-      line-height: 22px;
-      color: #646a73;
+      p {
+        padding: 0 8px 0 12px;
+        line-height: 22px;
+        color: #646a73;
 
-      &::before {
-        content: "";
-        width: 4px;
-        height: 4px;
-        position: absolute;
-        top: 9px;
-        left: 0;
-        border-radius: 2px;
-        background: #3370ff;
+        &::before {
+          content: "";
+          width: 4px;
+          height: 4px;
+          position: absolute;
+          top: 9px;
+          left: 0;
+          border-radius: 2px;
+          background: #3370ff;
+        }
       }
+    }
+
+    + .change-log {
+      border-top: 1px solid var(--color-neutral-2);
     }
   }
 }

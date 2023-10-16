@@ -101,7 +101,11 @@
                 <td class="value">
                   <table class="detail-value">
                     <tr>
-                      <td class="label" v-for="subWidget in formWidget.details">{{ subWidget.label }}</td>
+                      <td
+                        class="label"
+                        v-for="subWidget in formWidget.details.filter((d) => ![WIDGET.DESCRIBE, WIDGET.FLOW_INST].includes(d.type))">
+                        {{ subWidget.label }}
+                      </td>
                     </tr>
                     <template v-for="record in formValue[formWidget.name]">
                       <tr>
@@ -280,6 +284,7 @@ onMounted(() => {});
       font-size: 15px;
       word-break: break-all;
       padding: 4px;
+      height: 32px;
     }
 
     .label {

@@ -24,6 +24,14 @@ function listTasks(data) {
   });
 }
 
+function getById(params) {
+  return request({
+    url: `/flowinstance/getById`,
+    method: "get",
+    params,
+  });
+}
+
 function getDetail(params) {
   return request({
     url: `/flowinstance/getDetail`,
@@ -164,6 +172,7 @@ export default {
   viewProcessChart,
   flowStart,
   listTasks,
+  getById,
   getDetail,
   approve,
   reject,

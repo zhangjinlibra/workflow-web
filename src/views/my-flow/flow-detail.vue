@@ -102,6 +102,15 @@
                 <div class="value">{{ (formValue[formWidget.name] || []).join(" / ") }}</div>
               </div>
             </template>
+            <!-- 关联审批 -->
+            <template v-else-if="[WIDGET.FLOW_INST].includes(formWidget.type)">
+              <div class="form-item">
+                <div class="label">{{ formWidget.label }}</div>
+                <div class="value flow-inst-list">
+                  <FlowCard v-for="id in formValue[formWidget.name] || []" :flow-inst-id="id" :clickable="true"></FlowCard>
+                </div>
+              </div>
+            </template>
             <!-- 图片 -->
             <template v-else-if="[WIDGET.PICTURE].includes(formWidget.type)">
               <div class="form-item">
@@ -137,11 +146,16 @@
                 <a-table
                   :data="formValue[formWidget.name]"
                   :pagination="false"
-                  size="mini"
+                  size="small"
+                  :scrollbar="false"
+                  :hoverable="false"
                   :bordered="{ cell: true }"
                   class="value detail-value">
                   <template #columns>
-                    <a-table-column v-for="subWidget in formWidget.details" :title="subWidget.label">
+                    <a-table-column
+                      v-for="subWidget in formWidget.details"
+                      :title="subWidget.label"
+                      :width="subWidget.type == WIDGET.FLOW_INST ? 300 : 100">
                       <template #cell="{ record }">
                         <!-- 纯文本 -->
                         <template
@@ -197,6 +211,12 @@
                         <!-- 省市区 -->
                         <template v-else-if="[WIDGET.AREA].includes(subWidget.type)">
                           {{ (record[subWidget.name] || []).join(" / ") }}
+                        </template>
+                        <!-- 关联审批 -->
+                        <template v-else-if="[WIDGET.FLOW_INST].includes(subWidget.type)">
+                          <div class="flow-inst-list">
+                            <FlowCard v-for="id in record[subWidget.name] || []" :flow-inst-id="id" :clickable="true"></FlowCard>
+                          </div>
                         </template>
                       </template>
                     </a-table-column>
@@ -546,6 +566,7 @@ import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import FlowNodeRoleAvatar from "@/components/common/FlowNodeRoleAvatar.vue";
 import FlowStatusStamp from "./flow-status-stamp.vue";
 import FlowPrint from "./flow-print.vue";
+import FlowCard from "./flow-card.vue";
 import {
   IconStamp,
   IconRobot,
@@ -584,19 +605,6 @@ let formWidgetMap = ref({});
 let flowNodes = ref([]);
 let formValue = ref({});
 let finished = computed(() => props.flowInst.status != 0);
-
-watch(
-  () => props.flowInst,
-  (nv) => {
-    if (nv && nv.id && nv.flowDefId) {
-      loadFlowDetail();
-      loadFromWidgets().then(() => {
-        formValue.value = JSON.parse(nv.formValue);
-        formatFormValue();
-      });
-    }
-  }
-);
 
 // 查询表单组件
 const loadFromWidgets = () => {
@@ -832,12 +840,27 @@ const onDelSigned = () => {
   showHandleModal.value = true;
 };
 
+watch(
+  () => props.flowInst,
+  (nv) => {
+    if (nv && nv.id && nv.flowDefId) {
+      loadFlowDetail();
+      loadFromWidgets().then(() => {
+        formValue.value = JSON.parse(nv.formValue);
+        formatFormValue();
+      });
+    }
+  },
+  { immediate: true }
+);
+
 onMounted(() => {
   OrganApi.loadOrgan(); // 加载组织
 });
 </script>
 
 <style lang="less" scoped>
+@import "@/styles/variables.module.less";
 @bottomActionHeight: 52px;
 @SidePadding: 20px;
 @HeaderNoHeight: 40px;
@@ -965,6 +988,20 @@ onMounted(() => {
         &:hover {
           color: #165cfd;
           text-decoration: underline;
+        }
+      }
+    }
+
+    .flow-inst-list {
+      width: 100%;
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, @FlowCardWidth);
+      gap: 6px;
+
+      .flow-card-box {
+        transition: box-shadow 0.2s cubic-bezier(0, 0, 1, 1);
+        &:hover {
+          box-shadow: 4px 4px 12px rgb(var(--gray-3));
         }
       }
     }
@@ -1191,7 +1228,7 @@ onMounted(() => {
   }
 
   .arco-table-cell {
-    padding: 4px;
+    padding: 6px;
     font-size: 13px;
     min-height: 30px;
   }

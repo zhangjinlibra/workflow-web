@@ -45,7 +45,7 @@ export const constantRoutes = [
     path: "/flowmanage",
     name: "/flowmanage",
     component: Layout,
-    meta: { title: "流程管理", icon: "&#xe65A;", roles: ["admin"] },
+    meta: { title: "审批管理", icon: "&#xe65A;", roles: ["admin"] },
     children: [
       {
         path: "/flowmanindex",

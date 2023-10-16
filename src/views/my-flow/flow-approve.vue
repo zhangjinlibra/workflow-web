@@ -68,33 +68,9 @@
           :class="['item-box', selectedFlow.id == inst.id ? 'item-box-choosed' : '']"
           v-for="inst in flowInsts"
           @click="onFlowInstClicked(inst)">
-          <div class="header">
-            <a-typography-text bold class="name">{{ inst.name }}</a-typography-text>
-            <div class="status">
-              <a-tag color="blue" v-if="inst.status == STATUS_LIST[0].value">{{ STATUS_LIST[0].name }}</a-tag>
-              <a-tag color="green" v-else-if="inst.status == STATUS_LIST[1].value">{{ STATUS_LIST[1].name }}</a-tag>
-              <a-tag color="red" v-else-if="inst.status == STATUS_LIST[2].value">{{ STATUS_LIST[2].name }}</a-tag>
-              <a-tag color="orangered" v-else-if="inst.status == STATUS_LIST[3].value">{{ STATUS_LIST[3].name }}</a-tag>
-            </div>
-          </div>
-          <div class="summary">
-            <div class="summary-item" v-for="(value, label) in inst.summary">
-              <div class="label">{{ label }}</div>
-              <div class="value">{{ value }}</div>
-            </div>
-          </div>
-          <div class="footer">
-            <div class="initiator">
-              <!-- <a-avatar :size="20" class="avatar">{{ inst.initiatorId }}</a-avatar>
-              {{ inst.initiatorId }} -->
-              <flow-node-avatar :size="20" :id="inst.initiatorId"></flow-node-avatar>
-            </div>
-            <div class="begin-time">提交于 {{ inst.beginTime }}</div>
-          </div>
+          <FlowCard :flow-inst="inst"></FlowCard>
         </div>
-        <div class="spin-box" ref="spinbox">
-          <a-spin v-if="haveMore"></a-spin>
-        </div>
+        <RollLoading @on-scroll="loadFlowInsts()" :has-more="haveMore"></RollLoading>
       </div>
     </div>
 
@@ -112,10 +88,10 @@ import FlowManApi from "@/api/FlowManApi";
 import FlowApi from "@/api/FlowApi";
 import OrganApi from "@/api/OrganApi";
 import FlowDetail from "./flow-detail.vue";
-import { STATUS_LIST } from "@/components/flow/common/FlowConstant";
 import ArrayUtil from "@/components/flow/common/ArrayUtil";
-import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import { IconSearch, IconRefresh, IconFilter } from "@arco-design/web-vue/es/icon";
+import FlowCard from "./flow-card.vue";
+import RollLoading from "@/components/common/RollLoading.vue";
 
 let organStore = useOrganStore();
 let users = computed(() => organStore.users);
@@ -126,6 +102,7 @@ let flowInsts = ref([]);
 let flowBeginTime = ref([]);
 let flowEndTime = ref([]);
 let selectedFlow = ref({});
+const haveMore = ref(true); // 无限加载, 是否存在更多的数据
 
 const onBeginTimeChanged = (dateString) => {
   if (dateString && dateString.length == 2) {
@@ -150,7 +127,6 @@ const onSearch = () => {
   query.value.page = 0;
   flowInsts.value = [];
   haveMore.value = true;
-  register();
 };
 
 const onSearchReset = () => {
@@ -159,7 +135,6 @@ const onSearchReset = () => {
   flowEndTime.value = null;
   flowInsts.value = [];
   haveMore.value = true;
-  register();
 };
 
 const loadFlowInsts = () => {
@@ -192,32 +167,6 @@ const loadFlowGroups = () => {
     }
   });
 };
-
-// 无限加载
-const ob = ref();
-const spinbox = ref();
-const haveMore = ref(true);
-
-// 注册观察器
-const register = () => {
-  ob.value.unobserve(spinbox.value);
-  ob.value.observe(spinbox.value);
-};
-
-onMounted(() => {
-  const obCallback = (entries) => {
-    let entry = entries[0];
-    if (!entry.isIntersecting) return;
-    if (haveMore.value) loadFlowInsts();
-  };
-
-  ob.value = new IntersectionObserver(obCallback, { threshold: 0 });
-  ob.value.observe(spinbox.value);
-});
-
-onBeforeUnmount(() => {
-  ob.value.unobserve(spinbox.value);
-});
 
 onBeforeMount(() => {
   OrganApi.loadOrgan();

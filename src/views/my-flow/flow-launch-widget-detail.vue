@@ -124,6 +124,19 @@
                 :allow-clear="!widget.required">
               </a-cascader>
             </template>
+            <template v-else-if="widget.type == WIDGET.FLOW_INST">
+              <div class="flow-inst-widget">
+                <div class="flow-inst-widget-btn">
+                  <a-link class="" @click="onFlowSelectClicked()">
+                    <template #icon><icon-plus /></template>添加审批
+                  </a-link>
+                </div>
+                <div class="flow-inst-list">
+                  <FlowCard v-for="id in formDetailVal[widget.name]" :flow-inst-id="id"></FlowCard>
+                </div>
+                <FlowSelect v-model:visible="showFlowSelect" v-model:selected="formDetailVal[widget.name]"></FlowSelect>
+              </div>
+            </template>
           </a-form-item>
           <template v-else-if="widget.type == WIDGET.DESCRIBE">
             <div class="describe"><icon-info-circle />{{ widget.placeholder }}</div>
@@ -156,6 +169,8 @@ import { WIDGET } from "@/components/flow/common/FlowConstant";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
 import { IconDelete, IconPlus, IconInfoCircle } from "@arco-design/web-vue/es/icon";
 import CHINA_AREA from "@/components/flow/common/ChinaArea";
+import FlowSelect from "./flow-inst-select.vue";
+import FlowCard from "./flow-card.vue";
 
 let props = defineProps({
   url: { type: String },
@@ -173,6 +188,10 @@ let amountWidgets = computed(() => {
   return props.widget.details.filter((item) => item.type == WIDGET.MONEY);
 });
 let amountValues = ref([]);
+let showFlowSelect = ref(false); // 是否显示流程选择框
+const onFlowSelectClicked = () => {
+  showFlowSelect.value = true;
+};
 
 watch(props.form, () => {
   let values = props.form[props.widget.name];
@@ -244,6 +263,27 @@ onBeforeMount(() => {
 
       svg {
         margin-right: 5px;
+      }
+    }
+
+    .flow-inst-widget {
+      width: 100%;
+
+      .flow-inst-widget-btn {
+        height: 32px;
+        display: flex;
+        align-items: center;
+      }
+
+      .flow-inst-list {
+        display: grid;
+        gap: 6px;
+        .flow-card-box {
+          transition: box-shadow 0.2s cubic-bezier(0, 0, 1, 1);
+          &:hover {
+            box-shadow: 4px 4px 12px rgb(var(--gray-3));
+          }
+        }
       }
     }
 
