@@ -5,25 +5,25 @@
 
 ## 🐼 简介
 
-`beeflow-engine` 是 `beeflow工作流` 的免费开源的流程设计器。设计器包含流程审批、表单设计、审批流程设计全套功能，开箱即用。
+`workflow-engine` 是 `beeflow工作流` 的免费开源的流程设计器。设计器包含流程审批、表单设计、审批流程设计全套功能，开箱即用。
 
-我们经历前后数月的开荒、耕地、播种，最终决定开源前端流程设计器代码，期待您的使用反馈。
+历经相当长一段时间的使用，我们觉得这个设计器还不错，所以决定开源前端流程设计器代码，期待帮助更多的同学，也期待您的反馈。
 
-配套的后端可以联系我们获取。
-
-`项目会不定期更新，有需求的小伙伴可以 ⭐ 一下，开源不易，感谢支持。`
+`对后端感兴趣或者有疑问的同学可以进群交流（进群方式在最下面）。`
 
 ## 🐰 slogan
 
-我们致力于打造简单、易用、管家式服务的工作流组件，使得流程开发和使用变得简单。
+我们致力于打造简单、易用的工作流组件，使得流程开发和使用变得简单。
 
-😁 源码：[github](https://github.com/zhangjinlibra/workflow-web.git) | [gitee](https://gitee.com/zhangjinlibra/workflow-engine)
+`项目会长期维护和不定期更新，有需求的小伙伴可以 ⭐ 一下，感谢支持。`
+
+😁 源码：[github](https://github.com/zhangjinlibra/workflow-web.git) | [gitee](https://gitee.com/zhangjinlibra/beeflow-engine)
 
 👉 演示地址：[beeflow 工作流](http://49.235.72.105) 👈
 
 ---
 
-## 🦝 beeflow-engine 简介
+## 🦝 workflow-engine 简介
 
 #### **流程基本信息**
 
@@ -96,20 +96,22 @@ npm run test
 
 ## 👨‍👦‍👦 加入交流群
 
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-        <img src="https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme12.png" class="no-zoom" style="width:120px;margin: 10px;">
-        <p>进群备注: 工作流</p>
-      </td>
-      <td align="center" valign="middle">
-        <img src="https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme13.png" class="no-zoom" style="width:120px;margin: 10px;">
-        <p>QQ群: 418513428</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<div id="contact">
+    <table >
+        <tbody>
+            <tr>
+            <td align="center" valign="middle">
+                <img src="http://inus-markdown.oss-cn-beijing.aliyuncs.com/img/weichat_qrcode.png" class="no-zoom" style="width:120px;margin: 10px;">
+                <p>进群备注: 工作流</p>
+            </td>
+            <td align="center" valign="middle">
+                <img src="https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme13.png" class="no-zoom" style="width:120px;margin: 10px;">
+                <p>QQ群: 418513428</p>
+            </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
 ## 🫶 支持一下呗
 
