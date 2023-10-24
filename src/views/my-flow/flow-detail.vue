@@ -1119,10 +1119,10 @@ onMounted(() => {
         }
 
         .node-assignee {
-          margin: 4px 0;
-          display: grid;
-          gap: 8px;
-          grid-template-columns: repeat(auto-fit, minmax(70px, max-content));
+          margin-top: 4px;
+          display: flex;
+          flex-flow: row wrap;
+          gap: 6px;
         }
 
         .assignee-name {

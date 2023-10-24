@@ -136,9 +136,10 @@ onBeforeMount(async () => {
 </script>
 
 <style lang="less" scoped>
+@import "@/styles/variables.module.less";
+
 @header-height: 70px;
-// @canvas-bg: #f5f5f7;
-@canvas-bg: #f2f3f5;
+@canvas-bg: @MainContentBg;
 
 .fd-nav {
   position: fixed;

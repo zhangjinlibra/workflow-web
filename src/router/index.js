@@ -7,7 +7,7 @@ export const constantRoutes = [
     name: "/",
     redirect: "/flowstart",
     component: Layout,
-    meta: { title: "审批", icon: "&#xe614;", roles: ["admin"] },
+    meta: { title: "审批", icon: "menu-flow", roles: ["admin"] },
     children: [
       {
         path: "flowstart",
@@ -45,12 +45,26 @@ export const constantRoutes = [
     path: "/flowmanage",
     name: "/flowmanage",
     component: Layout,
-    meta: { title: "审批管理", icon: "&#xe65A;", roles: ["admin"] },
+    meta: { title: "审批管理", icon: "menu-flow-manage", roles: ["admin"] },
     children: [
       {
         path: "/flowmanindex",
         name: "/flowmanindex",
         component: () => import("@/views/flow-manage/index.vue"),
+        meta: { roles: ["admin"] },
+      },
+    ],
+  },
+  {
+    path: "/flowdata",
+    name: "/flowdata",
+    component: Layout,
+    meta: { title: "数据管理", icon: "menu-flow-data", roles: ["admin"] },
+    children: [
+      {
+        path: "/flowdataindex",
+        name: "/flowdataindex",
+        component: () => import("@/views/flow-data/index.vue"),
         meta: { roles: ["admin"] },
       },
     ],

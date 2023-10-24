@@ -7,23 +7,23 @@
             <div class="logo"><img alt="Vue logo" class="logo" src="@/assets/logo.png" height="24" /></div>
             <!-- <div class="slogan">审批</div> -->
             <a-trigger trigger="hover" position="bottom" :show-arrow="false" :popup-translate="[0, 10]" animation-name="uido">
-              <a-tag class="version">20231011.01版本</a-tag>
+              <a-tag class="version">20231024.01版本</a-tag>
               <template #content>
                 <div class="change-log-list">
                   <div class="change-log">
                     <div class="version-title">本次更新</div>
                     <a-divider />
                     <div class="version-content">
-                      <p>新增表单组件: 关联审批</p>
+                      <p>新增模块: 数据管理</p>
                       <p>修复已知问题, 优化体验</p>
                     </div>
                   </div>
                   <div class="change-log">
-                    <div class="version-title">20231008.01版本更新</div>
+                    <div class="version-title">20231011.01版本更新</div>
                     <a-divider />
                     <div class="version-content">
                       <p>新增节点: 办理人</p>
-                      <p>新增表单组件: 省市区</p>
+                      <p>新增表单组件: 省市区, 关联审批</p>
                       <p>审批节点支持操作权限设置</p>
                       <p>修复已知问题, 优化体验</p>
                     </div>
@@ -86,7 +86,9 @@
             <template v-if="route.children && route.children.length > 1">
               <a-sub-menu :key="route.path">
                 <template #icon>
-                  <span class="icon iconfont-approval-admin" v-html="route.meta.icon"></span>
+                  <span class="icon">
+                    <svg-icon :icon-class="route.meta.icon"></svg-icon>
+                  </span>
                 </template>
                 <template #title>{{ route.meta.title }}</template>
                 <a-menu-item :key="sub.path" v-for="sub in route.children">{{ sub.meta.title }}</a-menu-item>
@@ -95,7 +97,9 @@
             <template v-else>
               <a-menu-item :key="route.children[0].path">
                 <template #icon>
-                  <span class="icon iconfont-approval-admin" v-html="route.meta.icon"></span>
+                  <span class="icon">
+                    <svg-icon :icon-class="route.meta.icon"></svg-icon>
+                  </span>
                 </template>
                 {{ route.meta.title }}
               </a-menu-item>
@@ -285,6 +289,21 @@ const onChangeUserClicked = () => {
   // transition: all 0.2s cubic-bezier(0.34, 0.69, 0.1, 1);
   transition: width 0.3s;
   user-select: none;
+
+  .icon {
+    @IconSize: 24px;
+    width: @IconSize;
+    height: @IconSize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .svg-icon {
+      @SvgSize: 18px;
+      width: @SvgSize;
+      height: @SvgSize;
+    }
+  }
 
   .iconfont-approval-admin {
     font-size: 24px;

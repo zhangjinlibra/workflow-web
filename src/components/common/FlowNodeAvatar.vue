@@ -58,6 +58,7 @@ onBeforeMount(() => {
   background: #f2f4f5;
   display: flex;
   align-items: center;
+  width: fit-content;
 
   .icon {
     overflow: hidden;

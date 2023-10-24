@@ -550,9 +550,9 @@ const onFlowSelectClicked = () => {
           .node-assignee,
           .node-cc {
             margin-top: 4px;
-            display: grid;
-            gap: 4px;
-            grid-template-columns: repeat(auto-fill, minmax(70px, max-content));
+            display: flex;
+            flex-flow: row wrap;
+            gap: 6px;
           }
 
           .node-null-assignee {

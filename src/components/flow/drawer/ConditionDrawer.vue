@@ -209,7 +209,7 @@ const initCondition = () => {
           let { type: detailType, required: detailRequired } = detail;
           if (detailRequired && [WIDGET.NUMBER, WIDGET.MONEY].includes(detailType)) {
             detail.operators = [0, 1, 2, 3, 4, 5];
-            detail.label = detail.label + "合计";
+            detail.label = detail.label + "（合计）";
             conditionOptions.value.push(detail);
           }
         });

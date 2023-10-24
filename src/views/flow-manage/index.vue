@@ -2,8 +2,8 @@
   <div class="fd-main-box">
     <!-- 检索区域 -->
     <div class="search-area">
-      <div class="group-name">
-        <a-input :style="{ minWidth: '240px' }" v-model:model-value="flowName" placeholder="搜索" allow-clear :max-length="16">
+      <div class="search-item">
+        <a-input :style="{ minWidth: '240px' }" v-model:model-value="flowName" placeholder="请输入审批名称搜索" allow-clear :max-length="16">
           <template #prefix> <icon-search /> </template>
         </a-input>
       </div>
@@ -269,8 +269,8 @@ onBeforeMount(() => {
 
       .group-header {
         height: 48px;
-        color: #252834;
-        background-color: #f9fafa;
+        color: var(--color-text-2);
+        background-color: #fafafa;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -283,7 +283,7 @@ onBeforeMount(() => {
           padding: 10px 18px;
           display: flex;
           align-items: center;
-          border-top: 1px solid #f1f1f1;
+          border-top: 1px solid var(--color-neutral-2);
           transition: all 0.2s;
 
           //   &:hover {

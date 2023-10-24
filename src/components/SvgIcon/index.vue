@@ -1,7 +1,8 @@
 <template>
   <div v-if="isExternal" :style="styleExternalIcon" class="svg-external-icon svg-icon" />
   <svg v-else :class="svgClass" aria-hidden="true">
-    <use :xlink:href="iconName" :fill="color" />
+    <use v-if="color" :xlink:href="iconName" :fill="color" />
+    <use v-else :xlink:href="iconName" />
   </svg>
 </template>
 
@@ -11,7 +12,7 @@ import { computed } from "vue";
 const props = defineProps({
   iconClass: { type: String, required: true },
   className: { type: String, default: "" },
-  color: { type: String, default: "#333" },
+  color: { type: String }, // #333
 });
 
 const isExternal = computed(() => {

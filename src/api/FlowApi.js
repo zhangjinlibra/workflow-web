@@ -64,6 +64,14 @@ function listMineAuditRecords(data) {
   });
 }
 
+function listFlowInsts(data) {
+  return request({
+    url: `/flowinstance/listFlowInsts?page=${data.page}&size=${data.size}`,
+    method: "post",
+    data,
+  });
+}
+
 function approve(data) {
   return request({
     url: "/flowinstance/approve",
@@ -190,4 +198,5 @@ export default {
   addSign,
   delSign,
   listRemoveableNodeAssignees,
+  listFlowInsts,
 };

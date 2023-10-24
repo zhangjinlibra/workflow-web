@@ -1,9 +1,11 @@
 <template>
   <section class="flow-start-box">
     <div class="search-wrapper">
-      <a-input placeholder="请输入审批名称搜索" v-model:model-value="flowName" :allow-clear="true" :style="{ width: '280px' }">
-        <template #prepend><icon-search /></template>
-      </a-input>
+      <div class="search-item">
+        <a-input :style="{ minWidth: '240px' }" v-model:model-value="flowName" placeholder="请输入审批名称搜索" allow-clear :max-length="16">
+          <template #prefix> <icon-search /> </template>
+        </a-input>
+      </div>
     </div>
 
     <div class="flow-group-wrapper">
