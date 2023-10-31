@@ -91,7 +91,7 @@
 
     <!-- 流程详情 -->
     <div class="flow-detail-content">
-      <flow-detail :flow-inst="selectedFlow" :cancelable="true" :action="false" />
+      <flow-detail :flow-inst="selectedFlow" :cancelable="true" :actionable="false" />
     </div>
   </section>
 </template>

@@ -8,13 +8,13 @@ const useOrganStore = defineStore("organ", {
   }),
   getters: {
     getUserById: (state) => {
-      return (userId) => state.users.find((user) => user.id === userId) || { id: userId, name: "未知用户" };
+      return (userId) => state.users.find((user) => user.id === userId) || { id: userId, name: "" };
     },
     getDeptById: (state) => {
-      return (deptId) => state.depts.find((dept) => dept.id === deptId) || { id: deptId, name: "未知部门" };
+      return (deptId) => state.depts.find((dept) => dept.id === deptId) || { id: deptId, name: "" };
     },
     getRoleById: (state) => {
-      return (roleId) => state.roles.find((role) => role.id === roleId) || { id: userId, name: "未知角色" };
+      return (roleId) => state.roles.find((role) => role.id === roleId) || { id: userId, name: "" };
     },
     getById: (state) => {
       return (id) => {

@@ -76,7 +76,7 @@
 
     <!-- 流程详情 -->
     <div class="flow-detail-content">
-      <flow-detail v-model:flow-inst="selectedFlow" :cancelable="false" :action="true" @onRemove="onHandleCallback" />
+      <flow-detail v-model:flow-inst="selectedFlow" :cancelable="false" :actionable="true" @onRemove="onHandleCallback" />
     </div>
   </section>
 </template>

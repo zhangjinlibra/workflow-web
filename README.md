@@ -100,7 +100,7 @@ npm run test
   <tbody>
     <tr>
       <td align="center" valign="middle">
-        <img src="http://inus-markdown.oss-cn-beijing.aliyuncs.com/img/weichat_qrcode.png" class="no-zoom" style="width:120px;margin: 10px;">
+        <img src="https://ecs-public.oss-cn-shanghai.aliyuncs.com/weichat_qrcode.png" class="no-zoom" style="width:120px;margin: 10px;">
         <p>进群备注: 工作流</p>
       </td>
       <td align="center" valign="middle">

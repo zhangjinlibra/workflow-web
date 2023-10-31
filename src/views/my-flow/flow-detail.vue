@@ -389,11 +389,13 @@
 
       <!-- 底部操作栏 -->
       <div class="flow-actions">
-        <a-button @click="onComment()">
-          <template #icon><icon-message /></template> 评论
-        </a-button>
+        <template v-if="commentable">
+          <a-button @click="onComment()">
+            <template #icon><icon-message /></template> 评论
+          </a-button>
+        </template>
 
-        <template v-if="!finished && action">
+        <template v-if="!finished && actionable">
           <template v-if="flowInst.nodeType == NODE.APPROVE">
             <a-button type="primary" @click="onApproved()">
               <template #icon><icon-check /></template> 同意
@@ -419,7 +421,7 @@
           :popup-max-height="false"
           v-if="
             !finished &&
-            action &&
+            actionable &&
             (flowInst.assignable || flowInst.backable || (flowInst.signable && [NODE_SIGN.NONE].includes(flowInst.nodeSignType)))
           "
           class="flow-actions-box">
@@ -592,8 +594,9 @@ let users = computed(() => organStore.users);
 
 let props = defineProps({
   flowInst: { type: Object, default: () => {} },
-  action: { type: Boolean, default: false }, // 流程除去评论,撤销的其他按钮
   cancelable: { type: Boolean, default: false }, // 撤销按钮
+  commentable: { type: Boolean, default: true }, //评论按钮
+  actionable: { type: Boolean, default: false }, // 其他操作按钮
 });
 let emits = defineEmits(["onRemove", "update:flowInst"]);
 
@@ -863,7 +866,7 @@ onMounted(() => {
 @import "@/styles/variables.module.less";
 @bottomActionHeight: 52px;
 @SidePadding: 20px;
-@HeaderNoHeight: 40px;
+@HeaderHeight: 40px;
 @FormLabelWidth: 84px;
 
 .flow-detail-container {
@@ -887,7 +890,7 @@ onMounted(() => {
   font-size: 13px;
   border-bottom: 1px solid #e5e6ec;
   padding: 0 @SidePadding;
-  height: calc(@HeaderNoHeight - 1px);
+  height: calc(@HeaderHeight - 1px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -906,7 +909,7 @@ onMounted(() => {
 }
 
 .flow-detail-box {
-  height: calc(100% - @bottomActionHeight - @HeaderNoHeight);
+  height: calc(100% - @bottomActionHeight - @HeaderHeight);
   overflow: hidden;
   overflow-y: auto;
   padding: 0 calc(@SidePadding + 10px);

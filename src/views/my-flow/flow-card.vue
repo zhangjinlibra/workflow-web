@@ -35,7 +35,7 @@
       unmountOnClose
       :footer="false"
       :header="false">
-      <flow-detail v-model:flow-inst="inst" :cancelable="false" :action="false" />
+      <flow-detail v-model:flow-inst="inst" :cancelable="false" :actionable="false" />
     </a-drawer>
   </div>
 </template>

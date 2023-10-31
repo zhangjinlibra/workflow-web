@@ -105,7 +105,7 @@
                       </template>
                       <template v-else-if="item.transactorType == ASSIGNEE.ROLE">
                         <p class="bold">选择角色</p>
-                        <a-form-item tooltip="请选择角色" label="提交人部门由该角色管理">
+                        <a-form-item tooltip="请选择角色" label="组织角色">
                           <a-select multiple placeholder="请选择角色" v-model="item.roles">
                             <a-option v-for="role in allRoles" :value="role.id" :label="role.name"></a-option>
                           </a-select>
