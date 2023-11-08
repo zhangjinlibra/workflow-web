@@ -3,7 +3,7 @@
 <p align="center"><a>BeeFlow工作流</a></p>
 </p>
 
-## 🐼 简介
+## 🐼 前言
 
 `workflow-engine` 是 `beeflow工作流` 的免费开源的流程设计器。设计器包含流程审批、表单设计、审批流程设计全套功能，开箱即用。
 
@@ -23,7 +23,7 @@
 
 ---
 
-## 🦝 workflow-engine 简介
+## 🦝 简介
 
 #### **流程基本信息**
 
@@ -72,15 +72,15 @@
 
 ![流程详情](https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme9.png)
 
-> 流程在审批过程中，我们支持下面的这些动作：
->
-> - 转交
-> - 回退
-> - 前加签
-> - 后加签
-> - 并加签
-> - 减签
-> - 评论
+> 流程在审批过程中，我们支持下面的这些动作
+
+- 转交
+- 回退
+- 前加签
+- 后加签
+- 并加签
+- 减签
+- 评论
 
 ---
 
@@ -100,7 +100,7 @@ npm run test
   <tbody>
     <tr>
       <td align="center" valign="middle">
-        <img src="https://ecs-public.oss-cn-shanghai.aliyuncs.com/weichat_qrcode.png" class="no-zoom" style="width:120px;margin: 10px;">
+        <img src="http://inus-markdown.oss-cn-beijing.aliyuncs.com/img/weichat_qcode_qun.png" class="no-zoom" style="width:120px;margin: 10px;">
         <p>进群备注: 工作流</p>
       </td>
       <td align="center" valign="middle">
