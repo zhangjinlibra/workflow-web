@@ -29,7 +29,7 @@ onMounted(() => {
 
 <style lang="less" scoped>
 .fd-setting-box {
-  padding: 20px 0 10px;
+  padding: 15px 0 10px;
   display: flex;
   justify-content: center;
   overflow-y: auto;

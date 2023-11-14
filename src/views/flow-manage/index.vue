@@ -1,5 +1,5 @@
 <template>
-  <div class="fd-main-box">
+  <div class="fd-main-box" v-loading.fullscreen="loading">
     <!-- 检索区域 -->
     <div class="search-area">
       <div class="search-item">
@@ -111,15 +111,20 @@ const router = useRouter();
 const flowStore = useFlowStore();
 const userStore = useUserStore();
 const { getById } = useOrganStore();
+const loading = ref(false);
 
 let flowName = ref(""); // 流程名称检索
 let groups = ref([]);
 const loadGroups = () => {
-  FlowManApi.listGroupsWithFlowDefinition().then((resp) => {
-    if (resp.code == 1) {
-      groups.value = resp.data || [];
-    }
-  });
+  loading.value = true;
+  FlowManApi.listGroupsWithFlowDefinition()
+    .then((resp) => {
+      if (resp.code == 1) {
+        groups.value = resp.data || [];
+      }
+      loading.value = false;
+    })
+    .catch(() => (loading.value = false));
 };
 const filteredFlows = (flows) => {
   return (flows || []).filter((item) => item.name.includes(flowName.value));
@@ -219,23 +224,22 @@ onBeforeMount(() => {
 @import "@/styles/variables.module.less";
 
 @SearchHeight: 55px;
-@FlowGroupGutter: 16px;
 
 .fd-main-box {
   user-select: none;
   width: 100%;
-  height: calc(100vh - @HeaderHeight - @BreadcrumbHeight);
+  height: calc(100vh - @AppHeaderHeight - @AppBreadcrumbHeight);
   // overflow: hidden auto;
   // overflow: hidden;
-  // padding: 0 @ContentPadding;
+  // padding: 0 @Gap;
 
   .search-area {
     display: flex;
     justify-content: space-between;
-    margin: 0 @ContentPadding @FlowGroupGutter;
-    border-radius: @CommonBorderRedius;
+    margin: 0 @LayoutGap @LayoutGap;
+    border-radius: @BorderRadius;
     height: @SearchHeight;
-    padding: 0 18px;
+    padding: 0 @Gap;
     background: #fff;
     display: flex;
     align-items: center;
@@ -248,24 +252,23 @@ onBeforeMount(() => {
   }
 
   .flow-groups-area {
-    height: calc(100vh - @HeaderHeight - @BreadcrumbHeight - @SearchHeight - @FlowGroupGutter);
+    height: calc(100vh - @AppHeaderHeight - @AppBreadcrumbHeight - @SearchHeight - @LayoutGap);
     overflow: hidden auto;
-    padding: 0 @FlowGroupGutter;
+    padding: 0 @LayoutGap;
 
     .empty-flow-box {
-      border-radius: @CommonBorderRedius;
+      border-radius: @BorderRadius;
       padding: 48px;
       background-color: #fff;
       border: 0;
     }
 
     .group-item-box {
-      border-radius: @CommonBorderRedius;
+      border-radius: @BorderRadius;
       // box-shadow: 0 0 3px 1px #eee;
       background-color: #fff;
       overflow: hidden;
-      border: 1px solid #f1f1f1;
-      margin-bottom: @FlowGroupGutter;
+      margin-bottom: @LayoutGap;
 
       .group-header {
         height: 48px;
@@ -274,52 +277,44 @@ onBeforeMount(() => {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 18px;
+        padding: 0 @Gap;
         // border-bottom: 1px solid #efefef;
       }
 
       .group-body {
         .flow-item {
-          padding: 10px 18px;
+          padding: 10px @Gap;
           display: flex;
           align-items: center;
           border-top: 1px solid var(--color-neutral-2);
           transition: all 0.2s;
+          gap: 10px;
 
           //   &:hover {
           //     background-color: #ededee;
           //   }
 
-          .flow-item-field {
-            + .flow-item-field {
-              margin-left: 10px;
-            }
-          }
-
           .name-icon {
             flex: 1;
             display: flex;
             align-items: center;
+            gap: 10px;
 
             .name-desc {
               display: flex;
               flex-direction: column;
+              justify-content: center;
+              gap: 4px;
               max-width: 400px;
-              margin-left: 10px;
 
               .desc {
                 font-size: 13px;
                 text-overflow: ellipsis;
                 overflow: hidden;
                 white-space: nowrap;
-                line-height: 17px;
                 color: #8f959e;
                 font-weight: 400;
               }
-            }
-
-            .tag {
-              margin-left: 10px;
             }
           }
 

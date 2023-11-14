@@ -4,13 +4,13 @@
       <div class="form-detail-val-item">
         <div class="detail-item-title">
           <div class="title">{{ `${widget.label} ${idx + 1}` }}</div>
-          <div v-if="props.form[props.widget.name].length > 1" class="icon-button" @click="onDetailDeleted(idx)"><icon-delete :size="16" /></div>
         </div>
         <template v-for="widget in details">
           <a-form-item v-if="![WIDGET.DESCRIBE].includes(widget.type)" class="field-item" :required="widget.required" :label="widget.label">
             <template v-if="widget.type == WIDGET.SINGLELINE_TEXT">
               <a-input
                 v-model:model-value="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
                 :max-length="64"
                 :allow-clear="!widget.required"
                 :placeholder="widget.placeholder" />
@@ -18,6 +18,7 @@
             <template v-else-if="widget.type == WIDGET.MULTILINE_TEXT">
               <a-textarea
                 v-model:model-value="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
                 :max-length="128"
                 :allow-clear="!widget.required"
                 :placeholder="widget.placeholder" />
@@ -25,6 +26,7 @@
             <template v-else-if="widget.type == WIDGET.NUMBER">
               <a-input-number
                 v-model:model-value="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
                 :max-length="15"
                 :allow-clear="!widget.required"
                 :hide-button="true"
@@ -33,6 +35,7 @@
             <template v-else-if="widget.type == WIDGET.MONEY">
               <a-input-number
                 v-model:model-value="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
                 ::allow-clear="!widget.required"
                 :min="0"
                 :max-length="15"
@@ -43,13 +46,18 @@
               </a-input-number>
             </template>
             <template v-else-if="widget.type == WIDGET.SINGLE_CHOICE">
-              <a-select v-model:model-value="formDetailVal[widget.name]" :placeholder="widget.placeholder" :allow-clear="!widget.required">
+              <a-select
+                v-model:model-value="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
+                :placeholder="widget.placeholder"
+                :allow-clear="!widget.required">
                 <a-option v-for="option in widget.options" :value="option">{{ option }}</a-option>
               </a-select>
             </template>
             <template v-else-if="widget.type == WIDGET.MULTI_CHOICE">
               <a-select
                 v-model:model-value="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
                 multiple
                 :allow-clear="!widget.required"
                 :placeholder="widget.placeholder">
@@ -59,6 +67,7 @@
             <template v-else-if="widget.type == WIDGET.DATE">
               <a-date-picker
                 v-model:model-value="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
                 :allow-clear="!widget.required"
                 :value-format="widget.format"
                 :show-time="widget.format.includes('H')"
@@ -69,6 +78,7 @@
             <template v-else-if="widget.type == WIDGET.DATE_RANGE">
               <a-range-picker
                 v-model:model-value="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
                 :allow-clear="!widget.required"
                 :value-format="widget.format"
                 :show-time="widget.format.includes('H')"
@@ -79,6 +89,9 @@
             <template v-else-if="widget.type == WIDGET.PICTURE">
               <a-upload
                 v-model:file-list="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
+                :show-remove-button="!!widget.editable"
+                :show-upload-button="!!widget.editable"
                 list-type="picture-card"
                 :image-preview="true"
                 :action="url"
@@ -90,6 +103,9 @@
             <template v-else-if="widget.type == WIDGET.ATTACHMENT">
               <a-upload
                 v-model:file-list="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
+                :show-remove-button="!!widget.editable"
+                :show-upload-button="!!widget.editable"
                 :action="url"
                 :headers="headers"
                 :with-credentials="true"
@@ -105,6 +121,7 @@
             <template v-else-if="widget.type == WIDGET.DEPARTMENT">
               <a-select
                 v-model:model-value="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
                 :placeholder="widget.placeholder"
                 allow-search
                 :allow-clear="!widget.required">
@@ -114,6 +131,7 @@
             <template v-else-if="widget.type == WIDGET.EMPLOYEE">
               <a-select
                 v-model:model-value="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
                 :placeholder="widget.placeholder"
                 allow-search
                 :allow-clear="!widget.required">
@@ -123,6 +141,7 @@
             <template v-else-if="widget.type == WIDGET.AREA">
               <a-cascader
                 v-model:model-value="formDetailVal[widget.name]"
+                :disabled="!widget.editable"
                 :options="CHINA_AREA"
                 allow-search
                 path-mode
@@ -133,7 +152,7 @@
             </template>
             <template v-else-if="widget.type == WIDGET.FLOW_INST">
               <div class="flow-inst-widget">
-                <div class="flow-inst-widget-btn">
+                <div class="flow-inst-widget-btn" v-if="widget.editable">
                   <a-link @click="onFlowSelectClicked()">
                     <template #icon><icon-plus /></template>添加审批
                   </a-link>
@@ -141,21 +160,19 @@
                 <div class="flow-inst-list">
                   <FlowCard v-for="id in formDetailVal[widget.name]" :flow-inst-id="id"></FlowCard>
                 </div>
-                <FlowInstSelect v-model:visible="showFlowSelect" v-model:selected="formDetailVal[widget.name]"></FlowInstSelect>
+                <FlowInstSelect
+                  v-model:visible="flowInstSelectVisible"
+                  v-model:selected="formDetailVal[widget.name]"
+                  :disabled="[flowInst.id]" />
               </div>
             </template>
           </a-form-item>
           <template v-else-if="widget.type == WIDGET.DESCRIBE">
             <div class="describe"><icon-info-circle />{{ widget.placeholder }}</div>
-            <!-- <a-textarea :placeholder="widget.placeholder" :disabled="true" /> -->
           </template>
         </template>
       </div>
     </template>
-    <a-button class="add-one-detail" long @click="onDetailAdded(widget)">
-      添加{{ widget.label }}
-      <template #icon> <icon-plus /> </template>
-    </a-button>
 
     <div class="amount-wrapper">
       <div class="amount-item" v-for="item in amountValues">
@@ -170,11 +187,11 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount, watch, ref } from "vue";
+import { computed, watch, ref } from "vue";
 import { useOrganStore } from "@/stores";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
-import { IconDelete, IconPlus, IconInfoCircle } from "@arco-design/web-vue/es/icon";
+import { IconPlus, IconInfoCircle } from "@arco-design/web-vue/es/icon";
 import CHINA_AREA from "@/components/flow/common/ChinaArea";
 import FlowInstSelect from "./flow-inst-select.vue";
 import FlowCard from "./flow-card.vue";
@@ -184,58 +201,37 @@ let props = defineProps({
   headers: { type: Object, default: () => {} },
   widget: { type: Object, default: () => {} },
   form: { type: Object, default: () => {} },
+  flowInst: { type: Object, default: {} },
 });
 
 let { users: allUsers, depts: allDepts } = useOrganStore();
 
 let details = computed(() => props.widget.details);
-// let detailVals = computed(() => props.form[props.widget.name]);
-let names = props.widget.details.map((i) => i.name);
 let amountWidgets = computed(() => {
   return props.widget.details.filter((item) => item.type == WIDGET.MONEY);
 });
 let amountValues = ref([]);
-let showFlowSelect = ref(false); // 是否显示流程选择框
+let flowInstSelectVisible = ref(false); // 是否显示流程选择框
 const onFlowSelectClicked = () => {
-  showFlowSelect.value = true;
+  flowInstSelectVisible.value = true;
 };
 
-watch(props.form, () => {
-  let values = props.form[props.widget.name];
-  amountValues.value = [];
-  amountWidgets.value.forEach((item) => {
-    let { name, label } = item;
-    let total = 0;
-    values.forEach((itemValue) => {
-      total += itemValue[name] || 0;
+watch(
+  props.form,
+  () => {
+    let values = props.form[props.widget.name];
+    amountValues.value = [];
+    amountWidgets.value.forEach((item) => {
+      let { name, label } = item;
+      let total = 0;
+      values.forEach((itemValue) => {
+        total += itemValue[name] || 0;
+      });
+      amountValues.value.push({ label, total });
     });
-    amountValues.value.push({ label, total });
-  });
-});
-
-const initVal = () => {
-  let nv = {};
-  names.forEach((name) => (nv[name] = null));
-  return nv;
-};
-
-const onDetailAdded = () => {
-  let detailValue = props.form[props.widget.name];
-  if (!detailValue) {
-    props.form[props.widget.name] = [initVal()];
-  } else {
-    detailValue.push(initVal());
-  }
-};
-
-const onDetailDeleted = (idx) => {
-  let val = props.form[props.widget.name];
-  val.splice(idx, 1);
-};
-
-onBeforeMount(() => {
-  onDetailAdded();
-});
+  },
+  { immediate: true }
+);
 </script>
 
 <style lang="less" scoped>
@@ -267,8 +263,6 @@ onBeforeMount(() => {
       margin: 0 10px 10px;
       display: flex;
       align-items: center;
-      min-height: 32px;
-      min-height: 32px;
 
       svg {
         margin-right: 5px;
@@ -306,15 +300,10 @@ onBeforeMount(() => {
     }
   }
 
-  .add-one-detail {
-    margin-top: 8px;
-    margin-bottom: 10px;
-  }
-
   .amount-wrapper {
     background-color: #e0eaff;
     border-radius: 4px;
-    margin-bottom: 10px;
+    margin: 10px 0;
 
     .amount-item {
       display: flex;

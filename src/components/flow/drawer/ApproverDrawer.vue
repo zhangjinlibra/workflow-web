@@ -31,8 +31,8 @@
       <div class="approval-editor-tab-wrapper" v-if="flowNodeConfig.approvalType == 0">
         <a-radio-group type="button" v-model="viewEditorType" size="large">
           <a-radio :value="0">设置审批人</a-radio>
-          <!-- <a-radio value="right">表单权限</a-radio> -->
-          <a-radio :value="1">操作权限</a-radio>
+          <a-radio :value="1">表单权限</a-radio>
+          <a-radio :value="2">操作权限</a-radio>
         </a-radio-group>
 
         <!-- 设置审批人 -->
@@ -238,8 +238,10 @@
             </div>
           </div>
         </div>
+        <!-- 设置表单权限 -->
+        <NodeFormAuthSetting v-model:flowNodeConfig="flowNodeConfig" v-else-if="viewEditorType == 1"></NodeFormAuthSetting>
         <!-- 设置操作权限 -->
-        <div class="item-content-auth" v-else-if="viewEditorType == 1">
+        <div class="item-content-auth" v-else-if="viewEditorType == 2">
           <div class="content-wrap">
             <div class="item-content">
               <div class="item-wrap auth-list">
@@ -272,6 +274,7 @@ import Snowflake from "../common/Snowflake";
 import OrganChooseBox from "../dialog/OrganChooseBox.vue";
 import { IconDelete, IconSwap, IconPlus } from "@arco-design/web-vue/es/icon";
 import EditableText from "@/components/common/EditableText.vue";
+import NodeFormAuthSetting from "../NodeFormAuthSetting.vue";
 
 let flowStore = useFlowStore();
 const { roles: allRoles, users: allUsers, getUserById } = useOrganStore();
@@ -284,7 +287,7 @@ let visible = computed({
   set: () => closeDrawer(),
 });
 
-let viewEditorType = ref(0); // 界面编辑类型    0:审批人; 1:操作权限
+let viewEditorType = ref(0); // 界面编辑类型    0:审批人; 1:表单权限; 2:操作权限
 let _uid = ref(0);
 let flowNodeConfig = ref({
   // type: 1,
@@ -350,8 +353,8 @@ const onAssigneeClick = (item) => {
 watch(approverConfig0, (val) => {
   flowNodeConfig.value = val.value;
   viewEditorType.value = 0;
-  console.log("审批人节点", flowNodeConfig);
   _uid = val.id;
+  //   console.log("审批人节点", flowNodeConfig);
 });
 
 watch(

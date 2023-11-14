@@ -1,5 +1,5 @@
 <template>
-  <section class="flow-edit-box">
+  <section class="flow-edit-box" v-loading.fullscreen="launching">
     <div class="fd-nav">
       <div class="fd-nav-left">
         <div class="back" @click="back()"><icon-left :size="16" /></div>
@@ -39,24 +39,24 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, toRaw, watch, onMounted } from "vue";
+import { onBeforeMount, ref, toRaw } from "vue";
 import { useFlowStore } from "@/stores/index";
 import { useRouter } from "vue-router";
+import { WIDGET } from "@/components/flow/common/FlowConstant";
 import { Notification } from "@arco-design/web-vue";
+import { IconLeft } from "@arco-design/web-vue/es/icon";
+import FlowValidate from "./flow-validate";
+import FlowManApi from "@/api/FlowManApi";
 import Base from "./base.vue";
 import FormMake from "@/components/form-make/index.vue";
 import Flow from "@/components/flow/index.vue";
 import Setting from "./setting.vue";
-import FlowManApi from "@/api/FlowManApi";
-import FlowValidate from "./flow-validate";
 import { cleanUnrequiredWidget, initBranchExp } from "@/components/flow/common/FormExp";
-import { WIDGET } from "@/components/flow/common/FlowConstant";
-import { IconLeft } from "@arco-design/web-vue/es/icon";
+import { filterConditionWidgets, resetAllNodeFormAuth } from "@/components/flow/common/FormAuth";
 
 let { flowDefinition } = useFlowStore();
 const router = useRouter();
 
-let loading = ref(false);
 let launching = ref(false); // 流程发布中
 let baseBox = ref(); // 基本信息组件
 let flowBox = ref(); // 流程组件
@@ -102,20 +102,30 @@ const validate = (flowDef) => {
   return true;
 };
 
+const initNodeConfig = (flowDef) => {
+  let { flowWidgets, nodeConfig } = flowDef;
+  // 初始化分支表达式
+  initBranchExp(nodeConfig);
+
+  // 重新设置一下节点表单权限
+  let conditionWidgets = [];
+  filterConditionWidgets(nodeConfig, conditionWidgets);
+  resetAllNodeFormAuth(nodeConfig, flowWidgets, conditionWidgets);
+};
+
 const deploy = () => {
   launching.value = true;
   let flowDef = JSON.parse(JSON.stringify(toRaw(flowDefinition)));
-  console.log("流程定义", JSON.stringify(flowDef));
   if (validate(flowDef)) {
-    initBranchExp(flowDef.nodeConfig);
-    loading.value = true;
+    initNodeConfig(flowDef);
+    console.log("流程", flowDef);
     FlowManApi.saveOrUpdate({ ...flowDef, flowDefJson: JSON.stringify(flowDef) }).then(
       (resp) => {
+        launching.value = false;
         if (resp.code == 1) {
           Notification.success(`流程${flowDefinition.workFlowDef.name}发布成功`);
           router.push("/flowmanindex");
         }
-        loading.value = false;
       },
       () => (launching.value = false)
     );
@@ -123,10 +133,6 @@ const deploy = () => {
     launching.value = false;
   }
 };
-
-watch(flowDefinition, () => {
-  console.log("flow changed", flowDefinition);
-});
 
 onBeforeMount(async () => {
   if (flowDefinition.workFlowDef == undefined) {

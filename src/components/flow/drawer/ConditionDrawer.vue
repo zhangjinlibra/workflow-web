@@ -268,6 +268,7 @@ const rmCondition = (conditionGroup, condition) => {
 const saveCondition = () => {
   // 组装成表达式
   // initExp(flowNodeConfig.value);// 改成点击发布是生成表达式
+  // 保存分支条件
   gatewayConfig.value.conditionNodes[priorityLevel - 1] = flowNodeConfig.value;
   setConditionsConfig({
     value: toRaw(gatewayConfig.value),

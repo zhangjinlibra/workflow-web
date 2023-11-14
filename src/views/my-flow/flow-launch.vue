@@ -72,7 +72,8 @@
               :value-format="widget.format"
               :format="widget.format"
               :show-time="widget.format.includes('H')"
-              :style="{ width: '100%' }" />
+              :style="{ width: '100%' }"
+              :placeholder="[widget.placeholder, widget.placeholder]" />
           </template>
           <template v-else-if="widget.type == WIDGET.PICTURE">
             <a-upload
@@ -81,6 +82,7 @@
               :image-preview="true"
               :action="fileUploadUrl"
               :headers="fileUploadHeaders"
+              :with-credentials="true"
               :limit="10"
               :multiple="true" />
           </template>
@@ -89,6 +91,7 @@
               v-model:file-list="flowForm[widget.name]"
               :action="fileUploadUrl"
               :headers="fileUploadHeaders"
+              :with-credentials="true"
               :limit="10"
               :multiple="true">
               <template #upload-button>
@@ -121,14 +124,14 @@
           <template v-else-if="widget.type == WIDGET.FLOW_INST">
             <div class="flow-inst-widget">
               <div class="flow-inst-widget-btn">
-                <a-link class="" @click="onFlowSelectClicked()">
+                <a-link @click="onFlowSelectClicked()">
                   <template #icon><icon-plus /></template>添加审批
                 </a-link>
               </div>
               <div class="flow-inst-list">
                 <FlowCard v-for="id in flowForm[widget.name]" :flow-inst-id="id"></FlowCard>
               </div>
-              <FlowSelect v-model:visible="showFlowSelect" v-model:selected="flowForm[widget.name]"></FlowSelect>
+              <FlowInstSelect v-model:visible="flowInstSelectVisible" v-model:selected="flowForm[widget.name]"></FlowInstSelect>
             </div>
           </template>
         </a-form-item>
@@ -136,7 +139,7 @@
           <div class="describe"><icon-info-circle />{{ widget.placeholder }}</div>
         </template>
         <template v-else-if="widget.type == WIDGET.DETAIL">
-          <flow-widget-detail :widget="widget" :headers="fileUploadHeaders" :url="fileUploadUrl" :form="flowForm" />
+          <FlowLaunchWidgetDetail :widget="widget" :headers="fileUploadHeaders" :url="fileUploadUrl" :form="flowForm" />
         </template>
       </template>
     </a-form>
@@ -275,18 +278,18 @@ import { reactive, ref, watch } from "vue";
 import { useOrganStore } from "@/stores";
 import { getToken } from "@/utils/auth";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
-import FlowApi from "@/api/FlowApi";
+import FlowInstApi from "@/api/FlowInstApi";
 import FlowManApi from "@/api/FlowManApi";
 import { FILE_BASE_URL } from "@/api/FileApi";
 import { NODE, WIDGET } from "@/components/flow/common/FlowConstant";
 import { Message } from "@arco-design/web-vue";
 import { IconPlus, IconInfoCircle } from "@arco-design/web-vue/es/icon";
-import FlowWidgetDetail from "./flow-launch-widget-detail.vue";
+import FlowLaunchWidgetDetail from "./flow-launch-widget-detail.vue";
 import OrganChooseBox from "@/components/flow/dialog/OrganChooseBox.vue";
 import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import FlowNodeRoleAvatar from "@/components/common/FlowNodeRoleAvatar.vue";
 import CHINA_AREA from "@/components/flow/common/ChinaArea";
-import FlowSelect from "./flow-inst-select.vue";
+import FlowInstSelect from "./flow-inst-select.vue";
 import FlowCard from "./flow-card.vue";
 
 let props = defineProps({
@@ -308,7 +311,7 @@ let formValidated = ref(false); // 表单是否校验通过
 let flowPreviewed = ref(false); // 流程是否已经预览
 let formErrors = ref([]); // 流程表单校验错误
 let launching = ref(false); // 流程发起中
-let showFlowSelect = ref(false); // 是否显示流程选择框
+let flowInstSelectVisible = ref(false); // 是否显示流程选择框
 
 let flowTimeLineDotColors = reactive({}); // 时间线点的颜色
 flowTimeLineDotColors[NODE.START] = { color: "#a9b4cd" };
@@ -391,7 +394,7 @@ const flowPreview = () => {
   validFlowForm(); // 校验表单
   if (formValidated.value) {
     flowPreviewed.value = false;
-    FlowApi.viewProcessChart({
+    FlowInstApi.viewProcessChart({
       flowDefId: props.flow.id,
       flowValue: JSON.stringify(flowForm.value),
     }).then((resp) => {
@@ -448,7 +451,7 @@ const handleOk = () => {
 
   // 校验通过发起申请
   if (formValidated.value) {
-    FlowApi.flowStart({
+    FlowInstApi.flowStart({
       flowDefId: props.flow.id,
       flowValue: JSON.stringify(handleFormValue(props.flowWidgets, ObjectUtil.copy(flowForm.value))),
       designees: formDesignees,
@@ -473,7 +476,7 @@ const handleCancel = () => {
 };
 
 const onFlowSelectClicked = () => {
-  showFlowSelect.value = true;
+  flowInstSelectVisible.value = true;
 };
 </script>
 
@@ -517,6 +520,7 @@ const onFlowSelectClicked = () => {
       padding: 4px 12px;
       cursor: default;
       margin-bottom: 10px;
+      min-height: 32px;
 
       svg {
         margin-right: 5px;
@@ -589,39 +593,43 @@ const onFlowSelectClicked = () => {
     display: flex;
     align-items: center;
     justify-content: end;
-
-    button + button {
-      margin-left: 10px;
-    }
+    gap: 10px;
   }
 }
 </style>
 
 <style lang="less">
 .flow-form-container {
-  .arco-form-item-label-col {
-    margin-bottom: 0;
+  .arco-form {
+    .arco-form-item-label-col {
+      margin-bottom: 0;
 
-    .arco-form-item-label {
-      font-size: 13px;
-      color: #999;
+      .arco-form-item-label {
+        font-size: 13px;
+        color: #999;
+      }
     }
-  }
 
-  .arco-upload-list-item-operation,
-  .arco-upload-list-picture-operation {
-    font-size: 16px;
+    .arco-upload-list.arco-upload-list-type-text .arco-upload-list-item:first-of-type,
+    .arco-upload-list.arco-upload-list-type-picture .arco-upload-list-item:first-of-type {
+      margin-top: 10px;
+    }
 
-    .arco-icon {
+    .arco-upload-list-item-operation,
+    .arco-upload-list-picture-operation {
       font-size: 16px;
+
+      .arco-icon {
+        font-size: 16px;
+      }
     }
   }
-}
 
-.flow-preview-box {
-  .arco-timeline-item {
-    &:last-child {
-      min-height: 40px;
+  .arco-timeline {
+    .arco-timeline-item {
+      &:last-child {
+        min-height: 0;
+      }
     }
   }
 }

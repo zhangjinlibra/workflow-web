@@ -67,12 +67,16 @@ const loadFlowData = (flowDef) => {
   setFlowDefId(workFlowDef0.id);
 };
 
+// watch(flowDefinition, () => {
+//   loadFlowData(flowDefinition);
+// });
+
 onMounted(async () => {
   if (flowDefinition == undefined) {
     router.push("/flowmanindex");
+  } else {
+    loadFlowData(flowDefinition);
   }
-
-  loadFlowData(flowDefinition);
 });
 
 // 缩放
@@ -90,7 +94,8 @@ const zoomSize = (type) => {
 </script>
 
 <style lang="less">
-@canvas-bg: #f5f5f7;
+// @canvas-bg: #f5f5f7;
+@canvas-bg: #f2f3f5;
 
 .flow-desgin {
   height: 100%;

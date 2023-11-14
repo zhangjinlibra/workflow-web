@@ -42,7 +42,7 @@
 
 <script setup>
 import { ref, watch } from "vue";
-import FlowApi from "@/api/FlowApi";
+import FlowInstApi from "@/api/FlowInstApi";
 import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import { STATUS_LIST } from "@/components/flow/common/FlowConstant";
 import FlowDetail from "./flow-detail.vue";
@@ -59,7 +59,7 @@ watch(
   (nv) => {
     let id = props.flowInstId;
     if (id) {
-      FlowApi.getById({ flowInstId: id }).then((resp) => {
+      FlowInstApi.getById({ flowInstId: id }).then((resp) => {
         if (resp.code == 1) inst.value = resp.data || {};
       });
     } else {
@@ -83,7 +83,7 @@ const onDetailClose = () => {
 @import "@/styles/variables.module.less";
 
 .flow-card-box {
-  border-radius: 4px;
+  border-radius: @BorderRadius;
   overflow: hidden;
   border: 1px solid #e9ebef;
   padding: 10px 12px;

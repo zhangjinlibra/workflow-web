@@ -134,6 +134,8 @@ onBeforeMount(() => {
 </script>
 
 <style lang="less">
+@import "@/styles/variables.module.less";
+
 .change-user-container {
   .user-list {
     max-height: 300px;
@@ -141,7 +143,7 @@ onBeforeMount(() => {
     overflow: hidden auto;
     margin-top: 10px;
     border: 1px solid var(--color-neutral-2);
-    border-radius: 4px;
+    border-radius: @BorderRadius;
     padding: 5px 10px;
 
     // .user-item {
@@ -150,7 +152,7 @@ onBeforeMount(() => {
     //   display: flex;
     //   align-items: center;
     //   padding: 0 12px;
-    //   border-radius: 4px;
+    //   border-radius: @BorderRadius;
     //   overflow: hidden;
     //   user-select: none;
     //   color: var(--color-text-2);

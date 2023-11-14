@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "vite",
     "test": "vite --mode test",
-    "dev:prod": "vite --mode production",
-    "build:test": "vite build --mode test",
+    "prod": "vite --mode production",
     "build": "vite build",
+    "build:test": "vite build --mode test",
+    "build:prod": "vite build --mode production",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -46,7 +47,7 @@
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
-    "@arco-design/web-vue": "^2.44.1",
+    "@arco-design/web-vue": "^2.53.2",
     "@vitejs/plugin-vue": "^4.0.0",
     "unplugin-auto-import": "^0.16.6",
     "unplugin-vue-components": "^0.25.1",

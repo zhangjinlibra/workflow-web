@@ -11,19 +11,19 @@
         @popup-visible-change="onPopupStatusChange">
         <template #content>
           <div class="add-node-popover-wrap">
-            <div class="add-node-popover-item approver" @click="addType(NODE.APPROVE)">
+            <div class="add-node-popover-item approver" @click="onNodeAddClicked(NODE.APPROVE)">
               <div class="node-icon"><span class="iconfont-approval-admin" v-html="icons[NODE.APPROVE].icon"></span></div>
               <div class="node-text">审批人</div>
             </div>
-            <div class="add-node-popover-item copyer" @click="addType(NODE.COPY)">
+            <div class="add-node-popover-item copyer" @click="onNodeAddClicked(NODE.COPY)">
               <div class="node-icon"><span class="iconfont-approval-admin" v-html="icons[NODE.COPY].icon"></span></div>
               <div class="node-text">抄送人</div>
             </div>
-            <div class="add-node-popover-item transactor" @click="addType(NODE.TRANSACT)">
+            <div class="add-node-popover-item transactor" @click="onNodeAddClicked(NODE.TRANSACT)">
               <div class="node-icon"><span class="iconfont-approval-admin" v-html="icons[NODE.TRANSACT].icon"></span></div>
               <div class="node-text">办理人</div>
             </div>
-            <div class="add-node-popover-item condition" @click="addType(NODE.EXCLUSIVE_GATEWANY)">
+            <div class="add-node-popover-item condition" @click="onNodeAddClicked(NODE.EXCLUSIVE_GATEWANY)">
               <div class="node-icon"><span class="iconfont-approval-admin" v-html="icons[NODE.EXCLUSIVE_GATEWANY].icon"></span></div>
               <div class="node-text">条件分支</div>
             </div>
@@ -36,11 +36,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from "vue";
-import Snowflake from "./common/Snowflake";
-import { IconPlus } from "@arco-design/web-vue/es/icon";
-import { NODE } from "./common/FlowConstant";
+import { ref, reactive, computed, toRaw } from "vue";
 import { useFlowStore } from "@/stores/index";
+import Snowflake from "./common/Snowflake";
+import { NODE } from "./common/FlowConstant";
+import ObjectUtil from "./common/ObjectUtil";
+import { IconPlus } from "@arco-design/web-vue/es/icon";
+import { filterConditionWidgets, initNodeFormAuth } from "./common/FormAuth";
 
 let emits = defineEmits(["update:childNodeP"]);
 let visible = ref(false);
@@ -61,18 +63,28 @@ icons[NODE.TRANSACT] = { icon: "&#xe6cd" };
 
 // 流程定义
 let flowStore = useFlowStore();
-let workFlowDef = computed(() => flowStore.flowDefinition.workFlowDef);
+let { flowDefinition } = flowStore;
+let workFlowDef = computed(() => flowDefinition.workFlowDef);
 
 const onPopupStatusChange = (is) => {
   visible.value = is;
 };
 
-const addType = (type) => {
+// 设置节点的表单权限
+const setFormAuth = (node) => {
+  let disabledWidgets = [];
+  filterConditionWidgets(flowDefinition.nodeConfig, disabledWidgets);
+  let widgets = ObjectUtil.copy(toRaw(flowDefinition.flowWidgets));
+  initNodeFormAuth(node, widgets, disabledWidgets);
+};
+
+// 新增节点
+const onNodeAddClicked = (type) => {
   visible.value = false;
   if (type != NODE.EXCLUSIVE_GATEWANY) {
     var newNode;
     if (type == NODE.APPROVE) {
-      console.log("增加审核人节点", props.childNodeP);
+      // console.log("增加审核人节点", props.childNodeP);
       newNode = {
         name: "审核",
         type: NODE.APPROVE,
@@ -86,6 +98,7 @@ const addType = (type) => {
         backable: true, // 可回退
         childNode: props.childNodeP,
       };
+      setFormAuth(newNode); // 设置节点的表单权限
     } else if (type == NODE.COPY) {
       newNode = {
         name: "抄送",
@@ -105,10 +118,11 @@ const addType = (type) => {
         assignable: true, // 可转交
         childNode: props.childNodeP,
       };
+      setFormAuth(newNode); // 设置节点的表单权限
     }
     emits("update:childNodeP", newNode);
   } else {
-    console.log("增加路由节点", props.childNodeP);
+    // console.log("增加路由节点", props.childNodeP);
     let newNode = {
       name: "路由",
       type: NODE.EXCLUSIVE_GATEWANY,

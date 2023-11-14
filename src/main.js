@@ -22,8 +22,8 @@ app.use(router);
 // import "@arco-themes/vue-digitforce/css/arco.css";
 // 按需加载，下面的组件样式需手动引入
 import "@arco-design/web-vue/es/message/style/css";
-import "@arco-design/web-vue/es/notification/style/css";
 import "@arco-design/web-vue/es/modal/style/css";
+import "@arco-design/web-vue/es/notification/style/css";
 
 // arco图标库
 // import ArcoVueIcon from "@arco-design/web-vue/es/icon";
@@ -44,8 +44,11 @@ import SvgIcon from "@/components/SvgIcon/index.vue";
 import "virtual:svg-icons-register";
 app.component("SvgIcon", SvgIcon);
 
-// focus指令
-app.directive("focus", { mounted: (el, binding, vnode, prevVnode) => el.focus() });
+// 指令
+import vFocus from "./directive/focus";
+import vLoading from "./directive/loading";
+app.directive("focus", vFocus);
+app.directive("loading", vLoading);
 
 // 全局样式
 import "@/styles/index.less";

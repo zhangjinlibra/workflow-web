@@ -1,11 +1,6 @@
-const opt = Object.prototype.toString;
+const toString = Object.prototype.toString;
 
-/**
- * 对象复制
- *
- * @param {*} o
- * @returns
- */
+// 对象复制
 function copy(o) {
   return JSON.parse(JSON.stringify(o));
 }
@@ -30,9 +25,10 @@ function isString(val) {
 }
 
 function isArray(obj) {
-  return opt.call(obj) === "[object Array]";
+  return toString.call(obj) === "[object Array]";
 }
 
+// 千分位
 function comma(num) {
   if (num) {
     let values = (num + "").split(".");
@@ -41,18 +37,9 @@ function comma(num) {
   } else {
     return num;
   }
-  // return !(number + "").includes(".")
-  //   ? // 就是说1-3位后面一定要匹配3位
-  //     (number + "").replace(/\d{1,3}(?=(\d{3})+$)/g, (match) => {
-  //       return match + ",";
-  //     })
-  //   : (number + "").replace(/\d{1,3}(?=(\d{3})+(\.))/g, (match) => {
-  //       return match + ",";
-  //     });
 }
 
 function limitScale(num, scale) {
-  console.log("num", num, String(num).includes("."));
   let text = String(num);
   if (text.includes(".")) {
     return text.substring(0, text.indexOf(".") + 1 + scale);

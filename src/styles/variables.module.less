@@ -1,44 +1,62 @@
 // 头部
-@HeaderHeight: 60px;
+@AppHeaderHeight: 60px;
 
 // 侧边栏
-@SidebarWidth: 220px;
-@SidebarCollapsedWidth: 60px;
-@SiderbarIconSize: 32px;
-
-// 内容区域
-// @MainContentBg: #f2f3f5;
-@MainContentBg: #f2f3f5;
-@ContentPadding: 20px;
+@AppSidebarWidth: 220px;
+@AppSidebarCollapsedWidth: 60px;
 
 // 导航栏区域
-@BreadcrumbHeight: 45px;
+@AppBreadcrumbHeight: 45px;
 
-// 全局参数
-@CommonBorderRedius: 4px;
+// 内容区域
+@MainContentBg: #f2f3f5;
+
+// 分页
+@FenyeHeight: 55px;
+
+// 边框半径
+@BorderRadiusMini: 2px;
+@BorderRadiusSmall: 4px;
+@BorderRadius: 6px;
+@BorderRadiusLarge: 8px;
+
+// 间隙
+@GapMini: 8px;
+@GapSmall: 12px;
+@Gap: 16px;
+@GapLarge: 20px;
+
+// 布局间隙
+@LayoutGap: 12px;
 
 // 流程卡片
 @FlowCardWidth: 300px;
 @FlowCardFieldLabelWidth: 70px;
 
-// 分页
-@FenyeHeight: 55px;
-
 :export {
-  headerheight: @HeaderHeight;
+  AppHeaderHeight: @AppHeaderHeight;
 
-  SidebarWidth: @SidebarWidth;
-  SidebarCollapsedWidth: @SidebarCollapsedWidth;
-  SiderbarIconSize: @SiderbarIconSize;
+  AppSidebarWidth: @AppSidebarWidth;
+  AppSidebarCollapsedWidth: @AppSidebarCollapsedWidth;
 
   MainContentBg: @MainContentBg;
-  ContentPadding: @ContentPadding;
-  BreadcrumbHeight: @BreadcrumbHeight;
 
-  CommonBorderRedius: @CommonBorderRedius;
+  AppBreadcrumbHeight: @AppBreadcrumbHeight;
 
   FlowCardWidth: @FlowCardWidth;
   FlowCardFieldLabelWidth: @FlowCardFieldLabelWidth;
 
   FenyeHeight: @FenyeHeight;
+
+  BorderRadiusMini: @BorderRadiusMini;
+  BorderRadiusSmall: @BorderRadiusSmall;
+  BorderRadius: @BorderRadius;
+  BorderRadiusLarge: @BorderRadiusLarge;
+
+  GapMini: @GapMini;
+  GapSmall: @GapSmall;
+  Gap: @Gap;
+  GapLarge: @GapLarge;
+
+  LayoutGap: @LayoutGap;
 }

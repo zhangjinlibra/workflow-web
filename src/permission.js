@@ -12,8 +12,8 @@ const whiteList = []; // no redirect whitelist
 router.beforeEach(async (to, from, next) => {
   // start progress bar
   NProgress.start();
-  console.log("to", to);
-  console.log("from", from);
+  // console.log("to", to);
+  // console.log("from", from);
 
   // set page title
   document.title = getPageTitle(to.meta.title);

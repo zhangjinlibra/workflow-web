@@ -20,7 +20,7 @@
   }
 }
 
-// notification
+// 通知
 .arco-notification {
   .arco-notification-right {
     display: flex;
@@ -29,31 +29,61 @@
   }
 }
 
-// 完善arco表格, 添加radius
-.arco-table-container {
-  border-radius: var(--border-radius-medium) !important;
-
-  .arco-table-th {
-    color: var(--color-text-2);
-    background-color: #fafafa;
+// 菜单
+.arco-menu {
+  .arco-menu-item {
+    border-radius: var(--border-radius-medium);
   }
+}
 
-  .arco-table-td {
-    border-bottom: 1px solid var(--color-neutral-2);
-  }
+// 表格
+.arco-table {
+  .arco-table-container {
+    border-radius: var(--border-radius-medium);
 
-  tbody {
-    .arco-table-tr:last-child {
-      .arco-table-td:first-child {
-        border-bottom-left-radius: var(--border-radius-medium) !important;
-      }
-      .arco-table-td:last-child {
-        border-bottom-right-radius: var(--border-radius-medium) !important;
+    .arco-table-th {
+      color: var(--color-text-2);
+      background-color: #fafafa;
+    }
+
+    .arco-table-td {
+      border-bottom: 1px solid var(--color-neutral-2);
+    }
+
+    // .arco-table-th,
+    // .arco-table-td {
+    //   .arco-table-cell {
+    //     padding: 9px;
+    //   }
+    // }
+
+    .arco-table-cell-expand-icon .arco-table-cell-inline-icon {
+      margin-right: 8px;
+    }
+
+    .arco-table-body {
+      border-radius: 0 0 var(--border-radius-medium) var(--border-radius-medium);
+
+      .arco-table-tr:last-child {
+        .arco-table-td:first-child {
+          border-bottom-left-radius: var(--border-radius-medium) !important;
+        }
+        .arco-table-td:last-child {
+          border-bottom-right-radius: var(--border-radius-medium) !important;
+        }
       }
     }
   }
 }
 
-.arco-popover-popup-content {
-  border: 0;
+// 气泡卡片
+.arco-popover {
+  .arco-popover-popup-content {
+    border: 0;
+  }
+}
+.arco-trigger-popup {
+  .arco-dropdown {
+    border: 0;
+  }
 }

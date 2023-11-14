@@ -93,13 +93,16 @@
           <div class="empty-box" v-if="flowInsts.length == 0">
             <a-empty></a-empty>
           </div>
-          <div
-            :class="['flow-item', choosedFlowInstIds.includes(flowInst.id) ? 'flow-item-choosed' : '']"
-            v-for="flowInst in flowInsts"
-            @click="onFlowInstChoosed(flowInst.id)">
-            <div class="checkbox"></div>
-            <FlowCard :flowInst="flowInst" />
-          </div>
+          <template v-for="flowInst in flowInsts">
+            <div
+              v-if="!(disabled && disabled.includes(flowInst.id))"
+              :class="['flow-item', choosedFlowInstIds.includes(flowInst.id) ? 'flow-item-choosed' : '']"
+              @click="onFlowInstChoosed(flowInst.id)">
+              <div class="checkbox"></div>
+              <FlowCard :flowInst="flowInst" />
+            </div>
+          </template>
+
           <RollLoading @onScroll="loadFlowInsts()" :has-more="hasMoreFlowInsts"><a-spin></a-spin></RollLoading>
         </div>
       </div>
@@ -109,7 +112,7 @@
 
 <script setup>
 import { ref, computed, watch, onBeforeMount } from "vue";
-import FlowApi from "@/api/FlowApi";
+import FlowInstApi from "@/api/FlowInstApi";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
 import FlowCard from "./flow-card.vue";
@@ -119,7 +122,11 @@ import { IconSearch, IconRefresh, IconFilter } from "@arco-design/web-vue/es/ico
 import { useOrganStore } from "@/stores";
 import { STATUS_LIST } from "@/components/flow/common/FlowConstant";
 
-let props = defineProps({ visible: { type: Boolean, default: false }, selected: { type: Array, default: () => [] } });
+let props = defineProps({
+  visible: { type: Boolean, default: false },
+  selected: { type: Array, default: () => [] },
+  disabled: { type: Array },
+});
 let emits = defineEmits(["update:visible", "update:selected"]);
 
 // 更多检索相关选项
@@ -153,16 +160,16 @@ const loadFlowInsts = () => {
   query.value.page++;
   switch (activeKey.value) {
     case tabs.value[0].key:
-      req = FlowApi.listTasks(query.value);
+      req = FlowInstApi.listTasks(query.value);
       break;
     case tabs.value[1].key:
-      req = FlowApi.listMineFlowInsts(query.value);
+      req = FlowInstApi.listMineFlowInsts(query.value);
       break;
     case tabs.value[2].key:
-      req = FlowApi.listMineFlowInstCcs(query.value);
+      req = FlowInstApi.listMineFlowInstCcs(query.value);
       break;
     case tabs.value[3].key:
-      req = FlowApi.listMineAuditRecords(query.value);
+      req = FlowInstApi.listMineAuditRecords(query.value);
       break;
   }
   req
@@ -267,6 +274,8 @@ onBeforeMount(() => {
 </script>
 
 <style lang="less" scoped>
+@import "@/styles/variables.module.less";
+
 @FlowTabsHeight: 36px;
 @SearchBoxHeight: 56px;
 
@@ -348,8 +357,6 @@ onBeforeMount(() => {
 </style>
 
 <style lang="less">
-@import "./flow-base.less";
-
 .flow-select-container {
   .arco-modal-body {
     padding: 12px;

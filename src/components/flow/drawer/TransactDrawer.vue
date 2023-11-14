@@ -33,8 +33,8 @@
       <div class="transact-editor-tab-wrapper" v-if="flowNodeConfig.approvalType == 0">
         <a-radio-group type="button" v-model="viewEditorType" size="large">
           <a-radio :value="0">设置办理人</a-radio>
-          <!-- <a-radio value="right">表单权限</a-radio> -->
-          <a-radio :value="1">操作权限</a-radio>
+          <a-radio :value="1">表单权限</a-radio>
+          <a-radio :value="2">操作权限</a-radio>
         </a-radio-group>
 
         <!-- 设置办理人 -->
@@ -180,8 +180,10 @@
             </div>
           </div>
         </div>
+        <!-- 设置表单权限 -->
+        <NodeFormAuthSetting v-model:flowNodeConfig="flowNodeConfig" v-else-if="viewEditorType == 1"></NodeFormAuthSetting>
         <!-- 设置操作权限 -->
-        <div class="item-content-auth" v-else-if="viewEditorType == 1">
+        <div class="item-content-auth" v-else-if="viewEditorType == 2">
           <div class="content-wrap">
             <div class="item-content">
               <div class="item-wrap auth-list">
@@ -204,6 +206,7 @@ import OrganChooseBox from "../dialog/OrganChooseBox.vue";
 import { IconDelete, IconSwap, IconPlus } from "@arco-design/web-vue/es/icon";
 import EditableText from "@/components/common/EditableText.vue";
 import { ASSIGNEE } from "../common/FlowConstant";
+import NodeFormAuthSetting from "../NodeFormAuthSetting.vue";
 
 let flowStore = useFlowStore();
 const { roles: allRoles, users: allUsers, getUserById } = useOrganStore();

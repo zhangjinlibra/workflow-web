@@ -6,3 +6,44 @@
   align-items: center;
   justify-content: end;
 }
+
+// 更多检索弹出框
+.flow-search-more-popover {
+  @BlockGap: 12px;
+
+  .arco-trigger-content {
+    padding: 0;
+    .arco-popover-content {
+      margin: 0;
+    }
+  }
+
+  .search-more-title {
+    color: var(--color-text-1);
+    font-size: 15px;
+    padding: 10px 16px;
+    user-select: none;
+    border-bottom: 1px solid var(--color-neutral-3);
+  }
+
+  .search-more-box {
+    margin-top: @BlockGap;
+    transition: all 0.3s;
+    display: grid;
+    width: 280px;
+    grid-template-columns: repeat(auto-fill);
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .search-more-action {
+    padding: @BlockGap 16px;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+
+    button + button {
+      margin-left: 10px;
+    }
+  }
+}

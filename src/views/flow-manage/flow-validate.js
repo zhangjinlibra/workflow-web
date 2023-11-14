@@ -154,7 +154,7 @@ const verifyFlowInfo = (startNode, flowPermission) => {
 const verifyFlowNodeInfo = (flowNode, prefix, errs, isLastBranchNode = false) => {
   console.log("校验节点", flowNode);
   // 校验当前节点
-  if (isObject(flowNode)) {
+  if (flowNode && isObject(flowNode)) {
     let { type, name, conditionGroups } = flowNode;
     if (!isString(name) || validator.isEmpty(name)) errs.push(`${prefix} 请为${name}节点设置名称`);
     if (type == NODE.CONDITION) {
@@ -175,6 +175,8 @@ const verifyFlowNodeInfo = (flowNode, prefix, errs, isLastBranchNode = false) =>
                   errs.push(`${prefix} 请为${name}节点添加比较值`);
                 }
               });
+            } else {
+              errs.push(`${prefix} 请为${name}节点设置分组条件`);
             }
           });
         }

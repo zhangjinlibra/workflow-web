@@ -3,8 +3,8 @@ import { defineStore } from "pinia";
 const useFlowStore = defineStore("flow", {
   state: () => ({
     flowDefinition: {}, // 流程定义
+    flowDefId: null, // 流程定义id
 
-    flowDefId: "",
     // 设置发起人
     isPromoterDrawerOpened: false,
     promoterConfig0: {},
@@ -28,6 +28,9 @@ const useFlowStore = defineStore("flow", {
     setFlowDef(flowDefinition) {
       console.log("流程设置", flowDefinition);
       this.flowDefinition = flowDefinition;
+    },
+    getFlowDef() {
+      return JSON.parse(JSON.stringify(this.flowDefinition));
     },
 
     setFlowDefId(flowDefId) {

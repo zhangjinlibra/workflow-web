@@ -26,7 +26,7 @@
           </template>
         </template>
       </div>
-      <div class="content" @click="onNodeBoxClick">
+      <div class="content" @click="onNodeCardClick">
         <!-- 发起人节点 -->
         <a-tooltip v-if="nodeConfig.type == NODE.START" :content="showNodeContent" mini content-class="node-content-tooltip">
           <span class="text">{{ nodeDefaultName }}：{{ showNodeContent }}</span>
@@ -87,7 +87,7 @@
                   <div class="sort-left" v-if="index != 0" @click="branchSwitchIdx(index, -1)">
                     <icon-left />
                   </div>
-                  <div class="content" @click="onNodeBoxClick(item.priorityLevel)">
+                  <div class="content" @click="onNodeCardClick(item.priorityLevel)">
                     <span v-if="(getGatewayBranch(nodeConfig, index).conditionGroups || []).length == 0" class="placeholder">请设置条件</span>
                     <!-- 卡片上显示分支条件 -->
                     <a-tooltip v-else mini :content="showConditionContent(nodeConfig, index)" content-class="node-content-tooltip">
@@ -369,7 +369,7 @@ const reconnectNode = (data, addData) => {
 // type 0 发起人 1审批 2抄送 3条件 4路由
 // 如果是非分支节点，则不需要传递参数
 // 节点卡片点击
-const onNodeBoxClick = (priorityLevel) => {
+const onNodeCardClick = (priorityLevel) => {
   var { type } = props.nodeConfig;
   console.log("node_uid", _uid, type);
   if (type == NODE.START) {

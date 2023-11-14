@@ -10,7 +10,7 @@ function viewProcessChart(data) {
 
 function flowStart(data) {
   return request({
-    url: "/flowinstance/start",
+    url: "/flowinstance/launch",
     method: "post",
     data,
   });
@@ -27,6 +27,14 @@ function listTasks(data) {
 function getById(params) {
   return request({
     url: `/flowinstance/getById`,
+    method: "get",
+    params,
+  });
+}
+
+function getForm(params) {
+  return request({
+    url: "/flowinstance/getForm",
     method: "get",
     params,
   });
@@ -160,6 +168,14 @@ function delSign(data) {
   });
 }
 
+function formModify(data) {
+  return request({
+    url: "/flowinstance/formModify",
+    method: "post",
+    data,
+  });
+}
+
 function listJumpableNodes(params) {
   return request({
     url: "/flowinstance/listJumpableNodes",
@@ -176,11 +192,28 @@ function listRemoveableNodeAssignees(params) {
   });
 }
 
+function listFormEditRecords(params) {
+  return request({
+    url: "/flowinstance/listFormEditRecords",
+    method: "get",
+    params,
+  });
+}
+
+function hasFormEditRecord(params) {
+  return request({
+    url: "/flowinstance/hasFormEditRecord",
+    method: "get",
+    params,
+  });
+}
+
 export default {
   viewProcessChart,
   flowStart,
   listTasks,
   getById,
+  getForm,
   getDetail,
   approve,
   reject,
@@ -197,6 +230,9 @@ export default {
   addAfterSign,
   addSign,
   delSign,
+  formModify,
   listRemoveableNodeAssignees,
   listFlowInsts,
+  listFormEditRecords,
+  hasFormEditRecord,
 };

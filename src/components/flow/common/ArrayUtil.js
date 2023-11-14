@@ -70,4 +70,15 @@ function intersection(a, b) {
   return a.filter((v) => b.includes(v));
 }
 
-export default { remove, get, isArray, distinct, intersection };
+/**
+ * 数组去重
+ *
+ * @param {Array} arr
+ * @returns
+ */
+const unique = (arr) => {
+  const res = new Map();
+  return arr.filter((arr) => !res.has(arr) && res.set(arr, 1));
+};
+
+export default { remove, get, isArray, distinct, intersection, unique };

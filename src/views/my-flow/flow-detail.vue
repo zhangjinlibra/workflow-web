@@ -7,6 +7,8 @@
     </template>
     <template v-else>
       <div class="flow-status-stamp"><FlowStatusStamp :status="flowInst.status" :size="120" /></div>
+
+      <!-- 基本信息 -->
       <div class="flow-header-box">
         <div class="flow-no">编号：{{ flowInst.id }}</div>
         <div class="action-area">
@@ -36,202 +38,20 @@
           </div>
         </div>
 
-        <a-divider orientation="left"></a-divider>
-
-        <div class="flow-form-box">
-          <template v-for="formWidget in formWidgets">
-            <template
-              v-if="
-                [
-                  WIDGET.SINGLELINE_TEXT,
-                  WIDGET.MULTILINE_TEXT,
-                  WIDGET.NUMBER,
-                  WIDGET.MONEY,
-                  WIDGET.SINGLE_CHOICE,
-                  WIDGET.MULTI_CHOICE,
-                  WIDGET.DATE,
-                  WIDGET.DATE_RANGE,
-                  WIDGET.DEPARTMENT,
-                  WIDGET.EMPLOYEE,
-                  WIDGET.AREA,
-                ].includes(formWidget.type)
-              ">
-              <div
-                v-if="[WIDGET.SINGLELINE_TEXT, WIDGET.MULTILINE_TEXT, WIDGET.SINGLE_CHOICE, WIDGET.DATE].includes(formWidget.type)"
-                class="form-item">
-                <div class="label">{{ formWidget.label }}</div>
-                <div class="value">{{ formValue[formWidget.name] }}</div>
-              </div>
-              <!-- 数值 -->
-              <div v-else-if="[WIDGET.NUMBER].includes(formWidget.type)" class="form-item">
-                <div class="label">{{ formWidget.label }}</div>
-                <div class="value">{{ formValue[formWidget.name] }}</div>
-              </div>
-              <!-- 金额 -->
-              <div v-else-if="[WIDGET.MONEY].includes(formWidget.type)" class="form-item">
-                <div class="label">{{ formWidget.label }}</div>
-                <div class="value">{{ formWidget.comma ? ObjectUtil.comma(formValue[formWidget.name]) : formValue[formWidget.name] }}</div>
-              </div>
-              <!-- 多选 -->
-              <div v-else-if="[WIDGET.MULTI_CHOICE].includes(formWidget.type)" class="form-item">
-                <div class="label">{{ formWidget.label }}</div>
-                <div class="value">{{ (formValue[formWidget.name] || []).join(", ") }}</div>
-              </div>
-              <!-- 日期区间 -->
-              <div v-else-if="[WIDGET.DATE_RANGE].includes(formWidget.type)" class="form-item">
-                <div class="label">{{ formWidget.label }}</div>
-                <div class="value">
-                  <template v-if="formValue[formWidget.name] && formValue[formWidget.name].length == 2">
-                    {{ `${formValue[formWidget.name][0]} 至 ${formValue[formWidget.name][1]}` }}
-                  </template>
-                </div>
-              </div>
-              <!-- 部门 -->
-              <div v-else-if="[WIDGET.DEPARTMENT].includes(formWidget.type)" class="form-item">
-                <div class="label">{{ formWidget.label }}</div>
-                <div class="value">{{ getDeptById(formValue[formWidget.name]).name }}</div>
-              </div>
-              <!-- 员工 -->
-              <div v-else-if="[WIDGET.EMPLOYEE].includes(formWidget.type)" class="form-item">
-                <div class="label">{{ formWidget.label }}</div>
-                <div class="value">{{ getUserById(formValue[formWidget.name]).name }}</div>
-              </div>
-              <!-- 省市区 -->
-              <div v-else-if="[WIDGET.AREA].includes(formWidget.type)" class="form-item">
-                <div class="label">{{ formWidget.label }}</div>
-                <div class="value">{{ (formValue[formWidget.name] || []).join(" / ") }}</div>
-              </div>
-            </template>
-            <!-- 关联审批 -->
-            <template v-else-if="[WIDGET.FLOW_INST].includes(formWidget.type)">
-              <div class="form-item">
-                <div class="label">{{ formWidget.label }}</div>
-                <div class="value flow-inst-list">
-                  <FlowCard v-for="id in formValue[formWidget.name] || []" :flow-inst-id="id" :clickable="true"></FlowCard>
-                </div>
-              </div>
-            </template>
-            <!-- 图片 -->
-            <template v-else-if="[WIDGET.PICTURE].includes(formWidget.type)">
-              <div class="form-item">
-                <div class="label">{{ formWidget.label }}</div>
-                <div class="value img-preview">
-                  <img
-                    v-for="(id, idx) in formValue[formWidget.name] || []"
-                    :src="`${FILE_BASE_URL}/download?id=${id}`"
-                    @click="onImgPreview(idx, formValue[formWidget.name])" />
-                </div>
-              </div>
-            </template>
-            <!-- 附件 -->
-            <template v-else-if="[WIDGET.ATTACHMENT].includes(formWidget.type)">
-              <div class="form-item">
-                <div class="label">{{ formWidget.label }}</div>
-                <div class="value">
-                  <div class="attachment-box">
-                    <div class="attachment-item" v-for="attachment in formValue[formWidget.name]">
-                      <div class="link" @click="onAttachmentDownload(attachment, $event)">
-                        {{ attachment ? attachment.name : "" }}
-                      </div>
-                      <div class="action"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
-            <!-- 明细 -->
-            <template v-else-if="[WIDGET.DETAIL].includes(formWidget.type)">
-              <div class="form-item">
-                <div class="label">{{ formWidget.label }}</div>
-                <a-table
-                  :data="formValue[formWidget.name]"
-                  :pagination="false"
-                  size="small"
-                  :scrollbar="false"
-                  :hoverable="false"
-                  :bordered="{ cell: true }"
-                  class="value detail-value">
-                  <template #columns>
-                    <a-table-column
-                      v-for="subWidget in formWidget.details"
-                      :title="subWidget.label"
-                      :width="subWidget.type == WIDGET.FLOW_INST ? 300 : 100">
-                      <template #cell="{ record }">
-                        <!-- 纯文本 -->
-                        <template
-                          v-if="[WIDGET.SINGLELINE_TEXT, WIDGET.MULTILINE_TEXT, WIDGET.SINGLE_CHOICE, WIDGET.DATE].includes(subWidget.type)">
-                          {{ record[subWidget.name] }}
-                        </template>
-                        <!-- 数值 -->
-                        <template v-else-if="[WIDGET.NUMBER].includes(subWidget.type)">
-                          {{ record[subWidget.name] }}
-                        </template>
-                        <!-- 金额 -->
-                        <template v-else-if="[WIDGET.MONEY].includes(subWidget.type)">
-                          {{ subWidget.comma ? ObjectUtil.comma(record[subWidget.name]) : record[subWidget.name] }}
-                        </template>
-                        <!-- 多选 -->
-                        <template v-else-if="[WIDGET.MULTI_CHOICE].includes(subWidget.type)">
-                          {{ (record[subWidget.name] || []).join(", ") }}
-                        </template>
-                        <!-- 日期区间 -->
-                        <template v-else-if="[WIDGET.DATE_RANGE].includes(subWidget.type)">
-                          <template v-if="record[subWidget.name] && record[subWidget.name].length == 2">
-                            {{ `${record[subWidget.name][0]} 至 ${record[subWidget.name][1]}` }}
-                          </template>
-                        </template>
-                        <!-- 部门 -->
-                        <template v-else-if="[WIDGET.DEPARTMENT].includes(subWidget.type)">
-                          {{ getDeptById(record[subWidget.name]).name }}
-                        </template>
-                        <!-- 员工 -->
-                        <template v-else-if="[WIDGET.EMPLOYEE].includes(subWidget.type)">
-                          {{ getUserById(record[subWidget.name]).name }}
-                        </template>
-                        <!-- 图片 -->
-                        <template v-else-if="[WIDGET.PICTURE].includes(subWidget.type)">
-                          <div class="img-preview">
-                            <img
-                              v-for="(id, idx) in record[subWidget.name] || []"
-                              :src="`${FILE_BASE_URL}/download?id=${id}`"
-                              @click="onImgPreview(idx, record[subWidget.name])" />
-                          </div>
-                        </template>
-                        <!-- 附件 -->
-                        <template v-else-if="[WIDGET.ATTACHMENT].includes(subWidget.type)">
-                          <template v-for="attachment in record[subWidget.name]">
-                            <div class="attachment-item">
-                              <div class="link" @click="onAttachmentDownload(attachment, $event)">
-                                {{ attachment ? attachment.name : "" }}
-                              </div>
-                              <div class="action"></div>
-                            </div>
-                          </template>
-                        </template>
-                        <!-- 省市区 -->
-                        <template v-else-if="[WIDGET.AREA].includes(subWidget.type)">
-                          {{ (record[subWidget.name] || []).join(" / ") }}
-                        </template>
-                        <!-- 关联审批 -->
-                        <template v-else-if="[WIDGET.FLOW_INST].includes(subWidget.type)">
-                          <div class="flow-inst-list">
-                            <FlowCard v-for="id in record[subWidget.name] || []" :flow-inst-id="id" :clickable="true"></FlowCard>
-                          </div>
-                        </template>
-                      </template>
-                    </a-table-column>
-                  </template>
-                </a-table>
-              </div>
-            </template>
+        <!-- <a-divider orientation="left"> </a-divider> -->
+        <div class="area-divider">
+          <template v-if="formEditRecordBtnVisible">
+            <div class="action-form-edit-btn" @click="onFormEditRecordClick()"><IconHistory :size="14" /> 编辑记录</div>
+            <FormEditRecord v-model:visible="formEditRecordVisible" :form-widgets="formWidgets" :flowInstId="flowInst.id" />
           </template>
-
-          <a-image-preview-group v-model:visible="imagePreviewVisible" v-model:current="currentImageIdx" infinite :srcList="imageList" />
         </div>
 
+        <!-- 表单信息 -->
+        <FormDetail :form-widgets="formWidgets" :form-value="formValue" />
+
         <a-divider orientation="left"></a-divider>
 
-        <!-- 流程时间线 -->
+        <!-- 审批流程时间线 -->
         <div class="flow-box">
           <a-timeline mode="left" labelPosition="relative">
             <template v-for="node in flowNodes">
@@ -389,6 +209,20 @@
 
       <!-- 底部操作栏 -->
       <div class="flow-actions">
+        <template v-if="!finished && flowInst.nodeSignType == 0 && editable && formEditable">
+          <a-tooltip content="编辑审批表单" mini>
+            <a-button @click="onFormEdit()">
+              <template #icon><icon-edit /></template> 编辑
+            </a-button>
+          </a-tooltip>
+          <FormEdit
+            :form-value="formValue"
+            :flow-inst="flowInst"
+            :form-widgets="formWidgets"
+            v-model:visible="formEditVisible"
+            @onOk="onFormUpdated" />
+        </template>
+
         <template v-if="commentable">
           <a-button @click="onComment()">
             <template #icon><icon-message /></template> 评论
@@ -537,6 +371,7 @@
               v-model:file-list="handleModalForm.fileIds"
               :action="fileUploadUrl"
               :headers="fileUploadHeaders"
+              :with-credentials="true"
               multiple
               :limit="3"
               class="action-attachment">
@@ -557,39 +392,42 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useOrganStore } from "@/stores";
 import { getToken } from "@/utils/auth";
-import ObjectUtil from "@/components/flow/common/ObjectUtil";
 import ArrayUtil from "@/components/flow/common/ArrayUtil";
-import { CMD, STATUS, STATUS_LIST, WIDGET, NODE_SIGN, NODE } from "@/components/flow/common/FlowConstant";
-import FlowApi from "@/api/FlowApi";
+import ObjectUtil from "@/components/flow/common/ObjectUtil";
+import { CMD, NODE, NODE_SIGN, STATUS, STATUS_LIST, WIDGET } from "@/components/flow/common/FlowConstant";
+import { FILE_BASE_URL } from "@/api/FileApi";
+import FlowInstApi from "@/api/FlowInstApi";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
-import FileApi, { FILE_BASE_URL } from "@/api/FileApi";
 import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import FlowNodeRoleAvatar from "@/components/common/FlowNodeRoleAvatar.vue";
-import FlowStatusStamp from "./flow-status-stamp.vue";
+import FormDetail from "./flow-form-detail.vue";
 import FlowPrint from "./flow-print.vue";
-import FlowCard from "./flow-card.vue";
+import FlowStatusStamp from "./flow-status-stamp.vue";
+import FormEditRecord from "./form-edit-record.vue";
+import FormEdit from "./form-edit.vue";
 import {
-  IconStamp,
-  IconRobot,
-  IconMessage,
+  IconAttachment,
+  IconBackward,
   IconCheck,
   IconClose,
   IconDown,
-  IconSwap,
-  IconBackward,
-  IconUserAdd,
-  IconUndo,
-  IconPrinter,
-  IconAttachment,
-  IconDriveFile,
   IconDownload,
+  IconDriveFile,
+  IconEdit,
+  IconHistory,
+  IconMessage,
   IconPenFill,
+  IconPrinter,
   IconQuestionCircle,
+  IconRobot,
+  IconStamp,
+  IconSwap,
+  IconUndo,
+  IconUserAdd,
 } from "@arco-design/web-vue/es/icon";
 
 let organStore = useOrganStore();
-let { getDeptById, getUserById } = organStore;
 let users = computed(() => organStore.users);
 
 let props = defineProps({
@@ -597,6 +435,7 @@ let props = defineProps({
   cancelable: { type: Boolean, default: false }, // 撤销按钮
   commentable: { type: Boolean, default: true }, //评论按钮
   actionable: { type: Boolean, default: false }, // 其他操作按钮
+  editable: { type: Boolean, default: false }, // 表单是否可以编辑
 });
 let emits = defineEmits(["onRemove", "update:flowInst"]);
 
@@ -610,60 +449,26 @@ let formValue = ref({});
 let finished = computed(() => props.flowInst.status != 0);
 
 // 查询表单组件
-const loadFromWidgets = () => {
-  return FlowManApi.getFlowForm({ flowDefId: props.flowInst.flowDefId }).then((resp) => {
+const loadFormWidgets = () => {
+  return FlowInstApi.getForm({ flowInstId: props.flowInst.id, flowNodeId: props.flowInst.nodeId }).then((resp) => {
     if (resp.code == 1) {
-      let widgets = resp.data || [];
+      let form = resp.data || {};
+      let widgets = form.formWidgets;
+      let values = form.formValue;
       formWidgets.value = widgets;
       formWidgetMap.value = FlowManApi.formWidgetListToMap(widgets);
+      formValue.value = JSON.parse(values);
     }
   });
 };
 
 // 获取审批节点
 const loadFlowDetail = () => {
-  FlowApi.getDetail({ flowInstId: props.flowInst.id }).then((resp) => {
+  FlowInstApi.getDetail({ flowInstId: props.flowInst.id }).then((resp) => {
     if (resp.code == 1) {
       flowNodes.value = resp.data || [];
     }
   });
-};
-
-// 格式化表单
-const formatFormValue = () => {
-  for (let name in formValue.value) {
-    let type = formWidgetMap.value[name].type;
-    if ([WIDGET.ATTACHMENT].includes(type)) {
-      let ids = formValue.value[name];
-      ids = ids.filter((i) => !!i);
-      if (ids && ids.length > 0) {
-        FileApi.batchMetadata({ ids: ids.join(",") }).then((resp) => (formValue.value[name] = resp.data || []));
-      }
-    } else if (type == WIDGET.DETAIL) {
-      (formValue.value[name] || []).forEach((detailValue) => {
-        for (let detailName in detailValue) {
-          let detailType = formWidgetMap.value[detailName].type;
-          if ([WIDGET.ATTACHMENT].includes(detailType)) {
-            let ids = detailValue[detailName];
-            ids = ids.filter((i) => !!i);
-            if (ids && ids.length > 0) {
-              FileApi.batchMetadata({ ids: ids.join(",") }).then((resp) => (detailValue[detailName] = resp.data || []));
-            }
-          }
-        }
-      });
-    }
-  }
-};
-
-// 文件预览
-let imagePreviewVisible = ref(false);
-let currentImageIdx = ref(0);
-let imageList = ref([]);
-const onImgPreview = (idx, idList) => {
-  currentImageIdx.value = idx || 0;
-  imageList = (idList || []).map((id) => `${FILE_BASE_URL}/download?id=${id}`);
-  imagePreviewVisible.value = true;
 };
 
 // 附件下载
@@ -728,37 +533,37 @@ const onHandleModelOK = () => {
   let req = null;
   switch (cmd) {
     case CMD.CANCELED:
-      req = FlowApi.cancel(handleModalFormValue);
+      req = FlowInstApi.cancel(handleModalFormValue);
       break;
     case CMD.COMMENT:
-      req = FlowApi.comment(handleModalFormValue);
+      req = FlowInstApi.comment(handleModalFormValue);
       break;
     case CMD.BACK:
-      req = FlowApi.jump(handleModalFormValue);
+      req = FlowInstApi.jump(handleModalFormValue);
       break;
     case CMD.ADD_BEFORE_SIGN:
-      req = FlowApi.addBeforeSign(handleModalFormValue);
+      req = FlowInstApi.addBeforeSign(handleModalFormValue);
       break;
     case CMD.ADD_AFTER_SIGN:
-      req = FlowApi.addAfterSign(handleModalFormValue);
+      req = FlowInstApi.addAfterSign(handleModalFormValue);
       break;
     case CMD.ADD_SIGN:
-      req = FlowApi.addSign(handleModalFormValue);
+      req = FlowInstApi.addSign(handleModalFormValue);
       break;
     case CMD.DEL_SIGN:
-      req = FlowApi.delSign(handleModalFormValue);
+      req = FlowInstApi.delSign(handleModalFormValue);
       break;
     case CMD.APPROVED:
-      req = FlowApi.approve(handleModalFormValue);
+      req = FlowInstApi.approve(handleModalFormValue);
       break;
     case CMD.REJECTED:
-      req = FlowApi.reject(handleModalFormValue);
+      req = FlowInstApi.reject(handleModalFormValue);
       break;
     case CMD.ASSIGN:
-      req = FlowApi.assign(handleModalFormValue);
+      req = FlowInstApi.assign(handleModalFormValue);
       break;
     case CMD.TRANSACT:
-      req = FlowApi.transact(handleModalFormValue);
+      req = FlowInstApi.transact(handleModalFormValue);
       break;
   }
   req.then((resp) => {
@@ -816,7 +621,7 @@ const onComment = () => {
   showHandleModal.value = true;
 };
 const onJumped = () => {
-  FlowApi.listJumpableNodes({
+  FlowInstApi.listJumpableNodes({
     flowInstId: props.flowInst.id,
     actNodeId: props.flowInst.actNodeId,
   }).then((resp) => {
@@ -832,7 +637,7 @@ const onAddSigned = () => {
   showHandleModal.value = true;
 };
 const onDelSigned = () => {
-  FlowApi.listRemoveableNodeAssignees({
+  FlowInstApi.listRemoveableNodeAssignees({
     flowInstId: props.flowInst.id,
     actNodeId: props.flowInst.actNodeId,
   }).then((resp) => {
@@ -843,15 +648,46 @@ const onDelSigned = () => {
   showHandleModal.value = true;
 };
 
+// 是否显示编辑记录按钮
+const formEditRecordBtnVisible = ref(false);
+const hasFormEditRecord = () => {
+  FlowInstApi.hasFormEditRecord({ flowInstId: props.flowInst.id }).then((resp) => {
+    if (resp.code == 1) formEditRecordBtnVisible.value = resp.data;
+  });
+};
+
+// 表单编辑相关
+const formEditVisible = ref(false);
+const formEditRecordVisible = ref(false);
+const formEditable = computed(() => {
+  let tmp = false;
+  formWidgets.value.forEach((formWidget) => {
+    if (formWidget.type == WIDGET.DETAIL) {
+      formWidget.details.forEach((detail) => {
+        if (detail.editable) tmp = true;
+      });
+    } else if (formWidget.editable) tmp = true;
+  });
+  return tmp;
+});
+const onFormEdit = () => {
+  formEditVisible.value = true;
+};
+const onFormUpdated = (nv) => {
+  formValue.value = JSON.parse(nv);
+  hasFormEditRecord();
+};
+const onFormEditRecordClick = () => {
+  formEditRecordVisible.value = true;
+};
+
 watch(
   () => props.flowInst,
   (nv) => {
     if (nv && nv.id && nv.flowDefId) {
       loadFlowDetail();
-      loadFromWidgets().then(() => {
-        formValue.value = JSON.parse(nv.formValue);
-        formatFormValue();
-      });
+      loadFormWidgets();
+      hasFormEditRecord();
     }
   },
   { immediate: true }
@@ -865,8 +701,7 @@ onMounted(() => {
 <style lang="less" scoped>
 @import "@/styles/variables.module.less";
 @bottomActionHeight: 52px;
-@SidePadding: 20px;
-@HeaderHeight: 40px;
+@DetailHeaderHeight: 40px;
 @FormLabelWidth: 84px;
 
 .flow-detail-container {
@@ -885,22 +720,54 @@ onMounted(() => {
   top: 30px;
 }
 
+.area-divider {
+  border-bottom: 1px solid var(--color-neutral-3);
+  margin: 20px 0;
+  position: relative;
+}
+
+.action-form-edit-btn {
+  user-select: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  border: 1px solid var(--color-neutral-3);
+  border-top: 0;
+  border-radius: 0 0 4px 4px;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 12px;
+  color: #86909c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  &:hover {
+    background-color: #f2f3f5;
+  }
+}
+
 .flow-header-box {
   font-weight: 400;
   font-size: 13px;
   border-bottom: 1px solid #e5e6ec;
-  padding: 0 @SidePadding;
-  height: calc(@HeaderHeight - 1px);
+  padding: 0 @GapLarge;
+  height: calc(@DetailHeaderHeight - 1px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   color: #86909c;
 
   .action-area {
+    display: flex;
+    gap: 4px;
+
     .action-item {
       cursor: pointer;
       padding: 4px;
-      border-radius: 4px;
+      border-radius: @BorderRadius;
+      width: fit-content;
+      height: fit-content;
       &:hover {
         background-color: #f2f3f5;
       }
@@ -909,10 +776,10 @@ onMounted(() => {
 }
 
 .flow-detail-box {
-  height: calc(100% - @bottomActionHeight - @HeaderHeight);
+  height: calc(100% - @bottomActionHeight - @DetailHeaderHeight);
   overflow: hidden;
   overflow-y: auto;
-  padding: 0 calc(@SidePadding + 10px);
+  padding: 0 calc(@GapLarge + 10px);
 
   .header-box {
     display: flex;
@@ -946,116 +813,6 @@ onMounted(() => {
         color: #86909c;
         font-size: 13px;
         user-select: none;
-      }
-    }
-  }
-
-  .flow-form-box {
-    padding: 10px 0;
-
-    .form-item {
-      font-size: 14px;
-      display: flex;
-
-      + .form-item {
-        margin-top: 12px;
-      }
-
-      .label {
-        color: #9ba5b3;
-        width: @FormLabelWidth;
-        white-space: nowrap;
-        overflow: hidden;
-        text-align: right;
-        margin-right: 16px;
-      }
-
-      .value {
-        color: #1d2129;
-        display: flex;
-        align-items: flex-start;
-        // flex: 1;
-        width: calc(100% - @FormLabelWidth - 16px);
-        word-wrap: anywhere;
-        word-break: break-all;
-      }
-
-      .detail-value {
-        display: block;
-      }
-
-      .link {
-        color: #1d2129;
-        text-decoration: none;
-        cursor: pointer;
-        &:hover {
-          color: #165cfd;
-          text-decoration: underline;
-        }
-      }
-    }
-
-    .flow-inst-list {
-      width: 100%;
-      display: grid !important;
-      grid-template-columns: repeat(auto-fit, @FlowCardWidth);
-      gap: 6px;
-
-      .flow-card-box {
-        transition: box-shadow 0.2s cubic-bezier(0, 0, 1, 1);
-        &:hover {
-          box-shadow: 4px 4px 12px rgb(var(--gray-3));
-        }
-      }
-    }
-
-    .img-preview {
-      display: flex;
-      align-items: center;
-
-      img {
-        width: 40px;
-        height: 40px;
-        cursor: pointer;
-
-        + img {
-          margin-left: 10px;
-        }
-      }
-    }
-
-    .attachment-box {
-      width: 100%;
-
-      .attachment-item {
-        background-color: #f7f8fa;
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        padding: 8px 12px;
-        border-radius: 4px;
-        width: 100%;
-        font-size: 13px;
-
-        + .attachment-item {
-          margin-top: 4px;
-        }
-      }
-    }
-
-    .form-detail {
-      margin-top: 8px;
-      border: 1px dashed #e1e1e1;
-      border-radius: var(--border-radius-small);
-
-      .detail-title {
-        color: var(--color-text-3);
-        background-color: #f9fafa;
-        padding: 2px;
-      }
-
-      .label {
-        margin-top: 8px;
       }
     }
   }
@@ -1200,7 +957,7 @@ onMounted(() => {
   justify-content: end;
   height: @bottomActionHeight;
   border-top: 1px solid var(--color-neutral-3);
-  padding: 0 @SidePadding;
+  padding: 0 @GapLarge;
 
   button {
     + button {
@@ -1217,7 +974,10 @@ onMounted(() => {
   }
 
   .arco-timeline-item-dot-line {
-    border-color: #98b7ff;
+    top: 40px;
+    bottom: 4px;
+    border-color: #bed0f7;
+    border-left-width: 2px;
   }
 
   .arco-timeline-item-dot-content {

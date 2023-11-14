@@ -256,7 +256,7 @@ import { WIDGET } from "@/components/flow/common/FlowConstant";
 import CHINA_AREA from "@/components/flow/common/ChinaArea";
 
 // 流程定义对象
-let { flowDefinition, setFlowDef } = useFlowStore();
+let { flowDefinition } = useFlowStore();
 
 // 左侧属性
 let fieldSetting = reactive({});

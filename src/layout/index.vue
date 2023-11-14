@@ -1,27 +1,23 @@
 <template>
-  <section class="app-wrapper">
-    <header class="header-container">
-      <div class="fd-header-box">
+  <section class="app-container">
+    <header class="app-header-container">
+      <div class="app-header-box">
         <div class="left-side">
           <a-space>
             <div class="logo"><img alt="Vue logo" class="logo" src="@/assets/logo.png" height="24" /></div>
             <!-- <div class="slogan">审批</div> -->
             <a-trigger trigger="hover" position="bottom" :show-arrow="false" :popup-translate="[0, 10]" animation-name="uido">
-              <a-tag class="version">20231031.01版本</a-tag>
+              <a-tag class="version">20231114.01版本</a-tag>
               <template #content>
                 <div class="change-log-list">
                   <div class="change-log">
                     <div class="version-title">本次更新</div>
                     <a-divider />
                     <div class="version-content">
-                      <p>修复已知问题, 优化体验</p>
-                    </div>
-                  </div>
-                  <div class="change-log">
-                    <div class="version-title">20231024.01版本更新</div>
-                    <a-divider />
-                    <div class="version-content">
-                      <p>新增模块: 数据管理</p>
+                      <p>
+                        新增：审批表单编辑权限、编辑和编辑记录
+                        <a href="https://gitee.com/zhangjinlibra/workflow-engine/issues/I8C9HT" target="_blank">#I8C9HT</a>
+                      </p>
                       <p>修复已知问题, 优化体验</p>
                     </div>
                   </div>
@@ -68,10 +64,12 @@
       </div>
     </header>
 
-    <div class="main-content-container">
+    <div class="app-main-content-container">
       <div class="sidebar-container" :style="{ width: sidebarWidth }">
         <a-menu
           :style="{ width: sidebarWidth, height: '100%' }"
+          :accordion="true"
+          :level-indent="40"
           :collapsed="!sidebarOpened"
           :collapsed-width="sidebarCollapsedWidth"
           :auto-open-selected="true"
@@ -110,7 +108,7 @@
         </a-button>
       </div>
       <section class="main-container">
-        <div class="breadcrumb-wrapper">
+        <div class="breadcrumb-container">
           <a-breadcrumb>
             <a-breadcrumb-item v-for="(item, idx) in breadcrumbList" :key="item.path">
               <span v-if="idx === breadcrumbList.length - 1" class="no-redirect">{{ item.meta.title }}</span>
@@ -120,35 +118,29 @@
           <!-- <transition-group name="breadcrumb"> </transition-group> -->
         </div>
 
-        <router-view v-slot="{ Component, route }">
-          <transition name="fade-transform" mode="out-in">
-            <component :is="Component" :key="route.path" />
-          </transition>
-        </router-view>
+        <div class="content-container">
+          <router-view v-slot="{ Component, route }">
+            <transition name="fade-transform" mode="out-in">
+              <component :is="Component" :key="route.path" />
+            </transition>
+          </router-view>
+        </div>
       </section>
     </div>
 
     <!-- 切换用户 -->
     <switch-user v-model:visible="showSwitchUserModal"></switch-user>
-
-    <!-- 计算公式 -->
-    <Formula v-model:visible="visible"></Formula>
   </section>
 </template>
 
 <script setup>
-// 计算公式测试
-import Formula from "@/components/flow/dialog/Formula.vue";
-let visible = ref(false);
-const onAlarmClicked = () => (visible.value = true);
-
-import { computed, onBeforeMount, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useUserStore, useAppStore, usePermissionStore } from "@/stores";
 import { getLoginUserDetail } from "@/api/OrganApi";
+import { useAppStore, usePermissionStore, useUserStore } from "@/stores";
 import lessVars from "@/styles/variables.module.less";
 import SwitchUser from "@/views/user/SwitchUser.vue";
-import { IconNotification, IconUser, IconUserGroup, IconExport, IconDoubleLeft, IconDoubleRight } from "@arco-design/web-vue/es/icon";
+import { IconDoubleLeft, IconDoubleRight, IconExport, IconNotification, IconUser, IconUserGroup } from "@arco-design/web-vue/es/icon";
+import { computed, onBeforeMount, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 let userDetail = ref({});
 const route = useRoute();
@@ -158,9 +150,9 @@ let { setLoginUser } = useUserStore();
 let { sidebar, closeSideBar, toggleDevice, toggleSideBar } = useAppStore();
 const { body } = document;
 
-const getSidebarWidth = () => (sidebar.opened ? lessVars.SidebarWidth : lessVars.SidebarCollapsedWidth);
+const getSidebarWidth = () => (sidebar.opened ? lessVars.AppSidebarWidth : lessVars.AppSidebarCollapsedWidth);
 let sidebarWidth = ref(getSidebarWidth());
-let sidebarCollapsedWidth = ref(Number.parseInt(lessVars.SidebarCollapsedWidth.replace("px", "")));
+let sidebarCollapsedWidth = ref(Number.parseInt(lessVars.AppSidebarCollapsedWidth.replace("px", "")));
 // let selectedMenu = computed(() => route.path);
 let selectedMenu = ref(route.path);
 let breadcrumbList = computed(() => route.matched.filter((item) => item.meta && item.meta.title));
@@ -257,24 +249,24 @@ const onChangeUserClicked = () => {
 <style lang="less" scoped>
 @import "@/styles/variables.module.less";
 
-.app-wrapper {
+.app-container {
   position: relative;
   height: 100%;
   width: 100%;
 }
 
-.header-container {
+.app-header-container {
   width: 100%;
-  height: @HeaderHeight;
+  height: @AppHeaderHeight;
   overflow: hidden;
   border-bottom: 1px solid var(--color-border);
   // box-shadow: 0px 0px 8px var(--color-border);
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 }
 
-.main-content-container {
+.app-main-content-container {
   display: flex;
-  height: calc(100% - @HeaderHeight);
+  height: calc(100% - @AppHeaderHeight);
   background-color: @MainContentBg;
 }
 
@@ -341,7 +333,7 @@ const onChangeUserClicked = () => {
   // transition: all 0.2s cubic-bezier(0.34, 0.69, 0.1, 1);
 }
 
-.fd-header-box {
+.app-header-box {
   height: 100%;
   padding: 0 20px;
   display: flex;
@@ -390,12 +382,16 @@ const onChangeUserClicked = () => {
   }
 }
 
-.breadcrumb-wrapper {
-  height: @BreadcrumbHeight;
-  padding: 0 @ContentPadding;
+.breadcrumb-container {
+  height: @AppBreadcrumbHeight;
+  padding: 0 @Gap;
   display: flex;
   align-items: center;
   user-select: none;
+}
+
+.content-container {
+  height: calc(100% - @AppBreadcrumbHeight);
 }
 
 .avatat-menu-content {

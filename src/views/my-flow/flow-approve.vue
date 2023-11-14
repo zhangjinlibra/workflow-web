@@ -76,16 +76,16 @@
 
     <!-- 流程详情 -->
     <div class="flow-detail-content">
-      <flow-detail v-model:flow-inst="selectedFlow" :cancelable="false" :actionable="true" @onRemove="onHandleCallback" />
+      <flow-detail v-model:flow-inst="selectedFlow" :cancelable="false" :actionable="true" :editable="true" @onRemove="onHandleCallback" />
     </div>
   </section>
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onBeforeMount } from "vue";
 import { useOrganStore } from "@/stores";
 import FlowManApi from "@/api/FlowManApi";
-import FlowApi from "@/api/FlowApi";
+import FlowInstApi from "@/api/FlowInstApi";
 import OrganApi from "@/api/OrganApi";
 import FlowDetail from "./flow-detail.vue";
 import ArrayUtil from "@/components/flow/common/ArrayUtil";
@@ -113,15 +113,6 @@ const onBeginTimeChanged = (dateString) => {
     delete query.value.beginMaxTime;
   }
 };
-const onEndTimeChanged = (dateString) => {
-  if (dateString && dateString.length == 2) {
-    query.value.endMinTime = dateString[0];
-    query.value.endMaxTime = dateString[1];
-  } else {
-    delete query.value.endMinTime;
-    delete query.value.endMaxTime;
-  }
-};
 
 const onSearch = () => {
   query.value.page = 0;
@@ -139,7 +130,7 @@ const onSearchReset = () => {
 
 const loadFlowInsts = () => {
   query.value.page++;
-  FlowApi.listTasks(query.value).then((resp) => {
+  FlowInstApi.listTasks(query.value).then((resp) => {
     if (resp.code == 1) {
       let { data, total } = resp;
       flowInsts.value.push(...(data || []));

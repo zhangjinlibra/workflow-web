@@ -1,5 +1,5 @@
 <template>
-  <section class="flow-start-box">
+  <section class="flow-start-box" v-loading.fullscreen="loading">
     <div class="search-wrapper">
       <div class="search-item">
         <a-input :style="{ minWidth: '240px' }" v-model:model-value="flowName" placeholder="请输入审批名称搜索" allow-clear :max-length="16">
@@ -38,7 +38,7 @@
       :footer="false"
       @cancel="onClose()">
       <template #title> {{ selectedFlow.name }} </template>
-      <flow-form :flow="selectedFlow" :flowWidgets="flowWidgets" @onCancel="onClose()" @onSuccess="onClose()"></flow-form>
+      <flow-launch :flow="selectedFlow" :flowWidgets="flowWidgets" @onCancel="onClose()" @onSuccess="onClose()"></flow-launch>
     </a-drawer>
 
     <back-to-top target-container=".flow-group-wrapper"></back-to-top>
@@ -51,14 +51,15 @@ import FlowIcon from "@/components/icons/FlowIcon.vue";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
-import FlowForm from "./flow-launch.vue";
+import FlowLaunch from "./flow-launch.vue";
 import { IconSearch } from "@arco-design/web-vue/es/icon";
 import BackToTop from "@/components/common/BackToTop.vue";
 
 let visible = ref(false); // 侧边栏
 let selectedFlow = ref({}); // 选中的流程
 let flowWidgets = ref([]); // 选中的流程的组件
-let flowForm = ref({}); // 流程的表单
+// let flowForm = ref({}); // 流程的表单
+const loading = ref(false);
 
 // 检索的流程名称
 let flowName = ref("");
@@ -73,14 +74,14 @@ let filteredFlowGroups = computed(() => {
 // 流程定义点击
 const onFlowClick = (flow) => {
   flowWidgets.value = [];
-  fetchFlowForm(flow.id); // 加载组件
+  fetchFlowFormWidget(flow.id); // 加载组件
   selectedFlow.value = flow;
   visible.value = true;
 };
 
 // 查询流程表单
-const fetchFlowForm = (flowDefId) => {
-  FlowManApi.getFlowForm({ flowDefId }).then((resp) => {
+const fetchFlowFormWidget = (flowDefId) => {
+  FlowManApi.getFlowFormWidget({ flowDefId }).then((resp) => {
     if (resp.code == 1) {
       flowWidgets.value = resp.data || [];
     }
@@ -94,11 +95,15 @@ const onClose = () => {
 // 加载流程
 let groups = ref([]);
 const loadGroups = () => {
-  FlowManApi.listGroupsWithEnabledFlowDefinition().then((resp) => {
-    if (resp.code == 1) {
-      groups.value = resp.data || [];
-    }
-  });
+  loading.value = true;
+  FlowManApi.listGroupsWithEnabledFlowDefinition()
+    .then((resp) => {
+      if (resp.code == 1) {
+        groups.value = resp.data || [];
+      }
+      loading.value = false;
+    })
+    .catch(() => (loading.value = false));
 };
 
 onBeforeMount(() => {
@@ -110,33 +115,32 @@ onBeforeMount(() => {
 <style lang="less" scoped>
 @import "@/styles/variables.module.less";
 
-@FlowCardGutter: 16px;
 @SearchBoxHeigth: 55px;
 
 .flow-start-box {
   width: 100%;
-  // height: calc(100vh - @HeaderHeight - @BreadcrumbHeight);
+  // height: calc(100vh - @AppHeaderHeight - @AppBreadcrumbHeight);
   overflow: hidden;
 
   .search-wrapper {
     border: 1px solid var(--preview-color-border);
-    border-radius: @CommonBorderRedius;
+    border-radius: @BorderRadius;
     background: #fff;
-    padding: 0 12px;
+    padding: 0 @Gap;
     display: flex;
     align-items: center;
     height: @SearchBoxHeigth;
-    margin: 0 @ContentPadding @FlowCardGutter;
+    margin: 0 @LayoutGap @LayoutGap;
   }
 
   .flow-group-wrapper {
-    height: calc(100vh - @HeaderHeight - @BreadcrumbHeight - @SearchBoxHeigth - @FlowCardGutter);
+    height: calc(100vh - @AppHeaderHeight - @AppBreadcrumbHeight - @SearchBoxHeigth - @LayoutGap);
     overflow: hidden auto;
-    padding: 0 @ContentPadding;
+    padding: 0 @LayoutGap;
   }
 
   .empty-flow-box {
-    border-radius: @CommonBorderRedius;
+    border-radius: @BorderRadius;
     padding: 48px;
     background-color: #fff;
     border: 0;
@@ -144,29 +148,29 @@ onBeforeMount(() => {
 
   .flow-group-box {
     background-color: #fff;
-    border-radius: @CommonBorderRedius;
+    border-radius: @BorderRadius;
     overflow: hidden;
     border: 1px solid var(--preview-color-border);
-    margin-bottom: 16px;
+    margin-bottom: @LayoutGap;
 
     .group-header {
       height: 46px;
-      padding: 10px 16px;
+      padding: 0 @Gap;
       border-bottom: 1px solid var(--color-neutral-3);
       display: flex;
       align-items: center;
     }
 
     .group-body {
-      padding: @FlowCardGutter;
+      padding: @Gap;
       display: grid;
-      gap: 16px;
+      gap: @Gap;
       grid-template-columns: repeat(auto-fit, 236px);
     }
 
     .flow-item-box {
       cursor: pointer;
-      border-radius: @CommonBorderRedius;
+      border-radius: @BorderRadius;
       border-color: var(--color-neutral-3);
 
       &:hover {

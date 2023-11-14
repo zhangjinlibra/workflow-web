@@ -1,6 +1,6 @@
 <template>
   <div class="flow-icon-box" :style="boxStyle">
-    <img v-if="icon" :src="ICON_BASE_URL + icon" />
+    <img v-if="icon" :src="ICON_BASE_URL + icon" :style="boxStyle" />
   </div>
 </template>
 

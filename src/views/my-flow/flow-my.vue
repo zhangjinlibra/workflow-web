@@ -100,7 +100,7 @@
 import { ref, computed, onBeforeMount, onMounted, onBeforeUnmount } from "vue";
 import { useOrganStore } from "@/stores";
 import FlowManApi from "@/api/FlowManApi";
-import FlowApi from "@/api/FlowApi";
+import FlowInstApi from "@/api/FlowInstApi";
 import OrganApi from "@/api/OrganApi";
 import FlowDetail from "./flow-detail.vue";
 import { STATUS_LIST } from "@/components/flow/common/FlowConstant";
@@ -154,7 +154,7 @@ const onSearchReset = () => {
 
 const loadFlowInsts = () => {
   query.value.page++;
-  FlowApi.listMineFlowInsts(query.value).then((resp) => {
+  FlowInstApi.listMineFlowInsts(query.value).then((resp) => {
     if (resp.code == 1) {
       let { data, total } = resp;
       flowInsts.value.push(...(data || []));

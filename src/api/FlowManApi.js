@@ -97,13 +97,21 @@ function enableById(params) {
   });
 }
 
-function getFlowForm(params) {
+function getFlowFormWidget(params) {
   return request({
-    url: "/flowdefinition/getFlowForm",
+    url: "/flowdefinition/getFlowFormWidget",
     method: "get",
     params,
   });
 }
+
+// function getFlowForm(params) {
+//   return request({
+//     url: "/flowdefinition/getFlowForm",
+//     method: "get",
+//     params,
+//   });
+// }
 
 function formWidgetListToMap(flowWidgets) {
   let flowWidgetMap = {};
@@ -127,6 +135,6 @@ export default {
   saveOrUpdate,
   freezeById,
   enableById,
-  getFlowForm,
+  getFlowFormWidget,
   formWidgetListToMap,
 };

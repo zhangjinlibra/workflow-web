@@ -83,14 +83,14 @@
           :pagination="false"
           :loading="tableLoading"
           @page-change="onSearch"
-          :scroll="{ maxHeight: 'calc(100vh - 227px)', x: 1280 }">
+          :scroll="{ maxHeight: 'calc(100vh - 227px)', x: 1000 }">
           <template #columns>
-            <a-table-column title="审批名称" data-index="name" :width="220"></a-table-column>
+            <a-table-column title="审批名称" data-index="name"></a-table-column>
             <a-table-column title="申请编号" data-index="id" :width="180"></a-table-column>
             <a-table-column title="发起人" :width="120">
               <template #cell="{ record }"> <flow-node-avatar :size="20" :id="record.initiatorId"></flow-node-avatar></template>
             </a-table-column>
-            <a-table-column title="状态" :width="120">
+            <a-table-column title="状态" :width="100">
               <template #cell="{ record }">
                 <a-tag color="blue" v-if="record.status == STATUS.UNDERWAY">{{ STATUS_LIST[0].name }}</a-tag>
                 <a-tag color="green" v-else-if="record.status == STATUS.APPROVED">{{ STATUS_LIST[1].name }}</a-tag>
@@ -98,8 +98,8 @@
                 <a-tag color="orangered" v-else-if="record.status == STATUS.CANCELLED">{{ STATUS_LIST[3].name }}</a-tag>
               </template>
             </a-table-column>
-            <a-table-column title="提交时间" data-index="beginTime" :width="180"></a-table-column>
-            <a-table-column title="完成时间" data-index="endTime" :width="180"></a-table-column>
+            <a-table-column title="提交时间" data-index="beginTime" :width="170"></a-table-column>
+            <a-table-column title="完成时间" data-index="endTime" :width="170"></a-table-column>
             <a-table-column title="操作" :width="120" fixed="right">
               <template #cell="{ record }">
                 <a-link @click="onDetailOpen(record)"> 详情 </a-link>
@@ -135,7 +135,7 @@ import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import FlowDetail from "../my-flow/flow-detail.vue";
 import { STATUS, STATUS_LIST } from "@/components/flow/common/FlowConstant";
 import { IconExport, IconFilter, IconRefresh, IconSearch } from "@arco-design/web-vue/es/icon";
-import FlowApi from "@/api/FlowApi";
+import FlowInstApi from "@/api/FlowInstApi";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
 
@@ -170,7 +170,7 @@ const onEndTimeChanged = (dateString) => {
 const onSearch = (page) => {
   if (page) query.value.page = page;
   tableLoading.value = true;
-  FlowApi.listFlowInsts(query.value)
+  FlowInstApi.listFlowInsts(query.value)
     .then((resp) => {
       if (resp.code == 1) {
         flowInsts.value = resp.data || [];
@@ -222,16 +222,15 @@ onBeforeMount(() => {
 @import "@/styles/variables.module.less";
 
 @SearchHeight: 55px;
-@FlowAreaGutter: 16px;
 @SearchItemGap: 10px;
 
 .flow-data-container {
   user-select: none;
-  height: calc(100vh - @HeaderHeight - @BreadcrumbHeight);
-  margin: 0 @ContentPadding;
-  padding: 0 18px;
+  height: calc(100vh - @AppHeaderHeight - @AppBreadcrumbHeight);
+  margin: 0 @LayoutGap;
+  padding: 0 @Gap;
   background: #fff;
-  border-radius: @CommonBorderRedius;
+  border-radius: @BorderRadius;
 
   .search-area {
     display: flex;
@@ -262,23 +261,13 @@ onBeforeMount(() => {
   }
 
   .flow-inst-area {
-    height: calc(100vh - @HeaderHeight - @BreadcrumbHeight - @SearchHeight);
+    height: calc(100vh - @AppHeaderHeight - @AppBreadcrumbHeight - @SearchHeight);
     overflow: hidden;
     border-top: 1px solid var(--color-neutral-3);
 
     .flow-table-content {
       margin-top: 12px;
     }
-  }
-}
-</style>
-
-<style lang="less">
-@import "../my-flow/flow-base.less";
-
-.flow-select-container {
-  .arco-modal-body {
-    padding: 12px;
   }
 }
 </style>

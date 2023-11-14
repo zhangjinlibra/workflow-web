@@ -175,7 +175,7 @@ defineExpose({
 
     .icon-item {
       border: 1px solid #d0d3d6;
-      border-radius: 6px;
+      border-radius: var(--border-radius-large);
       cursor: pointer;
       width: @FlowIconSize;
       height: @FlowIconSize;
@@ -193,23 +193,23 @@ defineExpose({
     }
   }
 
-  .fonts-box {
-    width: 200px;
-    margin-right: 10px;
-    border-radius: 4px;
-  }
+  //   .fonts-box {
+  //     width: 200px;
+  //     margin-right: 10px;
+  //     border-radius: 4px;
 
-  .flowiconfont {
-    margin: 4px;
-    cursor: pointer;
-    font-size: 24px;
+  //     .flowiconfont {
+  //       margin: 4px;
+  //       cursor: pointer;
+  //       font-size: 24px;
 
-    &:hover {
-      border-radius: 4px;
-      opacity: 0.8;
-      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.15);
-    }
-  }
+  //       &:hover {
+  //         border-radius: 4px;
+  //         opacity: 0.8;
+  //         box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.15);
+  //       }
+  //     }
+  //   }
 }
 
 .new-group-box {
@@ -221,7 +221,7 @@ defineExpose({
 
 <style lang="less" scoped>
 .fd-base-box {
-  padding: 20px 0 10px;
+  padding: 15px 0 10px;
   display: flex;
   justify-content: center;
   overflow-y: auto;
