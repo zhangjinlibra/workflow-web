@@ -28,6 +28,6 @@ coverage
 *.sw?
 .vscode
 
-# 自动引入插件
+# Others
 auto-imports.d.ts
 components.d.ts

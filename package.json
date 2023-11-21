@@ -12,16 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@arco-themes/vue-digitforce": "^0.1.3",
-    "@arco-themes/vue-gi-demo": "^0.0.29",
-    "@ckpack/vue-color": "^1.5.0",
-    "@icon-park/vue-next": "^1.4.2",
     "axios": "^1.4.0",
-    "bpmn-js": "^13.1.0",
-    "bpmn-js-properties-panel": "^1.25.0",
-    "camunda-bpmn-moddle": "^7.0.1",
-    "fast-glob": "^3.2.12",
-    "frappe-gantt": "^0.6.1",
     "js-cookie": "^3.0.5",
     "less": "^4.1.3",
     "less-loader": "^11.1.3",
@@ -34,17 +25,10 @@
     "validator": "^13.11.0",
     "vite-plugin-svg-icons": "^2.0.1",
     "vue": "^3.2.47",
-    "vue-dnd-zone": "^0.4.0",
-    "vue-dndrop": "^1.3.1",
-    "vue-dragscroll": "^4.0.5",
-    "vue-easy-dnd": "^2.0.4",
-    "vue-loading-overlay": "^6.0.3",
     "vue-router": "^4.2.2",
-    "vue3-dnd": "^2.0.2",
+    "vuedraggable": "^4.1.0",
     "vue3-dragscroll": "^1.0.2",
-    "vue3-print-nb": "^0.1.4",
-    "vue3-smooth-dnd": "^0.0.3",
-    "vuedraggable": "^4.1.0"
+    "vue3-print-nb": "^0.1.4"
   },
   "devDependencies": {
     "@arco-design/web-vue": "^2.53.2",
