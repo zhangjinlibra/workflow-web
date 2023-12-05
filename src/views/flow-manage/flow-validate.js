@@ -1,6 +1,7 @@
 "use strict";
-import { NODE, WIDGET } from "@/components/flow/common/FlowConstant";
+import { NODE, WIDGET, ASSIGNEE } from "@/components/flow/common/FlowConstant";
 import { isArray, isNull, isNumber, isObject, isString, isUndefined } from "@/utils/is";
+import { flow } from "lodash";
 import array from "lodash/array";
 import validator from "validator";
 
@@ -130,7 +131,7 @@ const verifyFormInfo = (flowWidgets) => {
 };
 
 const verifyFlowInfo = (startNode, flowPermission) => {
-  console.log("校验节点", startNode);
+  // console.log("校验节点", startNode);
   let errs = [];
   const prefix = "【流程设计】";
 
@@ -152,7 +153,7 @@ const verifyFlowInfo = (startNode, flowPermission) => {
 };
 
 const verifyFlowNodeInfo = (flowNode, prefix, errs, isLastBranchNode = false) => {
-  console.log("校验节点", flowNode);
+  // console.log("校验节点", flowNode);
   // 校验当前节点
   if (flowNode && isObject(flowNode)) {
     let { type, name, conditionGroups } = flowNode;
@@ -183,7 +184,12 @@ const verifyFlowNodeInfo = (flowNode, prefix, errs, isLastBranchNode = false) =>
       }
     } else if (type == NODE.APPROVE) {
       //校验审批节点
-      let { flowNodeNoAuditorType, flowNodeNoAuditorAssignee, flowNodeAuditAdmin } = flowNode;
+      let { flowNodeNoAuditorType, flowNodeNoAuditorAssignee, flowNodeAuditAdmin, assignees } = flowNode;
+      assignees?.forEach((assignee) => {
+        let { assigneeType, assignees, roles } = assignee;
+        if (assigneeType == ASSIGNEE.ROLE && !(roles && roles.length > 0)) errs.push(`${prefix} 请为${name}节点选择审批角色`);
+        if (assigneeType == ASSIGNEE.ASSIGNEE && !(assignees && assignees.length > 0)) errs.push(`${prefix} 请为${name}节点选择指定审批人`);
+      });
       if (flowNodeNoAuditorType == 1) {
         if (!isString(flowNodeNoAuditorAssignee) || validator.isEmpty(flowNodeNoAuditorAssignee)) {
           errs.push(`${prefix} 请为${name}节点选择审批人为空时的指定办理成员`);
@@ -195,9 +201,20 @@ const verifyFlowNodeInfo = (flowNode, prefix, errs, isLastBranchNode = false) =>
       }
     } else if (type == NODE.COPY) {
       // 校验抄送节点
+      let { ccs } = flowNode;
+      ccs?.forEach((cc) => {
+        let { ccType, assignees, roles } = cc;
+        if (ccType == ASSIGNEE.ROLE && !(roles && roles.length > 0)) errs.push(`${prefix} 请为${name}节点选择抄送角色`);
+        if (ccType == ASSIGNEE.ASSIGNEE && !(assignees && assignees.length > 0)) errs.push(`${prefix} 请为${name}节点选择指定抄送人`);
+      });
     } else if (type == NODE.TRANSACT) {
       // 校验办理节点
-      let { flowNodeNoAuditorType, flowNodeNoAuditorAssignee, flowNodeAuditAdmin } = flowNode;
+      let { flowNodeNoAuditorType, flowNodeNoAuditorAssignee, flowNodeAuditAdmin, transactors } = flowNode;
+      transactors?.forEach((transactor) => {
+        let { transactorType, assignees, roles } = transactor;
+        if (transactorType == ASSIGNEE.ROLE && !(roles && roles.length > 0)) errs.push(`${prefix} 请为${name}节点选择办理角色`);
+        if (transactorType == ASSIGNEE.ASSIGNEE && !(assignees && assignees.length > 0)) errs.push(`${prefix} 请为${name}节点选择指定办理人`);
+      });
       if (flowNodeNoAuditorType == 1) {
         if (!isString(flowNodeNoAuditorAssignee) || validator.isEmpty(flowNodeNoAuditorAssignee)) {
           errs.push(`${prefix} 请为${name}节点选择办理人为空时的指定办理成员`);

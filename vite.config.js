@@ -49,14 +49,22 @@ export default defineConfig(({ command, mode }) => {
       }),
     ],
     build: {
-      // 分包
+      minify: "terser",
+      terserOptions: {
+        compress: {
+          drop_console: command === "build",
+          drop_debugger: command === "build",
+        },
+      },
       rollupOptions: {
-        // minify: false,// 关闭打包时代码压缩
-        manualChunks: (id) => {
-          // id对应的就是所有需要打包整合的文件
-          if (id.includes("node_modules")) {
-            return id.toString().split("node_modules/")[1].split("/")[0].toString();
-          }
+        output: {
+          minifyInternalExports: true,
+          // manualChunks: (id) => {
+          //   // id对应的就是所有需要打包整合的文件
+          //   if (id.includes("node_modules")) {
+          //     return id.toString().split("node_modules/")[1].split("/")[0].toString();
+          //   }
+          // },
         },
       },
     },
@@ -69,20 +77,14 @@ export default defineConfig(({ command, mode }) => {
     },
     server: {
       open: true,
-      host: "localhost",
       https: false,
+      host: "127.0.0.1",
       port: 5174,
       proxy: {
         "/flow2": {
           target: "http://49.235.72.105",
           changeOrigin: true,
-          rewrite: (path) => {
-            console.log("path", path);
-            return path.replace(/^\/flow2/, "/flow2");
-          },
-          cookieDomainRewrite: {
-            localhost: "49.235.72.105",
-          },
+          rewrite: (path) => path.replace(/^\/flow2/, "/flow2"),
         },
       },
     },

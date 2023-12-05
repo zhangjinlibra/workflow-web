@@ -1,5 +1,5 @@
 <template>
-  <div class="flow-card-box" @click="onCardClicked()">
+  <div v-if="inst" :class="['flow-card-box', hoverable ? 'flow-card-box-hoverable' : null]" @click="onCardClick()">
     <div class="header">
       <a-typography-text bold class="name">{{ inst.name }}</a-typography-text>
       <div class="status">
@@ -17,9 +17,7 @@
     </div>
     <div class="footer">
       <div class="initiator">
-        <!-- <a-avatar :size="20" class="avatar">{{ inst.initiatorId }}</a-avatar>
-        {{ inst.initiatorId }} -->
-        <flow-node-avatar :size="20" :id="inst.initiatorId"></flow-node-avatar>
+        <flow-node-avatar :size="20" :id="inst.initiatorId" />
       </div>
       <div class="begin-time">提交于 {{ inst.beginTime }}</div>
     </div>
@@ -29,13 +27,13 @@
       v-if="clickable"
       class="flow-card-detail-drawer"
       :width="770"
-      :visible="showDetail"
+      :visible="flowDetailVisible"
       @ok="onDetailClose()"
       @cancel="onDetailClose()"
       unmountOnClose
       :footer="false"
       :header="false">
-      <flow-detail v-model:flow-inst="inst" :cancelable="false" :actionable="false" />
+      <flow-detail v-model:flow-inst="inst" :cancelable="false" :actionable="false" :commentable="false" />
     </a-drawer>
   </div>
 </template>
@@ -43,17 +41,18 @@
 <script setup>
 import { ref, watch } from "vue";
 import FlowInstApi from "@/api/FlowInstApi";
-import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import { STATUS_LIST } from "@/components/flow/common/FlowConstant";
 import FlowDetail from "./flow-detail.vue";
+import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 
-let props = defineProps({
+const props = defineProps({
   flowInst: { type: Object, default: null },
   flowInstId: { type: String, default: null },
   clickable: { type: Boolean, default: false },
+  hoverable: { type: Boolean, default: true },
 });
 
-let inst = ref({});
+const inst = ref(null);
 watch(
   props,
   (nv) => {
@@ -70,12 +69,12 @@ watch(
 );
 
 // 流程详情
-let showDetail = ref(false);
-const onCardClicked = () => {
-  if (props.clickable) showDetail.value = true;
+const flowDetailVisible = ref(false);
+const onCardClick = () => {
+  if (props.clickable) flowDetailVisible.value = true;
 };
 const onDetailClose = () => {
-  showDetail.value = false;
+  flowDetailVisible.value = false;
 };
 </script>
 
@@ -83,14 +82,15 @@ const onDetailClose = () => {
 @import "@/styles/variables.module.less";
 
 .flow-card-box {
+  user-select: none;
   border-radius: @BorderRadius;
   overflow: hidden;
   border: 1px solid #e9ebef;
   padding: 10px 12px;
-  user-select: none;
   cursor: pointer;
   transition: box-shadow 0.2s cubic-bezier(0, 0, 1, 1);
-  scroll-snap-align: start;
+  // scroll-snap-align: start;
+  // scroll-snap-type: y mandatory;
 
   .header {
     display: flex;
@@ -142,6 +142,12 @@ const onDetailClose = () => {
     .begin-time {
       color: var(--color-neutral-6);
     }
+  }
+}
+
+.flow-card-box-hoverable {
+  &:hover {
+    box-shadow: 4px 4px 12px rgb(var(--gray-3));
   }
 }
 </style>

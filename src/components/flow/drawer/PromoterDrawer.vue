@@ -32,7 +32,7 @@
                 <div class="selected-list">
                   <a-tag v-for="item in selected">{{ getById(item.id).name }}</a-tag>
                 </div>
-                <div class="btn" @click="openInitiatorDialog()">
+                <div class="btn" @click="openInitiatorChooseBox()">
                   <a-link>
                     <template #icon><icon-plus /></template>添加
                   </a-link>
@@ -45,16 +45,16 @@
     </div>
   </a-drawer>
 
-  <OrganChooseBox v-model:visible="showInitiatorDialog" v-model:selected="selected" :only-id="false" />
+  <OrganChooseBox v-model:visible="initiatorChooseBoxVisible" v-model:selected="selected" :only-id="false" />
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, toRaw } from "vue";
 import { useFlowStore, useOrganStore } from "@/stores/index";
 import OrganChooseBox from "../dialog/OrganChooseBox.vue";
 import { IconPlus } from "@arco-design/web-vue/es/icon";
 
-let showInitiatorDialog = ref(false);
+let initiatorChooseBoxVisible = ref(false);
 let selected = ref([]); // 发起人选项
 
 let flowStore = useFlowStore();
@@ -68,29 +68,29 @@ let visible = computed({
 });
 
 let viewEditorType = ref(0); // 界面编辑类型
+let _uid = ref(0);
 let flowPermission = ref({ type: 0 });
 
-const openInitiatorDialog = () => {
-  showInitiatorDialog.value = true;
+const openInitiatorChooseBox = () => {
+  initiatorChooseBoxVisible.value = true;
 };
 
 const handleInitiatorTypeChange = (type) => {
-  if (type != 1) {
-    selected.value = [];
-  }
+  if (type != 1) selected.value = []; //清除指定人员
 };
 
 watch(promoterConfig0, (newVal) => {
   flowPermission.value = newVal.value;
   selected.value = newVal.value.flowInitiators;
+  _uid = newVal.id;
 });
 
 const savePromoter = () => {
   flowPermission.value.flowInitiators = selected.value;
   setPromoterConfig({
-    value: flowPermission.value,
+    value: toRaw(flowPermission.value),
     flag: true,
-    id: promoterConfig0.value.id,
+    id: _uid,
   });
   closeDrawer();
 };

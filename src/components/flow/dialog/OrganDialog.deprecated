@@ -131,7 +131,6 @@ const initSelected = () => {
 
   // 选中的值
   selected0.value = JSON.parse(JSON.stringify(toRaw(props.selected)));
-  console.log("选中的值：", selected0.value);
 
   // 设置一下选中的值
   let ids = selected0.value.filter((i) => i.type == 0).map((i) => i.id);

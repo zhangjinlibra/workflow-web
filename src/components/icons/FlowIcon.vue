@@ -34,5 +34,6 @@ let boxStyle = computed(() => {
   justify-content: center;
   border-radius: 50%;
   overflow: hidden;
+  flex-shrink: 0;
 }
 </style>

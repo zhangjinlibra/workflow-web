@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useFlowStore } from "@/stores/index";
 import ApproverDrawer from "@/components/flow/drawer/ApproverDrawer.vue";
@@ -52,24 +52,25 @@ const router = useRouter();
 let nowScale = ref(100);
 let nodeConfig = ref({});
 let workFlowDef = ref({});
-let flowPermission = ref([]);
+let flowPermission = ref({});
 let flowWidgets = ref([]); // 作为分支条件的组件
 
-const loadFlowData = (flowDef) => {
-  let { nodeConfig: nodeConfig0, flowPermission: flowPermission0, workFlowDef: workFlowDef0, flowWidgets: flowWidgets0 } = flowDef;
+const loadFlowData = (flowDefinition) => {
+  const { nodeConfig: nodeConfig0, flowPermission: flowPermission0, workFlowDef: workFlowDef0, flowWidgets: flowWidgets0 } = flowDefinition;
   nodeConfig.value = nodeConfig0;
   flowPermission.value = flowPermission0;
   workFlowDef.value = workFlowDef0;
-  flowWidgets.value = (flowWidgets0 || []).filter((widget) => {
-    let { type, required } = widget;
-    return required && [0, 3, 4, 5, 6].includes(type);
-  });
+  flowWidgets.value = flowWidgets0;
   setFlowDefId(workFlowDef0.id);
 };
 
-// watch(flowDefinition, () => {
-//   loadFlowData(flowDefinition);
-// });
+watch(flowPermission, () => {
+  flowDefinition.flowPermission = flowPermission.value;
+});
+
+watch(nodeConfig, () => {
+  flowDefinition.nodeConfig = nodeConfig.value;
+});
 
 onMounted(async () => {
   if (flowDefinition == undefined) {

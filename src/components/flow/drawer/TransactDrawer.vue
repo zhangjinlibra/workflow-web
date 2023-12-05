@@ -9,7 +9,7 @@
     @ok="saveTransactor()"
     ok-text="保存">
     <template #title>
-      <EditableText :value="flowNodeConfig.name" @change="(v) => (flowNodeConfig.name = v)" />
+      <EditableText :value="flowNodeConfig.name" @change="onNodeNameChange" />
     </template>
 
     <div class="transact-drawer__content">
@@ -240,7 +240,7 @@ let isInitiatorChoiceOrRoleOrAssignee = computed(() => {
   return [ASSIGNEE.ROLE, ASSIGNEE.ASSIGNEE, ASSIGNEE.INITIATOR_CHOICE].includes(fristAssigneeType);
 });
 
-// 多个审核人设置的类型是否一致, 类型一致时才会有依次办理
+// 多个审批人设置的类型是否一致, 类型一致时才会有依次办理
 let isSameTransactorType = computed(() => {
   if (flowNodeConfig.value.transactors.length == 1) return false;
   let haveSameType = true;
@@ -272,12 +272,6 @@ const onAssigneeClick = (item) => {
 watch(transactorConfig0, (val) => {
   flowNodeConfig.value = val.value;
   viewEditorType.value = 0;
-  //   // 如果办理人为空, 且设置的是交给管理员时
-  //   let { flowNodeNoAuditorType, flowNodeAuditAdmin } = flowNodeConfig.value;
-  //   if (flowNodeNoAuditorType == 2 && !flowNodeAuditAdmin) {
-  //     flowNodeConfig.value.flowNodeAuditAdmin = workFlowDef.value.flowAdminIds[0];
-  //   }
-  console.log("办理人节点", flowNodeConfig);
   _uid = val.id;
 });
 
@@ -367,13 +361,19 @@ const delTransactor = (approver) => {
   }
 };
 
-const saveTransactor = () => {
+// 编辑节点名称
+const onNodeNameChange = (name) => {
+  flowNodeConfig.value.name = name;
+  saveTransactor(false);
+};
+
+const saveTransactor = (leave = true) => {
   setTransactorConfig({
     value: toRaw(flowNodeConfig.value),
     flag: true,
     id: _uid,
   });
-  close();
+  leave && close();
 };
 
 const close = () => {

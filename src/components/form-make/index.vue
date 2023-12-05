@@ -259,24 +259,25 @@ import CHINA_AREA from "@/components/flow/common/ChinaArea";
 let { flowDefinition } = useFlowStore();
 
 // 左侧属性
-let fieldSetting = reactive({});
-fieldSetting[WIDGET.SINGLELINE_TEXT] = { label: "单行文本", prefix: "INPUT" };
-fieldSetting[WIDGET.MULTILINE_TEXT] = { label: "多行文本", prefix: "TEXT" };
-fieldSetting[WIDGET.DESCRIBE] = { label: "提示文字", prefix: "TIP" };
-fieldSetting[WIDGET.NUMBER] = { label: "数字", prefix: "NUM" };
-fieldSetting[WIDGET.MONEY] = { label: "金额", prefix: "MONEY" };
-fieldSetting[WIDGET.SINGLE_CHOICE] = { label: "单选", prefix: "SELECT" };
-fieldSetting[WIDGET.MULTI_CHOICE] = { label: "多选", prefix: "MULTISELECT" };
-fieldSetting[WIDGET.DATE] = { label: "日期", prefix: "DATE" };
-fieldSetting[WIDGET.DATE_RANGE] = { label: "日期区间", prefix: "DATERANGE" };
-fieldSetting[WIDGET.DETAIL] = { label: "明细", prefix: "DETAIL" };
-fieldSetting[WIDGET.PICTURE] = { label: "图片", prefix: "IMG" };
-fieldSetting[WIDGET.ATTACHMENT] = { label: "附件", prefix: "ATTACH" };
-fieldSetting[WIDGET.DEPARTMENT] = { label: "部门", prefix: "DEPT" };
-fieldSetting[WIDGET.EMPLOYEE] = { label: "员工", prefix: "STAFF" };
-fieldSetting[WIDGET.ADDRESS] = { label: "地址", prefix: "ADDR" };
-fieldSetting[WIDGET.FLOW_INST] = { label: "关联审批", prefix: "FLOW" };
-fieldSetting[WIDGET.AREA] = { label: "省市区", prefix: "AERA" };
+let fieldSetting = reactive({
+  [WIDGET.SINGLELINE_TEXT]: { label: "单行文本", prefix: "INPUT" },
+  [WIDGET.MULTILINE_TEXT]: { label: "多行文本", prefix: "TEXT" },
+  [WIDGET.DESCRIBE]: { label: "提示文字", prefix: "TIP" },
+  [WIDGET.NUMBER]: { label: "数字", prefix: "NUM" },
+  [WIDGET.MONEY]: { label: "金额", prefix: "MONEY" },
+  [WIDGET.SINGLE_CHOICE]: { label: "单选", prefix: "SELECT" },
+  [WIDGET.MULTI_CHOICE]: { label: "多选", prefix: "MULTISELECT" },
+  [WIDGET.DATE]: { label: "日期", prefix: "DATE" },
+  [WIDGET.DATE_RANGE]: { label: "日期区间", prefix: "DATERANGE" },
+  [WIDGET.DETAIL]: { label: "明细", prefix: "DETAIL" },
+  [WIDGET.PICTURE]: { label: "图片", prefix: "IMG" },
+  [WIDGET.ATTACHMENT]: { label: "附件", prefix: "ATTACH" },
+  [WIDGET.DEPARTMENT]: { label: "部门", prefix: "DEPT" },
+  [WIDGET.EMPLOYEE]: { label: "员工", prefix: "STAFF" },
+  [WIDGET.ADDRESS]: { label: "地址", prefix: "ADDR" },
+  [WIDGET.FLOW_INST]: { label: "关联审批", prefix: "FLOW" },
+  [WIDGET.AREA]: { label: "省市区", prefix: "AERA" },
+});
 
 let fieldText = ref([
   { type: WIDGET.SINGLELINE_TEXT, label: fieldSetting[WIDGET.SINGLELINE_TEXT].label, placeholder: "请输入", icon: "&#xe61f" },
@@ -329,7 +330,7 @@ const onWidgetClone = (widget) => {
   return nv;
 };
 const onWidgetClick = (ele) => {
-  console.log(ele);
+  console.log("widget", ele);
   const focusWidget = (ws) =>
     ws.forEach((i) => {
       i.focus = i.name == ele.name;
@@ -378,7 +379,7 @@ const isNotInDetailWidget = (widget) => {
 
 // 表单校验
 const validate = (widgets) => {
-  console.log(widgets);
+  //   console.log(widgets);
 };
 
 // 组件初始化

@@ -173,7 +173,7 @@ const handleEditableChange = (checked, widget, parent) => {
 onMounted(() => {
   filterConditionWidgets(flowDefinition.nodeConfig, conditionWidgets.value);
   conditionWidgets.value = ArrayUtil.unique(conditionWidgets.value);
-  let widgets = ObjectUtil.copy(toRaw(flowDefinition.flowWidgets));
+  let widgets = ObjectUtil.copy(toRaw(flowDefinition.flowWidgets || []));
   initNodeFormAuth(props.flowNodeConfig, widgets, conditionWidgets.value);
   formAuths.value = props.flowNodeConfig.formAuths;
   banXuan();

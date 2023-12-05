@@ -97,19 +97,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount, onMounted, onBeforeUnmount } from "vue";
-import { useOrganStore } from "@/stores";
-import FlowManApi from "@/api/FlowManApi";
+import { onBeforeMount, ref } from "vue";
 import FlowInstApi from "@/api/FlowInstApi";
+import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
-import FlowDetail from "./flow-detail.vue";
 import { STATUS_LIST } from "@/components/flow/common/FlowConstant";
-import { IconSearch, IconRefresh, IconFilter } from "@arco-design/web-vue/es/icon";
-import FlowCard from "./flow-card.vue";
+import { IconFilter, IconRefresh, IconSearch } from "@arco-design/web-vue/es/icon";
+import FlowDetail from "./flow-detail.vue";
 import RollLoading from "@/components/common/RollLoading.vue";
+import FlowCard from "./flow-card.vue";
 
-let organStore = useOrganStore();
-let users = computed(() => organStore.users);
 let groups = ref([]);
 
 let query = ref({ page: 0, size: 10, total: 0 });

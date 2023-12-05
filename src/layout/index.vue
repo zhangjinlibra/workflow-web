@@ -69,7 +69,7 @@
         <a-menu
           :style="{ width: sidebarWidth, height: '100%' }"
           :accordion="true"
-          :level-indent="40"
+          :level-indent="34"
           :collapsed="!sidebarOpened"
           :collapsed-width="sidebarCollapsedWidth"
           :auto-open-selected="true"
@@ -78,27 +78,7 @@
           :default-open-keys="['/']"
           @menu-item-click="onMenuItemClick">
           <template v-for="route in filteredRoutes">
-            <template v-if="route.children && route.children.length > 1">
-              <a-sub-menu :key="route.path">
-                <template #icon>
-                  <span class="icon">
-                    <svg-icon :icon-class="route.meta.icon"></svg-icon>
-                  </span>
-                </template>
-                <template #title>{{ route.meta.title }}</template>
-                <a-menu-item :key="sub.path" v-for="sub in route.children">{{ sub.meta.title }}</a-menu-item>
-              </a-sub-menu>
-            </template>
-            <template v-else>
-              <a-menu-item :key="route.children[0].path">
-                <template #icon>
-                  <span class="icon">
-                    <svg-icon :icon-class="route.meta.icon"></svg-icon>
-                  </span>
-                </template>
-                {{ route.meta.title }}
-              </a-menu-item>
-            </template>
+            <MenuItem :item="route" :is-nest="false"></MenuItem>
           </template>
         </a-menu>
 
@@ -141,14 +121,16 @@ import SwitchUser from "@/views/user/SwitchUser.vue";
 import { IconDoubleLeft, IconDoubleRight, IconExport, IconNotification, IconUser, IconUserGroup } from "@arco-design/web-vue/es/icon";
 import { computed, onBeforeMount, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import MenuItem from "./MenuItem.vue";
 
-let userDetail = ref({});
 const route = useRoute();
 const router = useRouter();
 let { routes } = usePermissionStore();
 let { setLoginUser } = useUserStore();
 let { sidebar, closeSideBar, toggleDevice, toggleSideBar } = useAppStore();
 const { body } = document;
+
+let userDetail = ref({});
 
 const getSidebarWidth = () => (sidebar.opened ? lessVars.AppSidebarWidth : lessVars.AppSidebarCollapsedWidth);
 let sidebarWidth = ref(getSidebarWidth());
@@ -159,20 +141,9 @@ let breadcrumbList = computed(() => route.matched.filter((item) => item.meta && 
 
 // 菜单
 let filteredRoutes = computed(() => {
-  let newRoutes = JSON.parse(JSON.stringify(routes));
-  return newRoutes.filter((route) => {
-    roamChildren(route, route.children);
-    return !route.hidden;
-  });
+  return routes;
 });
-// 遍历菜单子路由，全部转换为绝对路径
-const roamChildren = (parent, children) => {
-  let prefix = parent.path === "/" ? "" : parent.path;
-  (children || []).forEach((child) => {
-    if (!child.path.startsWith("/")) child.path = `${prefix}/${child.path}`;
-    roamChildren(child, child.children);
-  });
-};
+
 // 监听路由变化, 设置菜单选中
 watch(
   () => router.currentRoute.value.path,
@@ -241,7 +212,6 @@ onBeforeUnmount(() => {
 // 切换用户
 let showSwitchUserModal = ref(false);
 const onChangeUserClicked = () => {
-  console.log("onChangeUserClicked");
   showSwitchUserModal.value = true;
 };
 </script>
@@ -275,45 +245,22 @@ const onChangeUserClicked = () => {
   overflow: hidden;
   overflow-y: auto;
   box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.08);
-  // transition: all 0.2s cubic-bezier(0.34, 0.69, 0.1, 1);
   transition: width 0.3s;
   user-select: none;
 
-  .icon {
-    @IconSize: 24px;
-    width: @IconSize;
-    height: @IconSize;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .svg-icon {
-      @SvgSize: 18px;
-      width: @SvgSize;
-      height: @SvgSize;
-    }
-  }
-
-  .iconfont-approval-admin {
-    font-size: 24px;
-  }
-
-  .arco-menu {
-    transition: width 0.2s;
-  }
-
   .menu-collapse-button {
+    @BtnSize: 30px;
     position: absolute;
-    right: 15px;
-    bottom: 12px;
+    right: calc((@AppSidebarCollapsedWidth - @BtnSize) / 2);
+    bottom: calc((@AppSidebarCollapsedWidth - @BtnSize) / 2);
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: @BtnSize;
+    height: @BtnSize;
     border-radius: var(--border-radius-small);
     cursor: pointer;
-    background-color: var(--color-fill-1);
+    background-color: var(--color-fill-2);
     color: var(--color-text-1);
     padding: 0;
 

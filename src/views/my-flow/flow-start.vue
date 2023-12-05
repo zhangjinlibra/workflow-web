@@ -47,13 +47,13 @@
 
 <script setup>
 import { computed, onBeforeMount, ref } from "vue";
-import FlowIcon from "@/components/icons/FlowIcon.vue";
+import ObjectUtil from "@/components/flow/common/ObjectUtil";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
-import ObjectUtil from "@/components/flow/common/ObjectUtil";
-import FlowLaunch from "./flow-launch.vue";
 import { IconSearch } from "@arco-design/web-vue/es/icon";
+import FlowIcon from "@/components/icons/FlowIcon.vue";
 import BackToTop from "@/components/common/BackToTop.vue";
+import FlowLaunch from "./flow-launch.vue";
 
 let visible = ref(false); // 侧边栏
 let selectedFlow = ref({}); // 选中的流程

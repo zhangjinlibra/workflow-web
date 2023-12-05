@@ -80,11 +80,30 @@ export const constantRoutes = [
 
 export const asyncRoutes = [];
 
+// 遍历子路由，全部转换为绝对路径
+const fixChildrenRoute = (parent, children) => {
+  let prefix = parent.path === "/" ? "" : parent.path;
+  (children || []).forEach((child) => {
+    let { path, name } = child;
+    if (!path.startsWith("/")) child.path = `${prefix}/${path}`;
+    if (!name.startsWith("/")) child.name = `${prefix}/${name}`;
+    fixChildrenRoute(child, child.children);
+  });
+};
+
+// 遍历路由，全部转换为绝对路径
+let fixRoutes = (routes) => {
+  routes.forEach((route) => {
+    fixChildrenRoute(route, route.children);
+  });
+  return routes;
+};
+
 const newRouter = () => {
   return createRouter({
-    scrollBehavior: () => ({ y: 0 }),
-    history: createWebHistory(import.meta.env.VITE_BASE_PATH),
-    routes: constantRoutes,
+    scrollBehavior: () => ({ top: 0 }),
+    history: createWebHistory(),
+    routes: fixRoutes(constantRoutes),
   });
 };
 

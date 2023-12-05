@@ -1,6 +1,6 @@
 <!-- 可编辑的文本 -->
 <template>
-  <div class="editable-text-box" @click="onClick()">
+  <div :class="['editable-text-box', hoverable ? 'editable-text-box-hoverable' : null]" @click="onClick()">
     <div v-if="showText" class="text-box">
       <div class="text">{{ value }}</div>
       <div class="icon"><icon-edit /></div>
@@ -21,6 +21,7 @@ let text = ref("");
 let emits = defineEmits(["update:value", "change"]);
 let props = defineProps({
   value: { type: String, default: "" },
+  hoverable: { type: Boolean, default: false },
 });
 
 const onClick = () => {
@@ -52,8 +53,24 @@ const onLeave = () => {
     transition: 0.5s;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 8px;
     height: 31.6px;
+
+    &:hover {
+      border-color: #d9d9d9;
+    }
+  }
+
+  .input-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.editable-text-box-hoverable {
+  .text-box {
+    justify-content: space-between;
 
     &:hover {
       border-color: #d9d9d9;
@@ -63,21 +80,10 @@ const onLeave = () => {
       }
     }
 
-    .text {
-      flex: 1;
-    }
-
     .icon {
-      margin-left: 8px;
       opacity: 0;
-      transition: 0.5s;
+      transition: opacity 0.3s;
     }
-  }
-
-  .input-box {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
   }
 }
 </style>

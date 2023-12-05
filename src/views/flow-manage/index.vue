@@ -23,7 +23,7 @@
         <div class="group-item-box">
           <div class="group-header">
             <div class="name">
-              <editable-text v-model:value="group.name" @change="onGroupNameChange($event, group)" />
+              <editable-text v-model:value="group.name" @change="onGroupNameChange($event, group)" :hoverable="true" />
             </div>
             <div class="operaion">
               <a-popconfirm

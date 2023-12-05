@@ -120,7 +120,7 @@
             class="value detail-value">
             <template #columns>
               <a-table-column
-                v-for="subWidget in formWidget.details"
+                v-for="subWidget in formWidget.details.filter((i) => i.type != WIDGET.DESCRIBE)"
                 :title="subWidget.label"
                 :width="subWidget.type == WIDGET.FLOW_INST ? 300 : 100">
                 <template #cell="{ record }">
@@ -207,7 +207,7 @@ import FlowManApi from "@/api/FlowManApi";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
 import { useOrganStore } from "@/stores";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch, toRaw } from "vue";
 import FlowCard from "./flow-card.vue";
 
 const props = defineProps({
@@ -299,6 +299,7 @@ watch(
   () => props.formWidgets,
   () => {
     formWidgetMap.value = FlowManApi.formWidgetListToMap(props.formWidgets);
+    formValue0.value = toRaw(props.formValue);
     formatFormValue();
   }
 );
@@ -364,13 +365,6 @@ onMounted(() => {
     display: grid !important;
     grid-template-columns: repeat(auto-fit, @FlowCardWidth);
     gap: 8px;
-
-    .flow-card-box {
-      transition: box-shadow 0.2s cubic-bezier(0, 0, 1, 1);
-      &:hover {
-        box-shadow: 4px 4px 12px rgb(var(--gray-3));
-      }
-    }
   }
 
   .img-preview {

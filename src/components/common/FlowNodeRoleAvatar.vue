@@ -51,6 +51,7 @@ onBeforeMount(() => {});
   .icon {
     overflow: hidden;
     background-color: #2a5eff;
+    flex-shrink: 0;
   }
 
   .name {

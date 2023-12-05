@@ -20,7 +20,7 @@ export default defineConfig(({ command, mode }) => {
         },
         {
           find: "vue",
-          replacement: "vue/dist/vue.esm-bundler.js", // 需要编译tmp
+          replacement: "vue/dist/vue.esm-bundler.js", // 模块路径的替换, vue模块全部替换成vue.esm-bundler
         },
       ],
     },

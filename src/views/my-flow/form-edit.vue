@@ -348,12 +348,6 @@ const onClose = () => {
         .flow-inst-list {
           display: grid;
           gap: 6px;
-          .flow-card-box {
-            transition: box-shadow 0.2s cubic-bezier(0, 0, 1, 1);
-            &:hover {
-              box-shadow: 4px 4px 12px rgb(var(--gray-3));
-            }
-          }
         }
       }
 

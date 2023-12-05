@@ -7,7 +7,7 @@
         "name": "路由",
         "type": 4,
         "childNode": {
-          "name": "审核人0",
+          "name": "审批人0",
           "type": 1,
           "assignees": [{ "rid": "592581343611719680", "layer": 0, "layerType": 1, "assigneeType": 1 }],
           "childNode": null,
@@ -21,7 +21,7 @@
             "name": "条件1",
             "type": 3,
             "childNode": {
-              "name": "审核人1",
+              "name": "审批人1",
               "type": 1,
               "assignees": [{ "rid": "592581287705841664", "roles": ["1", "2"], "layerType": 0, "assigneeType": 3 }],
               "childNode": null,

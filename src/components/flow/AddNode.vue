@@ -1,6 +1,6 @@
 <template>
-  <div :class="['add-node-btn-box']">
-    <div :class="['add-node-btn', 'affix_' + uid]">
+  <div class="add-node-btn-box">
+    <div class="add-node-btn">
       <a-popover
         :popup-visible="visible"
         position="rt"
@@ -46,20 +46,21 @@ import { filterConditionWidgets, initNodeFormAuth } from "./common/FormAuth";
 
 let emits = defineEmits(["update:childNodeP"]);
 let visible = ref(false);
-let uid = ref(Snowflake.generate()); //当前组件的id
 let props = defineProps({
-  childNodeP: {
-    type: Object,
-    default: () => null,
-  },
+  childNodeP: { type: Object, default: () => null },
 });
 
 // 节点图标
-let icons = reactive({});
-icons[NODE.APPROVE] = { icon: "&#xe658" };
-icons[NODE.COPY] = { icon: "&#xe656" };
-icons[NODE.EXCLUSIVE_GATEWANY] = { icon: "&#xe63f" };
-icons[NODE.TRANSACT] = { icon: "&#xe6cd" };
+let icons = reactive({
+  [NODE.APPROVE]: { icon: "&#xe658" },
+  [NODE.COPY]: { icon: "&#xe656" },
+  [NODE.EXCLUSIVE_GATEWANY]: { icon: "&#xe63f" },
+  [NODE.TRANSACT]: { icon: "&#xe6cd" },
+});
+// icons[NODE.APPROVE] = { icon: "&#xe658" };
+// icons[NODE.COPY] = { icon: "&#xe656" };
+// icons[NODE.EXCLUSIVE_GATEWANY] = { icon: "&#xe63f" };
+// icons[NODE.TRANSACT] = { icon: "&#xe6cd" };
 
 // 流程定义
 let flowStore = useFlowStore();
@@ -74,7 +75,7 @@ const onPopupStatusChange = (is) => {
 const setFormAuth = (node) => {
   let disabledWidgets = [];
   filterConditionWidgets(flowDefinition.nodeConfig, disabledWidgets);
-  let widgets = ObjectUtil.copy(toRaw(flowDefinition.flowWidgets));
+  let widgets = ObjectUtil.copy(toRaw(flowDefinition.flowWidgets || []));
   initNodeFormAuth(node, widgets, disabledWidgets);
 };
 
@@ -82,17 +83,16 @@ const setFormAuth = (node) => {
 const onNodeAddClicked = (type) => {
   visible.value = false;
   if (type != NODE.EXCLUSIVE_GATEWANY) {
-    var newNode;
+    let newNode;
     if (type == NODE.APPROVE) {
-      // console.log("增加审核人节点", props.childNodeP);
       newNode = {
-        name: "审核",
+        name: "审批",
         type: NODE.APPROVE,
         approvalType: 0,
         multiInstanceApprovalType: 0,
         flowNodeNoAuditorType: 0,
         flowNodeSelfAuditorType: 0,
-        assignees: [{ rid: Snowflake.generate(), assigneeType: 0 }], // 审核人
+        assignees: [{ rid: Snowflake.generate(), assigneeType: 0 }], // 审批人
         assignable: true, // 可转交
         signable: true, // 可变签
         backable: true, // 可回退
@@ -122,9 +122,8 @@ const onNodeAddClicked = (type) => {
     }
     emits("update:childNodeP", newNode);
   } else {
-    // console.log("增加路由节点", props.childNodeP);
     let newNode = {
-      name: "路由",
+      name: "排他网关",
       type: NODE.EXCLUSIVE_GATEWANY,
       childNode: null,
       conditionNodes: [
@@ -178,13 +177,14 @@ const onNodeAddClicked = (type) => {
     .btn {
       outline: none;
       cursor: pointer;
-      box-shadow: 0 2px 4px 0 #0000001a;
       width: 30px;
       height: 30px;
+      padding: 0;
       background: #3296fa;
       border-radius: 50%;
       position: relative;
       border: none;
+      box-shadow: 0 2px 4px 0 #0000001a;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -223,6 +223,7 @@ const onNodeAddClicked = (type) => {
 
   .add-node-popover-wrap {
     display: flex;
+    gap: 8px;
 
     .add-node-popover-item {
       cursor: pointer;
@@ -230,10 +231,6 @@ const onNodeAddClicked = (type) => {
       display: flex;
       flex-direction: column;
       align-items: center;
-
-      + .add-node-popover-item {
-        margin-left: 8px;
-      }
 
       &:hover {
         background-color: rgba(31, 35, 41, 0.08);

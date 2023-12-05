@@ -8,7 +8,7 @@ const useFlowStore = defineStore("flow", {
     // 设置发起人
     isPromoterDrawerOpened: false,
     promoterConfig0: {},
-    // 设置审核人
+    // 设置审批人
     isApproverDrawerOpened: false,
     approverConfig0: {},
     // 设置抄送人

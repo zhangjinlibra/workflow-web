@@ -11,7 +11,7 @@
           "name": "条件1",
           "type": 3,
           "childNode": {
-            "name": "审核人",
+            "name": "审批人",
             "type": 1,
             "assignees": [{ "rid": "616543805549580288", "assignees": ["1", "2"], "assigneeType": 4 }],
             "childNode": null,

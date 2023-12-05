@@ -99,7 +99,7 @@
               :class="['flow-item', choosedFlowInstIds.includes(flowInst.id) ? 'flow-item-choosed' : '']"
               @click="onFlowInstChoosed(flowInst.id)">
               <div class="checkbox"></div>
-              <FlowCard :flowInst="flowInst" />
+              <FlowCard :flowInst="flowInst" :hoverable="false" />
             </div>
           </template>
 
@@ -180,7 +180,6 @@ const loadFlowInsts = () => {
         query.value.total = total;
         if (flowInsts.value.length >= total) {
           hasMoreFlowInsts.value = false;
-          console.log(hasMoreFlowInsts.value);
         }
       } else {
         query.value.page--;

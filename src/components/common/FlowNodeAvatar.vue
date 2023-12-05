@@ -28,7 +28,7 @@ watch(
 const loadUserDetail = () => {
   getUserDetail({ userId: props.id }).then((resp) => {
     if (resp.code == 1) {
-      user.value = resp.data || [];
+      user.value = resp.data || {};
     }
   });
 };
@@ -62,6 +62,7 @@ onBeforeMount(() => {
 
   .icon {
     overflow: hidden;
+    flex-shrink: 0;
   }
 
   .name {

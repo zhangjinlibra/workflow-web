@@ -46,11 +46,32 @@ export function listUsers(params) {
 }
 
 export function getUserDetail(params) {
-  return request({
-    url: "/organ/getUserDetail",
-    method: "get",
-    params,
-  });
+  let { userId } = params;
+  if (!userId) {
+    console.log("userId is null", params);
+    return new Promise((resolve, reject) => {
+      reject();
+    });
+  }
+
+  let userDetail = cache[userId];
+  if (userDetail) {
+    return new Promise((resolve, reject) => {
+      resolve({ code: 1, data: userDetail });
+    });
+  } else {
+    return request({
+      url: "/organ/getUserDetail",
+      method: "get",
+      params,
+    }).then((resp) => {
+      let { code, data: detail } = resp;
+      if (code == 1 && detail && detail.name) {
+        cache[userId] = resp.data;
+      }
+      return resp;
+    });
+  }
 }
 
 export function getLoginUserDetail(params) {

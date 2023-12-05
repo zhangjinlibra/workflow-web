@@ -9,7 +9,7 @@
     @cancel="onClose()"
     ok-text="保存">
     <template #title>
-      <EditableText :value="flowNodeConfig.name" @change="(v) => (flowNodeConfig.name = v)" />
+      <EditableText :value="flowNodeConfig.name" @change="onNodeNameChange" />
     </template>
 
     <div class="top-tips">满足以下条件时进入当前分支</div>
@@ -182,7 +182,7 @@ const initCondition = () => {
   conditionOptions.value = [{ name: "initiator", label: "发起人", operators: [20, 21] }];
 
   // 将表单必填项转换为分支条件
-  let widgets = ObjectUtil.copy(toRaw(flowDefinition.flowWidgets));
+  let widgets = ObjectUtil.copy(toRaw(flowDefinition.flowWidgets || []));
   if (widgets && widgets.length > 0) {
     widgets.forEach((widget) => {
       let { type, required, details } = widget;
@@ -265,7 +265,13 @@ const rmCondition = (conditionGroup, condition) => {
   ArrayUtil.remove(conditionGroup.conditions, "id", condition.id);
 };
 
-const saveCondition = () => {
+// 编辑节点名称
+const onNodeNameChange = (name) => {
+  flowNodeConfig.value.name = name;
+  saveCondition(false);
+};
+
+const saveCondition = (leave = true) => {
   // 组装成表达式
   // initExp(flowNodeConfig.value);// 改成点击发布是生成表达式
   // 保存分支条件
@@ -276,7 +282,7 @@ const saveCondition = () => {
     flag: true,
     id: _uid,
   });
-  showConditionDrawer(false);
+  leave && showConditionDrawer(false);
 };
 
 const onClose = () => {

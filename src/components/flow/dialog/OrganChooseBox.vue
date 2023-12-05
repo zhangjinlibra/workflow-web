@@ -95,7 +95,6 @@ const initSelected = () => {
 
   // 复制选择的值
   selected0.value = ObjectUtil.copy(props.selected);
-  console.log("选中的值：", selected0.value);
 
   // 所有选择的id
   let ids = [];

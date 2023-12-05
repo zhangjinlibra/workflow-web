@@ -9,7 +9,7 @@
     @ok="saveApprover()"
     ok-text="保存">
     <template #title>
-      <EditableText :value="flowNodeConfig.name" @change="(v) => (flowNodeConfig.name = v)" />
+      <EditableText :value="flowNodeConfig.name" @change="onNodeNameChange" />
     </template>
 
     <div class="approver-drawer__content">
@@ -444,13 +444,19 @@ const delApprover = (approver) => {
   }
 };
 
-const saveApprover = () => {
+// 编辑节点名称
+const onNodeNameChange = (name) => {
+  flowNodeConfig.value.name = name;
+  saveApprover(false);
+};
+
+const saveApprover = (leave = true) => {
   setApproverConfig({
     value: toRaw(flowNodeConfig.value),
     flag: true,
     id: _uid,
   });
-  close();
+  leave && close();
 };
 
 const close = () => {

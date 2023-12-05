@@ -9,7 +9,7 @@
     @ok="saveCc()"
     ok-text="保存">
     <template #title>
-      <EditableText :value="flowNodeConfig.name" @change="(v) => (flowNodeConfig.name = v)" />
+      <EditableText :value="flowNodeConfig.name" @change="onNodeNameChange" />
     </template>
 
     <div class="copyer-editor-tab-wrapper">
@@ -105,7 +105,7 @@
                 </div>
               </div>
 
-              <!-- 添加审核人按钮 -->
+              <!-- 添加审批人按钮 -->
               <div class="add-operator">
                 <a-link @click="addCC()">
                   <template #icon><icon-plus /></template>添加抄送人
@@ -209,16 +209,21 @@ watch(copyerConfig0, (val) => {
   flowNodeConfig.value = val.value;
   viewEditorType.value = 0;
   _uid = val.id;
-  //   console.log(flowNodeConfig);
 });
 
-const saveCc = () => {
+// 编辑节点名称
+const onNodeNameChange = (name) => {
+  flowNodeConfig.value.name = name;
+  saveCc(false);
+};
+
+const saveCc = (leave = true) => {
   setCopyerConfig({
     value: toRaw(flowNodeConfig.value),
     flag: true,
     id: _uid,
   });
-  closeDrawer();
+  leave && closeDrawer();
 };
 
 const closeDrawer = () => {

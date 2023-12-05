@@ -125,18 +125,18 @@
 </template>
 
 <script setup>
-import { computed, getCurrentInstance, onMounted, reactive, ref, watch } from "vue";
 import { useFlowStore, useOrganStore } from "@/stores/index";
+import { IconClose, IconLeft, IconPlus, IconRight } from "@arco-design/web-vue/es/icon";
+import { computed, getCurrentInstance, onMounted, reactive, ref, watch } from "vue";
 import ArrayUtil from "./common/ArrayUtil";
-import { showExpNodeContent } from "./common/FormExp";
 import { NODE } from "./common/FlowConstant";
-import { IconClose, IconRight, IconPlus, IconLeft } from "@arco-design/web-vue/es/icon";
+import { showExpNodeContent } from "./common/FormExp";
 let _uid = getCurrentInstance().uid;
 
 // 属性
 let props = defineProps({
-  nodeConfig: { type: Object, default: () => ({}) },
-  flowPermission: { type: Object, default: () => [] },
+  nodeConfig: { type: Object, default: () => {} },
+  flowPermission: { type: Object, default: () => {} },
 });
 
 let emits = defineEmits(["update:flowPermission", "update:nodeConfig"]);
@@ -162,11 +162,16 @@ let conditionsConfig0 = computed(() => flowStore.conditionsConfig0);
 let transactorConfig0 = computed(() => flowStore.transactorConfig0);
 
 // 节点基本信息
-let nodeSettings = reactive({});
-nodeSettings[NODE.START] = { placeholder: "发起人", bgColor: "#a9b4cd" };
-nodeSettings[NODE.APPROVE] = { placeholder: "审核人", bgColor: "#ff943e" };
-nodeSettings[NODE.COPY] = { placeholder: "抄送人", bgColor: "#3296fa" };
-nodeSettings[NODE.TRANSACT] = { placeholder: "办理人", bgColor: "#926bd5" };
+let nodeSettings = reactive({
+  [NODE.START]: { placeholder: "发起人", bgColor: "#a9b4cd" },
+  [NODE.APPROVE]: { placeholder: "审批人", bgColor: "#ff943e" },
+  [NODE.COPY]: { placeholder: "抄送人", bgColor: "#3296fa" },
+  [NODE.TRANSACT]: { placeholder: "办理人", bgColor: "#926bd5" },
+});
+// nodeSettings[NODE.START] = { placeholder: "发起人", bgColor: "#a9b4cd" };
+// nodeSettings[NODE.APPROVE] = { placeholder: "审批人", bgColor: "#ff943e" };
+// nodeSettings[NODE.COPY] = { placeholder: "抄送人", bgColor: "#3296fa" };
+// nodeSettings[NODE.TRANSACT] = { placeholder: "办理人", bgColor: "#926bd5" };
 let nodeDefaultName = computed(() => nodeSettings[props.nodeConfig.type].placeholder);
 let nodeBgColor = computed(() => nodeSettings[props.nodeConfig.type].bgColor);
 
@@ -179,7 +184,7 @@ let showNodeContent = computed(() => {
     let { type, flowInitiators } = props.flowPermission;
     if (type == 0) return "全员可提交";
     else if (type == 2) return "均不可提交";
-    else return (flowInitiators || []).map((i) => getById(i.id).name).join(", ");
+    else return flowInitiators?.map((i) => getById(i.id).name).join(", ");
   } else if (nodeType == NODE.APPROVE) {
     // 审批人节点
     let { assignees, approvalType } = props.nodeConfig;
@@ -197,9 +202,9 @@ let showNodeContent = computed(() => {
             if (layerType == 0) return `直属${layer != 0 ? layer + "级" : ""}部门负责人`;
             else return `最高部门负责人减${layer != 0 ? layer + "级" : ""}`;
           } else if (assigneeType == 3) {
-            return roles.map((roleId) => ArrayUtil.get(allRoles, "id", roleId).name).join(", ");
+            return roles?.map((roleId) => ArrayUtil.get(allRoles, "id", roleId).name).join(", ");
           } else if (assigneeType == 4) {
-            return assignees.map((userId) => ArrayUtil.get(allUsers, "id", userId).name).join(", ");
+            return assignees?.map((userId) => ArrayUtil.get(allUsers, "id", userId).name).join(", ");
           } else if (assigneeType == 5) {
             return "连续多级上级";
           } else if (assigneeType == 6) {
@@ -224,9 +229,9 @@ let showNodeContent = computed(() => {
           if (layerType == 0) return `直属${layer != 0 ? layer + "级" : ""}部门负责人`;
           else return `最高部门负责人减${layer != 0 ? layer + "级" : ""}`;
         } else if (ccType == 3) {
-          return roles.map((roleId) => ArrayUtil.get(allRoles, "id", roleId).name).join(", ");
+          return roles?.map((roleId) => ArrayUtil.get(allRoles, "id", roleId).name).join(", ");
         } else if (ccType == 4) {
-          return assignees.map((userId) => ArrayUtil.get(allUsers, "id", userId).name).join(", ");
+          return assignees?.map((userId) => ArrayUtil.get(allUsers, "id", userId).name).join(", ");
         }
       })
       .join(", ");
@@ -244,9 +249,9 @@ let showNodeContent = computed(() => {
           if (layerType == 0) return `直属${layer != 0 ? layer + "级" : ""}部门负责人`;
           else return `最高部门负责人减${layer != 0 ? layer + "级" : ""}`;
         } else if (transactorType == 3) {
-          return roles.map((roleId) => ArrayUtil.get(allRoles, "id", roleId).name).join(", ");
+          return roles?.map((roleId) => ArrayUtil.get(allRoles, "id", roleId).name).join(", ");
         } else if (transactorType == 4) {
-          return assignees.map((userId) => ArrayUtil.get(allUsers, "id", userId).name).join(", ");
+          return assignees?.map((userId) => ArrayUtil.get(allUsers, "id", userId).name).join(", ");
         } else if (transactorType == 7) {
           return "发起人自选";
         }
@@ -259,7 +264,7 @@ let showNodeContent = computed(() => {
 // 分支卡片显示的内容
 let showConditionContent = (nodeConfig, index) => {
   let branchNode = nodeConfig.conditionNodes[index];
-  console.log("条件分支：", branchNode);
+  // console.log("条件分支：", branchNode);
   return showExpNodeContent(branchNode, flowDefinition.flowWidgets);
 };
 let getGatewayBranch = (gateway, index) => {
@@ -270,9 +275,9 @@ const isDefaultBranchNode = (idx) => {
   return props.nodeConfig.conditionNodes.length == idx + 1;
 };
 
-watch(promoterConfig0, (flow) => {
-  if (flow.flag && flow.id === _uid) {
-    emits("update:flowPermission", flow.value);
+watch(promoterConfig0, (flowPermission) => {
+  if (flowPermission.flag && flowPermission.id === _uid) {
+    emits("update:flowPermission", flowPermission.value);
   }
 });
 watch(approverConfig0, (approver) => {
@@ -376,7 +381,7 @@ const onNodeCardClick = (priorityLevel) => {
     // 发起人
     showPromoterDrawer(true);
     setPromoterConfig({
-      value: props.flowPermission,
+      value: JSON.parse(JSON.stringify(props.flowPermission)),
       flag: false,
       id: _uid,
     });
@@ -384,7 +389,7 @@ const onNodeCardClick = (priorityLevel) => {
     // 审批人
     showApproverDrawer(true);
     setApproverConfig({
-      value: { ...JSON.parse(JSON.stringify(props.nodeConfig)) },
+      value: JSON.parse(JSON.stringify(props.nodeConfig)),
       flag: false,
       id: _uid,
     });
@@ -392,7 +397,7 @@ const onNodeCardClick = (priorityLevel) => {
     // 抄送人
     showCopyerDrawer(true);
     setCopyerConfig({
-      value: { ...JSON.parse(JSON.stringify(props.nodeConfig)) },
+      value: JSON.parse(JSON.stringify(props.nodeConfig)),
       flag: false,
       id: _uid,
     });
@@ -400,7 +405,7 @@ const onNodeCardClick = (priorityLevel) => {
     // 办理人
     showTransactorDrawer(true);
     setTransactorConfig({
-      value: { ...JSON.parse(JSON.stringify(props.nodeConfig)) },
+      value: JSON.parse(JSON.stringify(props.nodeConfig)),
       flag: false,
       id: _uid,
     });
@@ -408,7 +413,7 @@ const onNodeCardClick = (priorityLevel) => {
     // 分支条件
     showConditionDrawer(true);
     setConditionsConfig({
-      value: { ...JSON.parse(JSON.stringify(props.nodeConfig)) },
+      value: JSON.parse(JSON.stringify(props.nodeConfig)),
       priorityLevel,
       flag: false,
       id: _uid,
@@ -442,7 +447,8 @@ onMounted(() => {
 @node-width: 210px;
 @node-heigth: 78px;
 @node-border-radius: 8px;
-@canvas-bg: #f5f5f7;
+// @canvas-bg: #f5f5f7;
+@canvas-bg: #f2f3f5;
 
 .node-wrap,
 .branch-wrap {
@@ -833,13 +839,13 @@ onMounted(() => {
         }
 
         &:hover {
-          // transform: translate(-50%);
-          // box-shadow: 0 8px 16px #0000001a;
+          transform: translate(-50%);
+          box-shadow: 0 13px 27px 0 #0000001a;
 
-          &::after {
-            border: 1px solid #3296fa;
-            box-shadow: 0 0 6px #3296fa4d;
-          }
+          // &::after {
+          //   border: 1px solid #3296fa;
+          //   box-shadow: 0 0 6px #3296fa4d;
+          // }
         }
       }
 
