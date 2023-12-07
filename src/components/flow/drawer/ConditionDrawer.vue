@@ -145,7 +145,7 @@ let visible = ref(false); // 是否显示
 // 所有的条件选项，该处值是表单编辑器传递过来的
 let conditionOptions = ref([]);
 let _uid = ref(0);
-let priorityLevel = ref(0); // 当前分支条件优先级
+let priorityLevel = 0; // 当前分支条件优先级
 let gatewayConfig = ref({}); // 排他网关
 let flowNodeConfig = ref({}); // 当前分支节点
 let selectedGroupCondition = ref({}); // 当前选中的分组条件

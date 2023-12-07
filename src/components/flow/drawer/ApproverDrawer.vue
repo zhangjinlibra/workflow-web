@@ -284,7 +284,7 @@ let approverConfig0 = computed(() => flowStore.approverConfig0);
 let workFlowDef = computed(() => flowStore.flowDefinition.workFlowDef);
 let visible = computed({
   get: () => isApproverDrawerOpened.value,
-  set: () => closeDrawer(),
+  set: () => close(),
 });
 
 let viewEditorType = ref(0); // 界面编辑类型    0:审批人; 1:表单权限; 2:操作权限

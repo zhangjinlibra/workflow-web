@@ -216,7 +216,7 @@ let transactorConfig0 = computed(() => flowStore.transactorConfig0);
 let workFlowDef = computed(() => flowStore.flowDefinition.workFlowDef);
 let visible = computed({
   get: () => isTransactorDrawerOpened.value,
-  set: () => closeDrawer(),
+  set: () => close(),
 });
 
 let viewEditorType = ref(0); // 界面编辑类型    0:办理人; 1:操作权限
