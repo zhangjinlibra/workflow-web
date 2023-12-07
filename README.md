@@ -11,6 +11,8 @@
 
 `对后端感兴趣或者有疑问的同学可以进群交流（进群方式在最下面）。` [[1](#-加入交流群)]
 
+[商用登记入口](https://gitee.com/zhangjinlibra/workflow-engine/issues/I8MF6Q)
+
 ## 🐰 slogan
 
 我们致力于打造简单、易用的工作流组件，使得流程开发和使用变得简单。
