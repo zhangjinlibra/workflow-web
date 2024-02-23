@@ -5,13 +5,13 @@
 
 ## 🐼 前言
 
-`workflow-engine` 是 `beeflow工作流` 的免费开源的流程设计器。设计器包含流程审批、表单设计、审批流程设计全套功能，开箱即用。
+`workflow-web` 是 `beeflow工作流` 的免费开源的流程设计器。设计器包含流程审批、表单设计、审批流程设计全套功能，开箱即用。
 
 经过相当长一段时间的使用，我们觉得这个设计器还不错，所以决定开源前端流程设计器代码，期待帮助更多的同学，也期待您的反馈。
 
 `对后端感兴趣或者有疑问的同学可以进群交流（进群方式在最下面）。` [[1](#-加入交流群)]
 
-[商用登记入口](https://gitee.com/zhangjinlibra/workflow-engine/issues/I8MF6Q)
+商用登记入口：[Github](https://github.com/zhangjinlibra/workflow-web/issues/1) | [Gitee](https://gitee.com/zhangjinlibra/workflow-engine/issues/I8MF6Q)
 
 ## 🐰 slogan
 
@@ -23,7 +23,7 @@
 
 😁 源码：[Github](https://github.com/zhangjinlibra/workflow-web.git) | [Gitee](https://gitee.com/zhangjinlibra/beeflow-engine)
 
-👉 演示地址：[BeeFlow](https://demo.beeflow.top) 👈
+👉 演示地址：[beeflow](https://demo.beeflow.top:8080) 👈
 
 ---
 
@@ -109,11 +109,11 @@ npm run test
     <tr>
       <td align="center" valign="middle">
         <img src="http://inus-markdown.oss-cn-beijing.aliyuncs.com/img/weichat_qcode_qun.png" class="no-zoom" style="width:120px;margin: 10px;">
-        <p>进群备注: 工作流</p>
+        <p>微信群</p>
       </td>
       <td align="center" valign="middle">
         <img src="https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme13.png" class="no-zoom" style="width:120px;margin: 10px;">
-        <p>QQ群: 418513428</p>
+        <p>QQ群(418513428)</p>
       </td>
     </tr>
   </tbody>
