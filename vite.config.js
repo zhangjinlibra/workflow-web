@@ -82,7 +82,7 @@ export default defineConfig(({ command, mode }) => {
       port: 5174,
       proxy: {
         "/flow2": {
-          target: "http://49.235.72.105",
+          target: "http://49.235.72.105:8080",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/flow2/, "/flow2"),
         },
