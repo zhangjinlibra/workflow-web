@@ -16,7 +16,7 @@
           <FlowPrint
             v-model:visible="showPrintModal"
             :flow-inst="flowInst"
-            :form-value="formValue"
+            :form-value="formattedFormValue"
             :flow-nodes="flowNodes"
             :form-widgets="formWidgets" />
         </div>
@@ -47,7 +47,7 @@
         </div>
 
         <!-- 表单信息 -->
-        <FormDetail :form-widgets="formWidgets" :form-value="formValue" />
+        <FormDetail :form-widgets="formWidgets" :form-value="formattedFormValue" :flowInst="flowInst" />
 
         <a-divider orientation="left"></a-divider>
 
@@ -126,6 +126,13 @@
                         <div class="in-approval">
                           <template v-if="node.type == NODE.APPROVE">审批中...</template>
                           <template v-else-if="node.type == NODE.TRANSACT">办理中...</template>
+                        </div>
+                      </template>
+                      <template v-if="!!node.flowNodeName">
+                        <!-- 审批节点名称 -->
+                        <div class="node-origin-box">
+                          <svg-icon icon-class="node-icon" />
+                          <div class="node-origin-name">{{ node.flowNodeName }}</div>
                         </div>
                       </template>
                     </div>
@@ -389,23 +396,17 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
-import { useOrganStore } from "@/stores";
-import { getToken } from "@/utils/auth";
-import ArrayUtil from "@/components/flow/common/ArrayUtil";
-import ObjectUtil from "@/components/flow/common/ObjectUtil";
-import { CMD, NODE, NODE_SIGN, STATUS, STATUS_LIST, WIDGET } from "@/components/flow/common/FlowConstant";
 import { FILE_BASE_URL } from "@/api/FileApi";
 import FlowInstApi from "@/api/FlowInstApi";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
 import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import FlowNodeRoleAvatar from "@/components/common/FlowNodeRoleAvatar.vue";
-import FormDetail from "./flow-form-detail.vue";
-import FlowPrint from "./flow-print.vue";
-import FlowStatusStamp from "./flow-status-stamp.vue";
-import FormEditRecord from "./form-edit-record.vue";
-import FormEdit from "./form-edit.vue";
+import ArrayUtil from "@/components/flow/common/ArrayUtil";
+import { CMD, NODE, NODE_SIGN, STATUS, STATUS_LIST, WIDGET } from "@/components/flow/common/FlowConstant";
+import ObjectUtil from "@/components/flow/common/ObjectUtil";
+import { useOrganStore } from "@/stores";
+import { getToken } from "@/utils/auth";
 import {
   IconAttachment,
   IconBackward,
@@ -426,6 +427,12 @@ import {
   IconUndo,
   IconUserAdd,
 } from "@arco-design/web-vue/es/icon";
+import { computed, onMounted, ref, watch } from "vue";
+import FormDetail from "./flow-form-detail.vue";
+import FlowPrint from "./flow-print.vue";
+import FlowStatusStamp from "./flow-status-stamp.vue";
+import FormEditRecord from "./form-edit-record.vue";
+import FormEdit from "./form-edit.vue";
 
 let organStore = useOrganStore();
 let users = computed(() => organStore.users);
@@ -433,19 +440,20 @@ let users = computed(() => organStore.users);
 let props = defineProps({
   flowInst: { type: Object, default: () => {} },
   cancelable: { type: Boolean, default: false }, // 撤销按钮
-  commentable: { type: Boolean, default: true }, //评论按钮
+  commentable: { type: Boolean, default: true }, // 评论按钮
   actionable: { type: Boolean, default: false }, // 其他操作按钮
   editable: { type: Boolean, default: false }, // 表单是否可以编辑
 });
 let emits = defineEmits(["onRemove", "update:flowInst"]);
 
-let fileUploadUrl = FILE_BASE_URL + "/upload"; //文件上传地址
+let fileUploadUrl = FILE_BASE_URL + "/upload"; // 文件上传地址
 let fileUploadHeaders = ref({ Authorization: getToken() }); // 文件上传请求头
 
 let formWidgets = ref([]);
 let formWidgetMap = ref({});
 let flowNodes = ref([]);
 let formValue = ref({});
+let formattedFormValue = ref({});
 let finished = computed(() => props.flowInst.status != 0);
 
 // 查询表单组件
@@ -455,9 +463,11 @@ const loadFormWidgets = () => {
       let form = resp.data || {};
       let widgets = form.formWidgets;
       let values = form.formValue;
+      let formattedValue = form.formattedFormValue;
       formWidgets.value = widgets;
       formWidgetMap.value = FlowManApi.formWidgetListToMap(widgets);
       formValue.value = JSON.parse(values);
+      formattedFormValue.value = JSON.parse(formattedValue);
     }
   });
 };
@@ -497,8 +507,8 @@ const onHandleModelCancel = () => {
     flowInstId: null, // 流程实例id
     taskId: null, // 任务id
     flowCmd: null, // 任务指令
-    assignee: null, //指派人
-    comment: null, //备注
+    assignee: null, // 指派人
+    comment: null, // 备注
   };
 };
 
@@ -674,7 +684,9 @@ const onFormEdit = () => {
   formEditVisible.value = true;
 };
 const onFormUpdated = (nv) => {
-  formValue.value = JSON.parse(nv);
+  let { formValue: value, formattedFormValue: formattedValue } = nv;
+  formValue.value = JSON.parse(value);
+  formattedFormValue.value = JSON.parse(formattedValue);
   hasFormEditRecord();
 };
 const onFormEditRecordClick = () => {
@@ -706,6 +718,7 @@ onMounted(() => {
 
 .flow-detail-container {
   height: 100%;
+  line-height: 1;
   overflow: hidden;
   position: relative;
 }
@@ -857,9 +870,20 @@ onMounted(() => {
       .node-name {
         font-weight: 400;
         color: #86909c;
+        display: flex;
+        align-items: baseline;
+        // gap: 8px;
+        justify-content: space-between;
 
         .in-approval {
           color: #2a5eff;
+        }
+
+        .node-origin-box {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 12px;
         }
       }
 
@@ -954,7 +978,7 @@ onMounted(() => {
 .flow-actions {
   display: flex;
   align-items: center;
-  justify-content: end;
+  justify-content: flex-end;
   height: @bottomActionHeight;
   border-top: 1px solid var(--color-neutral-3);
   padding: 0 @GapLarge;

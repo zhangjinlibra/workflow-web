@@ -1,5 +1,5 @@
-import request from "@/utils/request";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
+import request from "@/utils/request";
 
 function listGroups(params) {
   return request({
@@ -73,6 +73,14 @@ function saveOrUpdate(data) {
   });
 }
 
+function copy(data) {
+  return request({
+    url: "/flowdefinition/copy",
+    method: "post",
+    data,
+  });
+}
+
 function removeById(params) {
   return request({
     url: "/flowdefinition/removeById",
@@ -137,4 +145,5 @@ export default {
   enableById,
   getFlowFormWidget,
   formWidgetListToMap,
+  copy,
 };

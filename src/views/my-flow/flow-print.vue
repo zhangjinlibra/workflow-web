@@ -49,7 +49,7 @@
               </tr>
               <tr v-else-if="[WIDGET.MULTI_CHOICE].includes(formWidget.type)">
                 <td class="label">{{ formWidget.label }}</td>
-                <td class="value">{{ (formValue[formWidget.name] || []).join(", ") }}</td>
+                <td class="value">{{ (formValue[formWidget.name] || []).join("，") }}</td>
               </tr>
               <tr v-else-if="[WIDGET.DATE_RANGE].includes(formWidget.type)">
                 <td class="label">{{ formWidget.label }}</td>
@@ -61,11 +61,11 @@
               </tr>
               <tr v-else-if="[WIDGET.DEPARTMENT].includes(formWidget.type)">
                 <td class="label">{{ formWidget.label }}</td>
-                <td class="value">{{ getDeptById(formValue[formWidget.name]).name }}</td>
+                <td class="value">{{ formValue[formWidget.name] }}</td>
               </tr>
               <tr v-else-if="[WIDGET.EMPLOYEE].includes(formWidget.type)">
                 <td class="label">{{ formWidget.label }}</td>
-                <td class="value">{{ getUserById(formValue[formWidget.name]).name }}</td>
+                <td class="value">{{ formValue[formWidget.name] }}</td>
               </tr>
               <tr v-else-if="[WIDGET.AREA].includes(formWidget.type)">
                 <td class="label">{{ formWidget.label }}</td>
@@ -115,14 +115,14 @@
                           </td>
                           <td v-else-if="[WIDGET.NUMBER].includes(subWidget.type)">{{ record[subWidget.name] }}</td>
                           <td v-else-if="[WIDGET.MONEY].includes(subWidget.type)">{{ ObjectUtil.comma(record[subWidget.name]) }}</td>
-                          <td v-else-if="[WIDGET.MULTI_CHOICE].includes(subWidget.type)">{{ (record[subWidget.name] || []).join(", ") }}</td>
+                          <td v-else-if="[WIDGET.MULTI_CHOICE].includes(subWidget.type)">{{ (record[subWidget.name] || []).join("，") }}</td>
                           <td v-else-if="[WIDGET.DATE_RANGE].includes(subWidget.type)">
                             <template v-if="record[subWidget.name] && record[subWidget.name].length == 2">
                               {{ `${record[subWidget.name][0]} 至 ${record[subWidget.name][1]}` }}
                             </template>
                           </td>
-                          <td v-else-if="[WIDGET.DEPARTMENT].includes(subWidget.type)">{{ getDeptById(record[subWidget.name]).name }}</td>
-                          <td v-else-if="[WIDGET.EMPLOYEE].includes(subWidget.type)">{{ getUserById(record[subWidget.name]).name }}</td>
+                          <td v-else-if="[WIDGET.DEPARTMENT].includes(subWidget.type)">{{ record[subWidget.name] }}</td>
+                          <td v-else-if="[WIDGET.EMPLOYEE].includes(subWidget.type)">{{ record[subWidget.name] }}</td>
                           <td v-else-if="[WIDGET.PICTURE].includes(subWidget.type)">
                             <div class="img-box">
                               <img v-for="id in record[subWidget.name] || []" :src="`${FILE_BASE_URL}/download?id=${id}`" />

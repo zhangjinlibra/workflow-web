@@ -80,6 +80,9 @@
                       <template #icon> <icon-delete :size="18" /> </template>
                     </a-button>
                   </a-popconfirm>
+                  <a-button size="small" @click="onFlowCopy(item)">
+                    <template #icon> <icon-copy :size="18" /> </template>
+                  </a-button>
                 </template>
               </div>
             </div>
@@ -89,23 +92,25 @@
     </div>
 
     <flow-group-edit ref="groupModel" v-model:group="group" @ok="onGroupAdded($event)"></flow-group-edit>
+    <flow-copy ref="flowDefCopyModel" v-model:flowDef="selectedFlowDef" @ok="onFlowCopyed($event)"></flow-copy>
     <back-to-top target-container=".flow-groups-area"></back-to-top>
   </div>
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, ref } from "vue";
-import { useFlowStore, useUserStore, useOrganStore } from "@/stores";
-import { useRouter } from "vue-router";
-import { Notification } from "@arco-design/web-vue";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
+import BackToTop from "@/components/common/BackToTop.vue";
 import EditableText from "@/components/common/EditableText.vue";
 import ArrayUtil from "@/components/flow/common/ArrayUtil";
 import FlowIcon from "@/components/icons/FlowIcon.vue";
+import { useFlowStore, useOrganStore, useUserStore } from "@/stores";
+import { Notification } from "@arco-design/web-vue";
+import { IconCheckCircle, IconCopy, IconDelete, IconEdit, IconPlus, IconSearch, IconStop } from "@arco-design/web-vue/es/icon";
+import { onBeforeMount, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import FlowCopy from "./flow-copy.vue";
 import FlowGroupEdit from "./flow-gorup-edit.vue";
-import { IconSearch, IconPlus, IconDelete, IconEdit, IconStop, IconCheckCircle } from "@arco-design/web-vue/es/icon";
-import BackToTop from "@/components/common/BackToTop.vue";
 
 const router = useRouter();
 const flowStore = useFlowStore();
@@ -113,6 +118,7 @@ const userStore = useUserStore();
 const { getById } = useOrganStore();
 const loading = ref(false);
 
+let selectedFlowDef = ref({}); // 当前选中的流程
 let flowName = ref(""); // 流程名称检索
 let groups = ref([]);
 const loadGroups = () => {
@@ -175,7 +181,7 @@ const onFlowCreate = () => {
   let user = userStore.loginUser;
   let flowDef = {
     workFlowDef: { name: null, icon: "approval", flowAdminIds: [user.id], cancelable: 1 },
-    nodeConfig: { name: "发起", type: 0 },
+    nodeConfig: { name: "开始", type: 0 },
     flowPermission: { type: 0 },
   };
   flowStore.setFlowDef(flowDef);
@@ -210,6 +216,16 @@ const onFlowEnabled = (flowDefinition, group) => {
       flowDefinition.status = 0;
     }
   });
+};
+
+// 流程复制
+const flowDefCopyModel = ref();
+const onFlowCopy = (flowDefinition) => {
+  selectedFlowDef.value = flowDefinition;
+  flowDefCopyModel.value.show();
+};
+const onFlowCopyed = (flowDef) => {
+  loadGroups();
 };
 
 onMounted(() => {});
@@ -330,10 +346,10 @@ onBeforeMount(() => {
           }
 
           .operations {
-            width: 120px;
+            width: 160px;
             display: flex;
             align-items: center;
-            justify-content: end;
+            justify-content: flex-end;
             gap: 10px;
           }
         }

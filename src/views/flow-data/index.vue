@@ -86,7 +86,7 @@
           :scroll="{ maxHeight: 'calc(100vh - 227px)', x: 1000 }">
           <template #columns>
             <a-table-column title="审批名称" data-index="name"></a-table-column>
-            <a-table-column title="申请编号" data-index="id" :width="180"></a-table-column>
+            <a-table-column title="申请编号" data-index="id" :width="200"></a-table-column>
             <a-table-column title="发起人" :width="120">
               <template #cell="{ record }"> <flow-node-avatar :size="20" :id="record.initiatorId"></flow-node-avatar></template>
             </a-table-column>

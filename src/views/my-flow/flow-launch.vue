@@ -153,12 +153,12 @@
             <a-timeline-item label="" :dotColor="flowTimeLineDotColors[node.nodeType].color">
               <!-- 开始节点 -->
               <div class="node-box" v-if="node.nodeType == NODE.START">
-                <div class="node-name">开始</div>
+                <div class="node-name">{{ node.name }}</div>
               </div>
               <!-- 审批人节点 -->
               <div class="node-box" v-else-if="node.nodeType == NODE.APPROVE">
                 <div class="node-name">
-                  审批
+                  {{ node.name }}
                   <div class="node-type" v-if="node.approvalType == 1">自动通过</div>
                   <div class="node-type" v-if="node.approvalType == 2">自动拒绝</div>
                   <div class="node-type" v-if="node.multiInstanceApprovalType == 1">需所有人审批同意</div>
@@ -204,7 +204,7 @@
               <!-- 办理人节点 -->
               <div class="node-box" v-else-if="node.nodeType == NODE.TRANSACT">
                 <div class="node-name">
-                  办理
+                  {{ node.name }}
                   <div class="node-type" v-if="node.multiInstanceApprovalType == 1">需所有人办理同意</div>
                   <div class="node-type" v-if="node.multiInstanceApprovalType == 2">只需一人办理同意</div>
                   <div class="node-type" v-if="node.multiInstanceApprovalType == 3">需依次办理同意</div>
@@ -244,7 +244,7 @@
               </div>
               <!-- 抄送人节点 -->
               <div class="node-box" v-else-if="node.nodeType == NODE.COPY">
-                <div class="node-name">抄送</div>
+                <div class="node-name">{{ node.name }}</div>
                 <div class="node-content">
                   <div class="node-cc">
                     <template v-if="node.userIds.length > 0">
@@ -256,7 +256,7 @@
               </div>
               <!-- 结束节点 -->
               <div class="node-box" v-else-if="node.nodeType == NODE.END">
-                <div class="node-name">结束</div>
+                <div class="node-name">{{ node.name }}</div>
               </div>
             </a-timeline-item>
           </template>
@@ -301,7 +301,7 @@ let emits = defineEmits(["onSuccess", "onCancel"]);
 
 let { users: allUsers, depts: allDepts } = useOrganStore();
 
-let fileUploadUrl = FILE_BASE_URL + "/upload"; //文件上传地址
+let fileUploadUrl = FILE_BASE_URL + "/upload"; // 文件上传地址
 let fileUploadHeaders = ref({ Authorization: getToken() }); // 文件上传请求头
 let flowWidgetMap = null; // 表单组件Map，会在第一次提交表单时生成。
 let flowForm = ref({}); // 流程的表单
@@ -470,7 +470,7 @@ const handleOk = () => {
     Message.error({ title: "表单校验", content: "表单必填项需填写完整" });
   }
 };
-//  取消
+// 取消
 const handleCancel = () => {
   emits("onCancel");
 };
@@ -586,7 +586,7 @@ const onFlowSelectClicked = () => {
   .flow-btn-box {
     display: flex;
     align-items: center;
-    justify-content: end;
+    justify-content: flex-end;
     gap: 10px;
   }
 }

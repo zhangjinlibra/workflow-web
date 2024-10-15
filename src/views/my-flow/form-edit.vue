@@ -195,18 +195,18 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
-import { useOrganStore } from "@/stores";
-import { getToken } from "@/utils/auth";
+import FileApi, { FILE_BASE_URL } from "@/api/FileApi";
+import FlowInstApi from "@/api/FlowInstApi";
 import CHINA_AREA from "@/components/flow/common/ChinaArea";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
+import { useOrganStore } from "@/stores";
+import { getToken } from "@/utils/auth";
 import { IconInfoCircle, IconPlus } from "@arco-design/web-vue/es/icon";
+import { ref, watch } from "vue";
 import FlowCard from "./flow-card.vue";
 import FlowInstSelect from "./flow-inst-select.vue";
 import FormEditWidgetDetail from "./form-edit-widget-detail.vue";
-import FlowInstApi from "@/api/FlowInstApi";
-import { FILE_BASE_URL } from "@/api/FileApi";
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -217,7 +217,7 @@ const props = defineProps({
 const emits = defineEmits(["update:visible", "onOk"]);
 
 let { users: allUsers, depts: allDepts } = useOrganStore();
-const fileUploadUrl = FILE_BASE_URL + "/upload"; //文件上传地址
+const fileUploadUrl = FILE_BASE_URL + "/upload"; // 文件上传地址
 const fileUploadHeaders = ref({ Authorization: getToken() }); // 文件上传请求头
 const flowForm = ref({}); // 流程表单
 const formWidgetMap = ref({}); // 将组件抽成map
@@ -253,13 +253,24 @@ const fmt = (form) => {
     if ([WIDGET.NUMBER, WIDGET.MONEY].includes(type)) {
       form[name] = parseFloat(form[name]);
     } else if ([WIDGET.ATTACHMENT].includes(type)) {
-      let files = form[name];
-      for (let i = 0; i < files.length; i++) {
-        let file = files[i];
-        let resp = { data: { id: file.id } };
-        files[i] = { uid: file.id, url: FILE_BASE_URL + `/download?id=${file.id}`, name: file.name, response: resp };
+      let ids = form[name];
+      ids = ids.filter((i) => !!i);
+      // 附件需要去查询一下附件名称
+      if (ids && ids.length > 0) {
+        FileApi.batchMetadata({ ids: ids.join(",") }).then((resp) => {
+          let attachments = resp.data || [];
+          form[name] = attachments.map((item) => {
+            let { id, name } = item;
+            return { uid: id, url: FILE_BASE_URL + `/download?id=${id}`, name: name, response: { data: item } };
+          });
+        });
       }
-      form[name] = files;
+      // for (let i = 0; i < files.length; i++) {
+      //   let file = files[i];
+      //   let resp = { data: { id: file.id } };
+      //   files[i] = { uid: file.id, url: FILE_BASE_URL + `/download?id=${file.id}`, name: file.name, response: resp };
+      // }
+      // form[name] = files;
     } else if ([WIDGET.PICTURE].includes(type)) {
       let fileIds = form[name];
       for (let i = 0; i < fileIds.length; i++) {
@@ -370,7 +381,7 @@ const onClose = () => {
     .flow-btn-box {
       display: flex;
       align-items: center;
-      justify-content: end;
+      justify-content: flex-end;
       gap: 10px;
     }
   }
@@ -406,7 +417,7 @@ const onClose = () => {
       padding: 0 16px;
       display: flex;
       align-items: center;
-      justify-content: end;
+      justify-content: flex-end;
     }
   }
 }

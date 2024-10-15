@@ -37,7 +37,7 @@
         <!-- 多选 -->
         <div v-else-if="[WIDGET.MULTI_CHOICE].includes(formWidget.type)" class="form-item">
           <div class="label">{{ formWidget.label }}</div>
-          <div class="value">{{ (formValue0[formWidget.name] || []).join(", ") }}</div>
+          <div class="value">{{ (formValue0[formWidget.name] || []).join("，") }}</div>
         </div>
         <!-- 日期区间 -->
         <div v-else-if="[WIDGET.DATE_RANGE].includes(formWidget.type)" class="form-item">
@@ -51,12 +51,12 @@
         <!-- 部门 -->
         <div v-else-if="[WIDGET.DEPARTMENT].includes(formWidget.type)" class="form-item">
           <div class="label">{{ formWidget.label }}</div>
-          <div class="value">{{ getDeptById(formValue0[formWidget.name]).name }}</div>
+          <div class="value">{{ formValue0[formWidget.name] }}</div>
         </div>
         <!-- 员工 -->
         <div v-else-if="[WIDGET.EMPLOYEE].includes(formWidget.type)" class="form-item">
           <div class="label">{{ formWidget.label }}</div>
-          <div class="value">{{ getUserById(formValue0[formWidget.name]).name }}</div>
+          <div class="value">{{ formValue0[formWidget.name] }}</div>
         </div>
         <!-- 省市区 -->
         <div v-else-if="[WIDGET.AREA].includes(formWidget.type)" class="form-item">
@@ -138,7 +138,7 @@
                   </template>
                   <!-- 多选 -->
                   <template v-else-if="[WIDGET.MULTI_CHOICE].includes(subWidget.type)">
-                    {{ (record[subWidget.name] || []).join(", ") }}
+                    {{ (record[subWidget.name] || []).join("，") }}
                   </template>
                   <!-- 日期区间 -->
                   <template v-else-if="[WIDGET.DATE_RANGE].includes(subWidget.type)">
@@ -148,11 +148,11 @@
                   </template>
                   <!-- 部门 -->
                   <template v-else-if="[WIDGET.DEPARTMENT].includes(subWidget.type)">
-                    {{ getDeptById(record[subWidget.name]).name }}
+                    {{ record[subWidget.name] }}
                   </template>
                   <!-- 员工 -->
                   <template v-else-if="[WIDGET.EMPLOYEE].includes(subWidget.type)">
-                    {{ getUserById(record[subWidget.name]).name }}
+                    {{ record[subWidget.name] }}
                   </template>
                   <!-- 图片 -->
                   <template v-else-if="[WIDGET.PICTURE].includes(subWidget.type)">
@@ -202,26 +202,26 @@
 </template>
 
 <script setup>
-import FileApi, { FILE_BASE_URL } from "@/api/FileApi";
+import { FILE_BASE_URL } from "@/api/FileApi";
 import FlowManApi from "@/api/FlowManApi";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
-import { useOrganStore } from "@/stores";
-import { computed, onMounted, ref, watch, toRaw } from "vue";
+import { computed, onMounted, ref, toRaw, watch } from "vue";
 import FlowCard from "./flow-card.vue";
 
 const props = defineProps({
+  flowInst: { type: Object, default: {} },
   formWidgets: { type: Array, default: [] },
   formValue: { type: Object, default: {} },
-  onlyValue: { type: Boolean, default: false },
+  onlyValue: { type: Boolean, default: false }, // 只展示表单值相关的组件
 });
 
-const organStore = useOrganStore();
-const { getDeptById, getUserById } = organStore;
+// const organStore = useOrganStore();
+// const { getDeptById, getUserById } = organStore;
 const formWidgetMap = ref({});
 const formValue0 = ref({});
 
-// 是否过滤组件
+// 过滤出表单值所涉及的组件列表
 const filteredFormWidgets = computed(() => {
   // 过滤出表单所有的key
   let keys = [];
@@ -246,29 +246,29 @@ const filteredFormWidgets = computed(() => {
 
 // 格式化表单
 const formatFormValue = () => {
-  for (let name in formValue0.value) {
-    let type = (formWidgetMap.value[name] || {}).type;
-    if ([WIDGET.ATTACHMENT].includes(type)) {
-      let ids = formValue0.value[name];
-      ids = ids.filter((i) => !!i);
-      if (ids && ids.length > 0) {
-        FileApi.batchMetadata({ ids: ids.join(",") }).then((resp) => (formValue0.value[name] = resp.data || []));
-      }
-    } else if (type == WIDGET.DETAIL) {
-      (formValue0.value[name] || []).forEach((detailValue) => {
-        for (let detailName in detailValue) {
-          let detailType = formWidgetMap.value[detailName].type;
-          if ([WIDGET.ATTACHMENT].includes(detailType)) {
-            let ids = detailValue[detailName];
-            ids = ids.filter((i) => !!i);
-            if (ids && ids.length > 0) {
-              FileApi.batchMetadata({ ids: ids.join(",") }).then((resp) => (detailValue[detailName] = resp.data || []));
-            }
-          }
-        }
-      });
-    }
-  }
+  // for (let name in formValue0.value) {
+  //   let type = (formWidgetMap.value[name] || {}).type;
+  //   if ([WIDGET.ATTACHMENT].includes(type)) {
+  //     let ids = formValue0.value[name];
+  //     ids = ids.filter((i) => !!i);
+  //     if (ids && ids.length > 0) {
+  //       FileApi.batchMetadata({ ids: ids.join(",") }).then((resp) => (formValue0.value[name] = resp.data || []));
+  //     }
+  //   } else if (type == WIDGET.DETAIL) {
+  //     (formValue0.value[name] || []).forEach((detailValue) => {
+  //       for (let detailName in detailValue) {
+  //         let detailType = formWidgetMap.value[detailName].type;
+  //         if ([WIDGET.ATTACHMENT].includes(detailType)) {
+  //           let ids = detailValue[detailName];
+  //           ids = ids.filter((i) => !!i);
+  //           if (ids && ids.length > 0) {
+  //             FileApi.batchMetadata({ ids: ids.join(",") }).then((resp) => (detailValue[detailName] = resp.data || []));
+  //           }
+  //         }
+  //       }
+  //     });
+  //   }
+  // }
 };
 
 // 文件预览

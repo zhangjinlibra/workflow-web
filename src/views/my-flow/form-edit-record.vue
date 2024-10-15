@@ -25,9 +25,9 @@
 
 <script setup>
 import FlowInstApi from "@/api/FlowInstApi";
+import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import { ref, watch } from "vue";
 import FlowFormDetail from "./flow-form-detail.vue";
-import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -63,6 +63,7 @@ const handleOk = () => {
 <style lang="less">
 .form-edit-record-container {
   height: calc(100% - 50px);
+  line-height: 1.15;
   overflow: auto hidden;
 
   .arco-modal-body {

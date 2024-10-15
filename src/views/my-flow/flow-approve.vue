@@ -82,16 +82,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount } from "vue";
-import { useOrganStore } from "@/stores";
-import FlowManApi from "@/api/FlowManApi";
 import FlowInstApi from "@/api/FlowInstApi";
+import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
-import FlowDetail from "./flow-detail.vue";
-import ArrayUtil from "@/components/flow/common/ArrayUtil";
-import { IconSearch, IconRefresh, IconFilter } from "@arco-design/web-vue/es/icon";
-import FlowCard from "./flow-card.vue";
 import RollLoading from "@/components/common/RollLoading.vue";
+import ArrayUtil from "@/components/flow/common/ArrayUtil";
+import { useOrganStore } from "@/stores";
+import { IconFilter, IconRefresh, IconSearch } from "@arco-design/web-vue/es/icon";
+import { computed, onBeforeMount, ref } from "vue";
+import FlowCard from "./flow-card.vue";
+import FlowDetail from "./flow-detail.vue";
 
 let organStore = useOrganStore();
 let users = computed(() => organStore.users);
@@ -132,7 +132,7 @@ const loadFlowInsts = () => {
   query.value.page++;
   FlowInstApi.listTasks(query.value).then((resp) => {
     if (resp.code == 1) {
-      let { data, total } = resp;
+      let { data = [], total = 0 } = resp;
       flowInsts.value.push(...(data || []));
       query.value.total = total || 0;
       if (flowInsts.value.length >= total) {

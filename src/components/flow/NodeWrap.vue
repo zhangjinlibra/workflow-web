@@ -163,7 +163,7 @@ let transactorConfig0 = computed(() => flowStore.transactorConfig0);
 
 // 节点基本信息
 let nodeSettings = reactive({
-  [NODE.START]: { placeholder: "发起人", bgColor: "#a9b4cd" },
+  [NODE.START]: { placeholder: "发起人", bgColor: "#87dd8c" },
   [NODE.APPROVE]: { placeholder: "审批人", bgColor: "#ff943e" },
   [NODE.COPY]: { placeholder: "抄送人", bgColor: "#3296fa" },
   [NODE.TRANSACT]: { placeholder: "办理人", bgColor: "#926bd5" },

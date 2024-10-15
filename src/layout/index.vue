@@ -7,18 +7,16 @@
             <div class="logo"><img alt="Vue logo" class="logo" src="@/assets/logo.png" height="24" /></div>
             <!-- <div class="slogan">审批</div> -->
             <a-trigger trigger="hover" position="bottom" :show-arrow="false" :popup-translate="[0, 10]" animation-name="uido">
-              <a-tag class="version">20231114.01版本</a-tag>
+              <a-tag class="version">20241015版本</a-tag>
               <template #content>
                 <div class="change-log-list">
                   <div class="change-log">
                     <div class="version-title">本次更新</div>
                     <a-divider />
                     <div class="version-content">
-                      <p>
-                        新增：审批表单编辑权限、编辑和编辑记录
-                        <a href="https://gitee.com/zhangjinlibra/workflow-engine/issues/I8C9HT" target="_blank">#I8C9HT</a>
-                      </p>
-                      <p>修复已知问题, 优化体验</p>
+                      <p>新增：流程复制</p>
+                      <p>新增：流程时间线展示节点原始名称</p>
+                      <p>修复已知问题，优化体验</p>
                     </div>
                   </div>
                 </div>
@@ -28,11 +26,23 @@
         </div>
         <ul class="right-side">
           <li>
-            <a-button type="outline" shape="circle" class="nav-btn" disabled>
-              <icon-notification />
-            </a-button>
+            <!-- 消息通知 -->
+            <!-- <a-trigger trigger="hover" position="bottom" :show-arrow="false" :popup-translate="[0, 10]" animation-name="uido">
+              <a-button type="outline" shape="circle" class="nav-btn"> <icon-notification /> </a-button>
+              <template #content>
+                <div class="message-box">
+                  <div class="message-header">
+                    <div class="title">通知</div>
+                    <div class="btns"><a-link @click="onReadAllClicked()"> 全部已读 </a-link></div>
+                  </div>
+                  <a-divider />
+                  <div class="message-list"></div>
+                </div>
+              </template>
+            </a-trigger> -->
           </li>
           <li>
+            <!-- Gitee -->
             <a-tooltip content="Star 一下">
               <a-button type="outline" shape="circle" class="nav-btn" @click="onGiteeClicked()">
                 <img src="https://gitee.com/static/images/logo-en.svg" style="width: 32px; height: 32px" />
@@ -40,9 +50,10 @@
             </a-tooltip>
           </li>
           <li>
+            <!-- 头像 -->
             <div class="avatar">
               <!-- <a-dropdown position="br"> </a-dropdown> -->
-              <a-trigger trigger="click" position="br" :show-arrow="false" :popup-translate="[0, 10]" animation-name="uido">
+              <a-trigger trigger="hover" position="br" :show-arrow="false" :popup-translate="[0, 10]" animation-name="uido">
                 <a-avatar :size="32" :image-url="userDetail.avatar" v-if="userDetail.avatar" />
                 <a-avatar :size="32" v-else> <icon-user /> </a-avatar>
                 <template #content>
@@ -118,7 +129,7 @@ import { getLoginUserDetail } from "@/api/OrganApi";
 import { useAppStore, usePermissionStore, useUserStore } from "@/stores";
 import lessVars from "@/styles/variables.module.less";
 import SwitchUser from "@/views/user/SwitchUser.vue";
-import { IconDoubleLeft, IconDoubleRight, IconExport, IconNotification, IconUser, IconUserGroup } from "@arco-design/web-vue/es/icon";
+import { IconDoubleLeft, IconDoubleRight, IconExport, IconUser, IconUserGroup } from "@arco-design/web-vue/es/icon";
 import { computed, onBeforeMount, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import MenuItem from "./MenuItem.vue";
@@ -169,6 +180,12 @@ const onGiteeClicked = () => {
   window.open("https://gitee.com/zhangjinlibra/beeflow-engine");
 };
 
+// 消息通知
+const loadMessage = () => {};
+const onReadAllClicked = () => {
+  console.log("onReadAllClicked");
+};
+
 // 侧边栏
 const onCollapsed = () => {
   toggleSideBar();
@@ -202,6 +219,7 @@ onMounted(() => {
 onBeforeMount(() => {
   window.addEventListener("resize", onResizeHandler);
   loadUserDetail();
+  loadMessage();
 });
 
 onBeforeUnmount(() => {
@@ -385,6 +403,30 @@ const onChangeUserClicked = () => {
 
     + .change-log {
       border-top: 1px solid var(--color-neutral-2);
+    }
+  }
+}
+
+.message-box {
+  background-color: var(--color-bg-popup);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px #00000026;
+
+  .message-header,
+  .message-list {
+    padding: 10px 12px;
+  }
+
+  .arco-divider {
+    margin: 0;
+  }
+
+  .message-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .message-item {
     }
   }
 }
