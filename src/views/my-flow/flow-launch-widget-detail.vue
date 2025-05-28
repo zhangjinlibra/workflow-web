@@ -4,11 +4,13 @@
       <div class="form-detail-val-item">
         <div class="detail-item-title">
           <div class="title">{{ `${widget.label} ${idx + 1}` }}</div>
-          <div v-if="props.form[props.widget.name].length > 1" class="icon-button" @click="onDetailDeleted(idx)"><icon-delete :size="16" /></div>
+          <div v-if="props.form[props.widget.name].length > 1" class="icon-button" @click="handleDeleteItem(idx)">
+            <icon-delete :size="16" />
+          </div>
         </div>
         <template v-for="widget in details">
           <a-form-item v-if="![WIDGET.DESCRIBE].includes(widget.type)" class="field-item" :required="widget.required" :label="widget.label">
-            <template v-if="widget.type == WIDGET.SINGLELINE_TEXT">
+            <template v-if="[WIDGET.SINGLELINE_TEXT, WIDGET.MAILBOX, WIDGET.MOBILE, WIDGET.IDCARD, WIDGET.WEBSITE].includes(widget.type)">
               <a-input
                 v-model:model-value="formDetailVal[widget.name]"
                 :max-length="64"
@@ -85,7 +87,8 @@
                 :headers="headers"
                 :with-credentials="true"
                 :limit="10"
-                :multiple="true" />
+                :multiple="true"
+                @change="handleFileListChange" />
             </template>
             <template v-else-if="widget.type == WIDGET.ATTACHMENT">
               <a-upload
@@ -94,7 +97,8 @@
                 :headers="headers"
                 :with-credentials="true"
                 :limit="10"
-                :multiple="true">
+                :multiple="true"
+                @change="handleFileListChange">
                 <template #upload-button>
                   <a-button>
                     <template #icon><icon-plus /></template>上传文件
@@ -134,15 +138,24 @@
             <template v-else-if="widget.type == WIDGET.FLOW_INST">
               <div class="flow-inst-widget">
                 <div class="flow-inst-widget-btn">
-                  <a-link @click="onFlowSelectClicked()">
+                  <a-link @click="handleFlowSelectClicked(widget)">
                     <template #icon><icon-plus /></template>添加审批
                   </a-link>
                 </div>
                 <div class="flow-inst-list">
                   <FlowCard v-for="id in formDetailVal[widget.name]" :flow-inst-id="id"></FlowCard>
                 </div>
-                <FlowInstSelect v-model:visible="showFlowSelect" v-model:selected="formDetailVal[widget.name]"></FlowInstSelect>
+                <FlowInstSelect
+                  v-if="showFlowSelect"
+                  v-model:visible="showFlowSelect"
+                  v-model:selected="formDetailVal[selectedFlowInstWidget.name]"></FlowInstSelect>
               </div>
+            </template>
+            <template v-else-if="widget.type == WIDGET.RATE">
+              <a-rate v-model:model-value="formDetailVal[widget.name]" allow-half allow-clear />
+            </template>
+            <template v-else-if="widget.type == WIDGET.FORMULA">
+              <a-input v-model:model-value="formDetailVal[widget.name]" :placeholder="`=${widget.placeholder || ''}`" disabled />
             </template>
           </a-form-item>
           <template v-else-if="widget.type == WIDGET.DESCRIBE">
@@ -152,17 +165,25 @@
         </template>
       </div>
     </template>
-    <a-button class="add-one-detail" long @click="onDetailAdded(widget)">
+    <a-button class="add-one-detail" long @click="handleAddItem(widget)">
       添加{{ widget.label }}
       <template #icon> <icon-plus /> </template>
     </a-button>
 
-    <div class="amount-wrapper">
+    <!-- <div class="amount-wrapper">
       <div class="amount-item" v-for="item in amountValues">
-        <div class="amount-name">{{ props.widget.label }}汇总-{{ item.label }}</div>
+        <div class="amount-name">{{ props.widget.label }}（合计）</div>
         <div class="amout-total">
           <div class="money">{{ ObjectUtil.comma((item.total || 0).toFixed(2)) }}</div>
           <div class="unit">CNY-人民币元</div>
+        </div>
+      </div>
+    </div> -->
+    <div class="amount-wrapper" v-if="props.widget.formula">
+      <div class="amount-item">
+        <div class="amount-name">{{ props.widget.label }}（合计）</div>
+        <div class="amout-total">
+          <div class="money">{{ ObjectUtil.comma((formulaValue || 0).toFixed(2)) }}</div>
         </div>
       </div>
     </div>
@@ -170,14 +191,18 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount, watch, ref } from "vue";
-import { useOrganStore } from "@/stores";
-import { WIDGET } from "@/components/flow/common/FlowConstant";
-import ObjectUtil from "@/components/flow/common/ObjectUtil";
-import { IconDelete, IconPlus, IconInfoCircle } from "@arco-design/web-vue/es/icon";
+import { FILE_DOWNLOAD_URL } from "@/api/FileApi";
+import ArrayUtil from "@/components/flow/common/ArrayUtil";
 import CHINA_AREA from "@/components/flow/common/ChinaArea";
-import FlowInstSelect from "./flow-inst-select.vue";
+import { WIDGET } from "@/components/flow/common/FlowConstant";
+import { formulaEval } from "@/components/flow/common/FlowFormula";
+import ObjectUtil from "@/components/flow/common/ObjectUtil";
+import { useOrganStore } from "@/stores";
+import { Message } from "@arco-design/web-vue";
+import { IconDelete, IconInfoCircle, IconPlus } from "@arco-design/web-vue/es/icon";
+import { computed, onBeforeMount, ref, watch } from "vue";
 import FlowCard from "./flow-card.vue";
+import FlowInstSelect from "./flow-inst-select.vue";
 
 let props = defineProps({
   url: { type: String },
@@ -191,27 +216,42 @@ let { users: allUsers, depts: allDepts } = useOrganStore();
 let details = computed(() => props.widget.details);
 // let detailVals = computed(() => props.form[props.widget.name]);
 let names = props.widget.details.map((i) => i.name);
-let amountWidgets = computed(() => {
-  return props.widget.details.filter((item) => item.type == WIDGET.MONEY);
-});
-let amountValues = ref([]);
+
+// let amountWidgets = computed(() => {
+//   return props.widget.details.filter((item) => item.type == WIDGET.MONEY);
+// });
+// let amountValues = ref([]);
+
+// 明细组件计算公式
+let formulaWidgets = computed(() => {
+  let widgets = props.widget.details || [];
+  return widgets.filter((item) => item.required && [WIDGET.MONEY, WIDGET.NUMBER].includes(item.type));
+}); // 可以作为明细计算公式的组件
+let formulaValue = ref(0); // 明细计算公式值
+
+// 关联审批
 let showFlowSelect = ref(false); // 是否显示流程选择框
-const onFlowSelectClicked = () => {
+const selectedFlowInstWidget = ref({}); // 当前选中的流程实例组件
+const handleFlowSelectClicked = (widget) => {
+  selectedFlowInstWidget.value = widget;
   showFlowSelect.value = true;
 };
 
-watch(props.form, () => {
-  let values = props.form[props.widget.name];
-  amountValues.value = [];
-  amountWidgets.value.forEach((item) => {
-    let { name, label } = item;
-    let total = 0;
-    values.forEach((itemValue) => {
-      total += itemValue[name] || 0;
-    });
-    amountValues.value.push({ label, total });
-  });
-});
+watch(
+  props.form,
+  () => {
+    // 明细组件值
+    let values = props.form[props.widget.name] || [];
+    let formula = props.widget.formula;
+    let widgets = formulaWidgets.value;
+    if (!!formula) {
+      let amount = 0; // 明细公式合计
+      values.forEach((item) => (amount += formulaEval(formula, item)));
+      formulaValue.value = amount;
+    }
+  },
+  { deep: true, immediate: true }
+);
 
 const initVal = () => {
   let nv = {};
@@ -219,22 +259,43 @@ const initVal = () => {
   return nv;
 };
 
-const onDetailAdded = () => {
-  let detailValue = props.form[props.widget.name];
-  if (!detailValue) {
+const handleAddItem = () => {
+  let detailValues = props.form[props.widget.name];
+  if (!detailValues) {
     props.form[props.widget.name] = [initVal()];
   } else {
-    detailValue.push(initVal());
+    detailValues.push(initVal());
   }
 };
 
-const onDetailDeleted = (idx) => {
+const handleDeleteItem = (idx) => {
   let val = props.form[props.widget.name];
   val.splice(idx, 1);
 };
 
+// 上传组件列表变化
+const handleFileListChange = (fileList, fileItem) => {
+  let { response: resp } = fileItem;
+  if (!!!resp) return;
+  if (resp.code == 1) {
+    // 上传成功转换数据
+    let data = resp.data;
+    data.url = `${FILE_DOWNLOAD_URL}?id=${data.id}`;
+    for (let i = 0; i < fileList.length; i++) {
+      if (fileList[i].uid == fileItem.uid) {
+        fileList[i] = data;
+        return;
+      }
+    }
+  } else {
+    // 上传失败提示，删除文件
+    Message.error(`文件上传失败，原因是：${resp.msg}！`);
+    ArrayUtil.remove(fileList, "uid", fileItem.uid);
+  }
+};
+
 onBeforeMount(() => {
-  onDetailAdded();
+  // handleAddItem();
 });
 </script>
 
@@ -255,6 +316,7 @@ onBeforeMount(() => {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      height: 32px;
     }
 
     .describe {
@@ -265,10 +327,9 @@ onBeforeMount(() => {
       padding: 4px 12px;
       cursor: default;
       margin: 0 10px 10px;
+      min-height: 32px;
       display: flex;
       align-items: center;
-      min-height: 32px;
-      min-height: 32px;
 
       svg {
         margin-right: 5px;

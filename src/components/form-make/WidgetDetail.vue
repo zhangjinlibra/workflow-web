@@ -5,16 +5,23 @@
       :class="['widget-detail-box', widget.details.length == 0 ? 'empty-box' : '']"
       :list="widget.details"
       v-bind="{ group: { name: 'widgets' }, animation: 200, ghostClass: 'ghost' }"
-      @change="onWidgetChange($event)"
+      @change="handleWidgetChange($event)"
       handle=".widget-move"
       item-key="name">
       <template #item="{ element }">
-        <div :class="['field-widget', element.focus ? 'field-widget-focus' : '']" @click.stop.prevent="onWidgetClick(element)">
+        <div
+          :class="[
+            'field-widget',
+            element.focus ? 'field-widget-focus' : '',
+            formulaErrorWidgetNames.includes(element.name) ? 'field-widget-error' : '',
+          ]"
+          @click.stop.prevent="handleWidgetClick(element)">
           <template v-if="element.focus">
             <div class="widget-move"><icon-drag-arrow :size="12" /></div>
-            <div class="widget-delete" @click.stop.prevent="onWidgetDelete(element)"><icon-close :size="12" /></div>
+            <div class="widget-delete" @click.stop.prevent="handleWidgetDelete(element)"><icon-close :size="12" /></div>
           </template>
-          <template v-if="element.type == WIDGET.SINGLELINE_TEXT">
+          <template
+            v-if="[WIDGET.SINGLELINE_TEXT, WIDGET.MAILBOX, WIDGET.MOBILE, WIDGET.IDCARD, WIDGET.WEBSITE, WIDGET.FORMULA].includes(element.type)">
             <div :class="['form-item', element.required ? 'required' : '']">
               <div class="form-item-name">{{ element.label }}</div>
               <div class="form-item-widget">
@@ -55,7 +62,7 @@
             <div :class="['form-item', element.required ? 'required' : '']">
               <div class="form-item-name">{{ element.label }}</div>
               <div class="form-item-widget">
-                <a-select :placeholder="element.placeholder" disabled></a-select>
+                <a-select :placeholder="element.placeholder" disabled />
               </div>
             </div>
           </template>
@@ -63,7 +70,7 @@
             <div :class="['form-item', element.required ? 'required' : '']">
               <div class="form-item-name">{{ element.label }}</div>
               <div class="form-item-widget">
-                <a-select :multiple="true" :placeholder="element.placeholder" disabled></a-select>
+                <a-select :multiple="true" :placeholder="element.placeholder" disabled />
               </div>
             </div>
           </template>
@@ -137,6 +144,14 @@
               </div>
             </div>
           </template>
+          <template v-else-if="element.type == WIDGET.RATE">
+            <div :class="['form-item', element.required ? 'required' : '']">
+              <div class="form-item-name">{{ element.label }}</div>
+              <div class="form-item-widget">
+                <a-rate allow-half allow-clear :disabled="true" />
+              </div>
+            </div>
+          </template>
         </div>
       </template>
     </draggable>
@@ -144,29 +159,33 @@
 </template>
 
 <script setup>
-import draggable from "vuedraggable";
 import ArrayUtil from "@/components/flow/common/ArrayUtil";
-import { Notification } from "@arco-design/web-vue";
-import { IconDragArrow, IconClose, IconPlus } from "@arco-design/web-vue/es/icon";
-import { WIDGET } from "@/components/flow/common/FlowConstant";
 import CHINA_AREA from "@/components/flow/common/ChinaArea";
+import { WIDGET } from "@/components/flow/common/FlowConstant";
+import { Notification } from "@arco-design/web-vue";
+import { IconClose, IconDragArrow, IconPlus } from "@arco-design/web-vue/es/icon";
+import draggable from "vuedraggable";
 
 const props = defineProps({
   widget: { type: Object, required: true },
+  formulaErrorWidgetNames: { type: Array, default: () => [] },
 });
 
+// 非明细控件
+const nonDetailWidgets = [WIDGET.DETAIL, WIDGET.RICH_TEXT];
+
 let emits = defineEmits(["click", "delete", "change"]);
-const onWidgetClick = (ele) => {
+const handleWidgetClick = (ele) => {
   emits("click", ele);
 };
-const onWidgetDelete = (ele) => {
+const handleWidgetDelete = (ele) => {
   emits("delete", ele);
 };
-const onWidgetChange = (evt) => {
+const handleWidgetChange = (evt) => {
   // 明细不能套明细
   if (props.widget.type == WIDGET.DETAIL) {
     let added = evt.added;
-    if (added && added.element && added.element.type == WIDGET.DETAIL) {
+    if (added && added.element && nonDetailWidgets.includes(added.element.type)) {
       ArrayUtil.remove(props.widget.details, "name", added.element.name);
       Notification.warning("暂不支持该控件添加到明细");
       evt = null;

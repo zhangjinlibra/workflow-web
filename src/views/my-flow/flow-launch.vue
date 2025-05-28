@@ -10,7 +10,7 @@
           class="field-item"
           :required="widget.required"
           :label="widget.label">
-          <template v-if="widget.type == WIDGET.SINGLELINE_TEXT">
+          <template v-if="[WIDGET.SINGLELINE_TEXT, WIDGET.MAILBOX, WIDGET.MOBILE, WIDGET.IDCARD, WIDGET.WEBSITE].includes(widget.type)">
             <a-input
               v-model:model-value="flowForm[widget.name]"
               :max-length="64"
@@ -23,6 +23,9 @@
               :max-length="128"
               :placeholder="widget.placeholder"
               :allow-clear="!widget.required" />
+          </template>
+          <template v-else-if="widget.type == WIDGET.RICH_TEXT">
+            <RichText v-model:value="flowForm[widget.name]" :placeholder="widget.placeholder" />
           </template>
           <template v-else-if="widget.type == WIDGET.NUMBER">
             <a-input-number
@@ -80,20 +83,22 @@
               v-model:file-list="flowForm[widget.name]"
               list-type="picture-card"
               :image-preview="true"
-              :action="fileUploadUrl"
+              :action="FILE_UPLOAD_URL"
               :headers="fileUploadHeaders"
               :with-credentials="true"
               :limit="10"
-              :multiple="true" />
+              :multiple="true"
+              @change="handleFileListChange" />
           </template>
           <template v-else-if="widget.type == WIDGET.ATTACHMENT">
             <a-upload
               v-model:file-list="flowForm[widget.name]"
-              :action="fileUploadUrl"
+              :action="FILE_UPLOAD_URL"
               :headers="fileUploadHeaders"
               :with-credentials="true"
               :limit="10"
-              :multiple="true">
+              :multiple="true"
+              @change="handleFileListChange">
               <template #upload-button>
                 <a-button>
                   <template #icon><icon-plus /></template>上传文件
@@ -124,22 +129,31 @@
           <template v-else-if="widget.type == WIDGET.FLOW_INST">
             <div class="flow-inst-widget">
               <div class="flow-inst-widget-btn">
-                <a-link @click="onFlowSelectClicked()">
+                <a-link @click="onFlowSelectClicked(widget)">
                   <template #icon><icon-plus /></template>添加审批
                 </a-link>
               </div>
               <div class="flow-inst-list">
                 <FlowCard v-for="id in flowForm[widget.name]" :flow-inst-id="id"></FlowCard>
               </div>
-              <FlowInstSelect v-model:visible="flowInstSelectVisible" v-model:selected="flowForm[widget.name]"></FlowInstSelect>
+              <FlowInstSelect
+                v-if="flowInstSelectVisible"
+                v-model:visible="flowInstSelectVisible"
+                v-model:selected="flowForm[selectedFlowInstWidget.name]"></FlowInstSelect>
             </div>
+          </template>
+          <template v-else-if="widget.type == WIDGET.RATE">
+            <a-rate v-model:model-value="flowForm[widget.name]" allow-half allow-clear />
+          </template>
+          <template v-else-if="widget.type == WIDGET.FORMULA">
+            <a-input v-model:model-value="flowForm[widget.name]" :placeholder="`=${widget.placeholder || ''}`" disabled />
           </template>
         </a-form-item>
         <template v-else-if="widget.type == WIDGET.DESCRIBE">
           <div class="describe"><icon-info-circle />{{ widget.placeholder }}</div>
         </template>
         <template v-else-if="widget.type == WIDGET.DETAIL">
-          <FlowLaunchWidgetDetail :widget="widget" :headers="fileUploadHeaders" :url="fileUploadUrl" :form="flowForm" />
+          <FlowLaunchWidgetDetail :widget="widget" :headers="fileUploadHeaders" :url="FILE_UPLOAD_URL" :form="flowForm" />
         </template>
       </template>
     </a-form>
@@ -167,18 +181,12 @@
                 </div>
                 <div class="node-content">
                   <div v-if="node.initatorChoice" class="initator-chioce">
-                    <a-button size="small" @click="onChooseUserClicked()">
+                    <a-button size="small" @click="onChooseUserClicked(node.id)">
                       <template #icon><icon-plus /></template>
                     </a-button>
                     <span class="assignee-list">
                       <flow-node-avatar v-for="userId in flowNodeDesignees[node.id]" :size="20" :id="userId" class="assignee-item" />
                     </span>
-                    <OrganChooseBox
-                      v-if="showChooseUser"
-                      v-model:visible="showChooseUser"
-                      v-model:selected="flowNodeDesignees[node.id]"
-                      :hidden-dept="true"
-                      :hidden-role="true" />
                   </div>
                   <template v-else>
                     <div class="node-null-assignee" v-if="node.approvalType == 0 && node.userIds.length == 0 && node.roleIds.length == 0">
@@ -211,18 +219,12 @@
                 </div>
                 <div class="node-content">
                   <div v-if="node.initatorChoice" class="initator-chioce">
-                    <a-button size="small" @click="onChooseUserClicked()">
+                    <a-button size="small" @click="onChooseUserClicked(node.id)">
                       <template #icon><icon-plus /></template>
                     </a-button>
                     <span class="assignee-list">
                       <flow-node-avatar v-for="userId in flowNodeDesignees[node.id]" :size="20" :id="userId" class="assignee-item" />
                     </span>
-                    <OrganChooseBox
-                      v-if="showChooseUser"
-                      v-model:visible="showChooseUser"
-                      v-model:selected="flowNodeDesignees[node.id]"
-                      :hidden-dept="true"
-                      :hidden-role="true" />
                   </div>
                   <template v-else>
                     <div class="node-null-assignee" v-if="node.approvalType == 0 && node.userIds.length == 0 && node.roleIds.length == 0">
@@ -270,38 +272,50 @@
       <a-button @click="handleCancel()">取消</a-button>
       <a-button type="primary" @click="handleOk()" :disabled="!formValidated || launching">提交</a-button>
     </section>
+
+    <!-- 指定审批人选项 -->
+    <OrganChooseBox
+      v-if="showChooseUser"
+      v-model:visible="showChooseUser"
+      v-model:selected="flowNodeDesignees[choosedUserNodeId]"
+      @ok="handleOrganChooseOk"
+      :hidden-dept="true"
+      :hidden-role="true" />
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, watch } from "vue";
-import { useOrganStore } from "@/stores";
-import { getToken } from "@/utils/auth";
-import ObjectUtil from "@/components/flow/common/ObjectUtil";
+import FileApi, { FILE_DOWNLOAD_URL, FILE_UPLOAD_URL } from "@/api/FileApi";
 import FlowInstApi from "@/api/FlowInstApi";
 import FlowManApi from "@/api/FlowManApi";
-import { FILE_BASE_URL } from "@/api/FileApi";
-import { NODE, WIDGET } from "@/components/flow/common/FlowConstant";
-import { Message } from "@arco-design/web-vue";
-import { IconPlus, IconInfoCircle } from "@arco-design/web-vue/es/icon";
-import FlowLaunchWidgetDetail from "./flow-launch-widget-detail.vue";
-import OrganChooseBox from "@/components/flow/dialog/OrganChooseBox.vue";
 import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import FlowNodeRoleAvatar from "@/components/common/FlowNodeRoleAvatar.vue";
+import RichText from "@/components/common/RichText.vue";
+import ArrayUtil from "@/components/flow/common/ArrayUtil";
 import CHINA_AREA from "@/components/flow/common/ChinaArea";
-import FlowInstSelect from "./flow-inst-select.vue";
+import { NODE, NODE_COLOR, WIDGET } from "@/components/flow/common/FlowConstant";
+import { formFormulaAutoCalc } from "@/components/flow/common/FlowFormula";
+import ObjectUtil from "@/components/flow/common/ObjectUtil";
+import OrganChooseBox from "@/components/flow/dialog/OrganChooseBox.vue";
+import { useOrganStore } from "@/stores";
+import { getToken } from "@/utils/auth";
+import { Message } from "@arco-design/web-vue";
+import { IconInfoCircle, IconPlus } from "@arco-design/web-vue/es/icon";
+import { onBeforeMount, reactive, ref, watch } from "vue";
 import FlowCard from "./flow-card.vue";
+import FlowInstSelect from "./flow-inst-select.vue";
+import FlowLaunchWidgetDetail from "./flow-launch-widget-detail.vue";
 
 let props = defineProps({
   flow: { type: Object, default: () => {} },
   flowWidgets: { type: Object, default: () => {} },
+  relaunchFlowForm: { type: Object }, // 再次申请的流程表单
 });
 
 let emits = defineEmits(["onSuccess", "onCancel"]);
 
 let { users: allUsers, depts: allDepts } = useOrganStore();
 
-let fileUploadUrl = FILE_BASE_URL + "/upload"; // 文件上传地址
 let fileUploadHeaders = ref({ Authorization: getToken() }); // 文件上传请求头
 let flowWidgetMap = null; // 表单组件Map，会在第一次提交表单时生成。
 let flowForm = ref({}); // 流程的表单
@@ -314,11 +328,11 @@ let launching = ref(false); // 流程发起中
 let flowInstSelectVisible = ref(false); // 是否显示流程选择框
 
 let flowTimeLineDotColors = reactive({}); // 时间线点的颜色
-flowTimeLineDotColors[NODE.START] = { color: "#a9b4cd" };
-flowTimeLineDotColors[NODE.APPROVE] = { color: "#ff943e" };
-flowTimeLineDotColors[NODE.COPY] = { color: "#3296fa" };
-flowTimeLineDotColors[NODE.TRANSACT] = { color: "#926bd5" };
-flowTimeLineDotColors[NODE.END] = { color: "#a9b4cd" };
+flowTimeLineDotColors[NODE.START] = { color: NODE_COLOR.START };
+flowTimeLineDotColors[NODE.APPROVE] = { color: NODE_COLOR.APPROVE };
+flowTimeLineDotColors[NODE.COPY] = { color: NODE_COLOR.COPY };
+flowTimeLineDotColors[NODE.TRANSACT] = { color: NODE_COLOR.TRANSACT };
+flowTimeLineDotColors[NODE.END] = { color: NODE_COLOR.END };
 
 watch(
   () => flowForm,
@@ -328,7 +342,11 @@ watch(
 
 watch(
   () => props.flowWidgets,
-  () => flowPreview(),
+  () => {
+    formWidgetsToMap();
+    formAutoFill();
+    flowPreview();
+  },
   { deep: true }
 );
 
@@ -346,25 +364,38 @@ watch(
   }
 );
 
+// 将流程组件list转换成map
+const formWidgetsToMap = () => {
+  flowWidgetMap = FlowManApi.formWidgetListToMap(props.flowWidgets || []);
+};
+
+// 自选审批人
 let showChooseUser = ref(false);
-const onChooseUserClicked = () => (showChooseUser.value = true);
+let choosedUserNodeId = ref(null);
+const onChooseUserClicked = (nodeId) => {
+  showChooseUser.value = true;
+  choosedUserNodeId.value = nodeId;
+};
+const handleOrganChooseOk = (selected) => {
+  flowNodeDesignees.value[choosedUserNodeId.value] = selected;
+};
 
 // 校验表单必填项
 const validFlowForm = () => {
   let validated = true;
   formErrors.value = [];
-  console.log("校验的组件：", props.flowWidgets);
+  // console.log("校验的组件：", props.flowWidgets);
   if (props.flowWidgets.length == 0) return;
   (props.flowWidgets || []).forEach((flowWidget) => {
     let { name, required, label, type } = flowWidget;
     let formItemValue = flowForm.value[name];
     if (required) {
       // 其他组件
-      if (!(formItemValue && formItemValue != "")) {
+      if (!ObjectUtil.isNotEmpty(formItemValue)) {
         formErrors.value.push(`表单必填项 "${label}" 未填写`);
         validated = false;
       }
-    } else if ([9].includes(type)) {
+    } else if ([WIDGET.DETAIL].includes(type)) {
       // 明细组件
       let detailWidgets = flowWidget.details || [];
       detailWidgets = detailWidgets.filter((detailWidget) => detailWidget.required);
@@ -377,7 +408,7 @@ const validFlowForm = () => {
             let { name: name0, label: label0 } = detailWidget;
             formItemValue.forEach((detailValues) => {
               let detailItemValue = detailValues[name0];
-              if (!(detailItemValue && detailItemValue != "")) {
+              if (!ObjectUtil.isNotEmpty(detailItemValue)) {
                 formErrors.value.push(`表单必填项 "${label0}" 未填写`);
                 validated = false;
               }
@@ -389,9 +420,13 @@ const validFlowForm = () => {
   });
   formValidated.value = validated;
 };
+
 // 流程预览
 const flowPreview = () => {
-  validFlowForm(); // 校验表单
+  // 表单公式计算结果
+  formFormulaAutoCalc(flowForm.value, props.flowWidgets || []);
+  // 校验表单
+  validFlowForm();
   if (formValidated.value) {
     flowPreviewed.value = false;
     FlowInstApi.viewProcessChart({
@@ -405,26 +440,25 @@ const flowPreview = () => {
     });
   }
 };
+
 // 处理表单值
 const handleFormValue = (flowWidgets, flowValue) => {
   // 组件map是否已经初始化
-  let flowWidgetTmpMap = flowWidgetMap;
-  if (!!!flowWidgetTmpMap) {
-    flowWidgetTmpMap = FlowManApi.formWidgetListToMap(flowWidgets);
-    flowWidgetMap = flowWidgetTmpMap;
+  if (!!!flowWidgetMap) {
+    flowWidgetMap = FlowManApi.formWidgetListToMap(flowWidgets);
   }
   // 处理表单值
   for (let name in flowValue) {
-    let widget = flowWidgetTmpMap[name];
+    let widget = flowWidgetMap[name];
     if ([WIDGET.PICTURE, WIDGET.ATTACHMENT].includes(widget.type)) {
       // 取出上传的文件id
-      flowValue[name] = (flowValue[name] || []).map((v) => (v.response || {}).data.id);
+      flowValue[name] = (flowValue[name] || []).map((v) => v.id);
     } else if (widget.type == WIDGET.DETAIL) {
       flowValue[name].forEach((flowDetailValue) => {
         for (let detailName in flowDetailValue) {
-          let detailWidget = flowWidgetTmpMap[detailName];
+          let detailWidget = flowWidgetMap[detailName];
           if ([WIDGET.PICTURE, WIDGET.ATTACHMENT].includes(detailWidget.type)) {
-            flowDetailValue[detailName] = (flowDetailValue[detailName] || []).map((v) => (v.response || {}).data.id);
+            flowDetailValue[detailName] = (flowDetailValue[detailName] || []).map((v) => v.id);
           }
         }
       });
@@ -432,6 +466,7 @@ const handleFormValue = (flowWidgets, flowValue) => {
   }
   return flowValue;
 };
+
 // 发起审批
 const handleOk = () => {
   launching.value = true;
@@ -459,7 +494,7 @@ const handleOk = () => {
       (resp) => {
         launching.value = false;
         if (resp.code == 1) {
-          Message.success(`成功发起申请${props.flow.name}`);
+          Message.success(`${props.flow.name}申请成功！`);
           emits("onSuccess");
         }
       },
@@ -467,7 +502,7 @@ const handleOk = () => {
     );
   } else {
     launching.value = false;
-    Message.error({ title: "表单校验", content: "表单必填项需填写完整" });
+    Message.error({ title: "表单校验", content: "表单必填项需填写完整！" });
   }
 };
 // 取消
@@ -475,9 +510,92 @@ const handleCancel = () => {
   emits("onCancel");
 };
 
-const onFlowSelectClicked = () => {
+// 上传组件列表变化
+const handleFileListChange = (fileList, fileItem) => {
+  let { response: resp } = fileItem;
+  if (!!!resp) return;
+  if (resp.code == 1) {
+    // 上传成功转换数据
+    let data = resp.data;
+    data.url = `${FILE_DOWNLOAD_URL}?id=${data.id}`;
+    for (let i = 0; i < fileList.length; i++) {
+      if (fileList[i].uid == fileItem.uid) {
+        fileList[i] = data;
+        return;
+      }
+    }
+  } else {
+    // 上传失败提示，删除文件
+    Message.error(`文件上传失败，原因是：${resp.msg}！`);
+    ArrayUtil.remove(fileList, "uid", fileItem.uid);
+  }
+};
+
+// 弹窗选择流程实例
+const selectedFlowInstWidget = ref({});
+const onFlowSelectClicked = (widget) => {
+  selectedFlowInstWidget.value = widget;
   flowInstSelectVisible.value = true;
 };
+
+// 表单自动填充
+const formAutoFill = () => {
+  let formValue = flowForm.value;
+  let widgets = props.flowWidgets || [];
+  widgets.forEach((widget) => {
+    let { name, type, details } = widget;
+    if (WIDGET.DETAIL == type) {
+      let detailValue = {};
+      formValue[name] = [detailValue];
+      (details || []).forEach((detailWidget) => (detailValue[detailWidget.name] = null));
+    }
+  });
+};
+
+// 由于后端表单格式化了, 该处需要反格式化
+const formAntiFmt = (form) => {
+  for (let name in form) {
+    let widget = flowWidgetMap[name];
+    let { type } = widget;
+    if ([WIDGET.NUMBER, WIDGET.MONEY].includes(type)) {
+      form[name] = parseFloat(form[name]);
+    } else if ([WIDGET.ATTACHMENT].includes(type)) {
+      let ids = form[name];
+      ids = ids.filter((i) => !!i);
+      // 附件需要去查询一下附件名称
+      if (ids && ids.length > 0) {
+        FileApi.batchMetadata({ ids: ids.join(",") }).then((resp) => {
+          let attachments = resp.data || [];
+          attachments.forEach((i) => (i.url = `${FILE_DOWNLOAD_URL}?id=${i.id}`));
+          form[name] = attachments;
+        });
+      }
+    } else if ([WIDGET.PICTURE].includes(type)) {
+      let fileIds = form[name];
+      for (let i = 0; i < fileIds.length; i++) {
+        let fileId = fileIds[i];
+        let data = { id: fileId, url: `${FILE_DOWNLOAD_URL}?id=${fileId}` };
+        fileIds[i] = data;
+      }
+      form[name] = fileIds;
+    } else if (type == WIDGET.DETAIL) {
+      (form[name] || []).forEach((detail) => formAntiFmt(detail));
+    }
+  }
+};
+
+onBeforeMount(() => {
+  formWidgetsToMap();
+
+  // 再次申请，初始化表单
+  if (!!props.relaunchFlowForm) {
+    flowForm.value = props.relaunchFlowForm;
+    formAntiFmt(flowForm.value);
+  }
+
+  // 流程预览
+  flowPreview();
+});
 </script>
 
 <style lang="less" scoped>
@@ -515,6 +633,8 @@ const onFlowSelectClicked = () => {
       cursor: default;
       margin-bottom: 10px;
       min-height: 32px;
+      display: flex;
+      align-items: center;
 
       svg {
         margin-right: 5px;

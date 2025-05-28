@@ -129,7 +129,7 @@ import { useFlowStore, useOrganStore } from "@/stores/index";
 import { IconClose, IconLeft, IconPlus, IconRight } from "@arco-design/web-vue/es/icon";
 import { computed, getCurrentInstance, onMounted, reactive, ref, watch } from "vue";
 import ArrayUtil from "./common/ArrayUtil";
-import { NODE } from "./common/FlowConstant";
+import { NODE, NODE_COLOR } from "./common/FlowConstant";
 import { showExpNodeContent } from "./common/FormExp";
 let _uid = getCurrentInstance().uid;
 
@@ -163,15 +163,11 @@ let transactorConfig0 = computed(() => flowStore.transactorConfig0);
 
 // 节点基本信息
 let nodeSettings = reactive({
-  [NODE.START]: { placeholder: "发起人", bgColor: "#87dd8c" },
-  [NODE.APPROVE]: { placeholder: "审批人", bgColor: "#ff943e" },
-  [NODE.COPY]: { placeholder: "抄送人", bgColor: "#3296fa" },
-  [NODE.TRANSACT]: { placeholder: "办理人", bgColor: "#926bd5" },
+  [NODE.START]: { placeholder: "发起人", bgColor: NODE_COLOR.START },
+  [NODE.APPROVE]: { placeholder: "审批人", bgColor: NODE_COLOR.APPROVE },
+  [NODE.COPY]: { placeholder: "抄送人", bgColor: NODE_COLOR.COPY },
+  [NODE.TRANSACT]: { placeholder: "办理人", bgColor: NODE_COLOR.TRANSACT },
 });
-// nodeSettings[NODE.START] = { placeholder: "发起人", bgColor: "#a9b4cd" };
-// nodeSettings[NODE.APPROVE] = { placeholder: "审批人", bgColor: "#ff943e" };
-// nodeSettings[NODE.COPY] = { placeholder: "抄送人", bgColor: "#3296fa" };
-// nodeSettings[NODE.TRANSACT] = { placeholder: "办理人", bgColor: "#926bd5" };
 let nodeDefaultName = computed(() => nodeSettings[props.nodeConfig.type].placeholder);
 let nodeBgColor = computed(() => nodeSettings[props.nodeConfig.type].bgColor);
 

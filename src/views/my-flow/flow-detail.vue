@@ -1,5 +1,5 @@
 <template>
-  <section class="flow-detail-container">
+  <section class="flow-detail-container" v-loading.fullscreen="loading">
     <template v-if="!(flowInst && flowInst.id)">
       <div class="flow-empty-detail-box">
         <a-empty></a-empty>
@@ -54,10 +54,10 @@
         <!-- 审批流程时间线 -->
         <div class="flow-box">
           <a-timeline mode="left" labelPosition="relative">
+            <!-- 审批完成和审批进行中的节点 -->
             <template v-for="node in flowNodes">
               <a-timeline-item :label="node.auditTime">
                 <template #dot>
-                  <!-- <IconCheck class="node-dot" :style="{ backgroundColor: '#e8f3ff' }" /> -->
                   <div class="assignee-container">
                     <template v-if="node.underway">
                       <template v-if="node.type == NODE.APPROVE">
@@ -95,17 +95,6 @@
                   </div>
                 </template>
                 <div class="audit-record">
-                  <!-- <div class="avatar sgement">
-                    <template v-if="node.underway">
-                      <a-avatar :size="36" style="background: #1989fa"><icon-user-group /></a-avatar>
-                    </template>
-                    <template v-else-if="[CMD.COPY, CMD.AUTO_APPROVED, CMD.AUTO_REJECTED].includes(node.flowCmd)">
-                      <a-avatar :size="36" style="background: #1989fa"><icon-robot /></a-avatar>
-                    </template>
-                    <template v-else>
-                      <flow-node-avatar :size="36" :id="node.auditor" :show-name="false" />
-                    </template> 
-                  </div> -->
                   <div class="avatar sgement">
                     <div class="node-name">
                       <template v-if="node.flowCmd == CMD.START">提交</template>
@@ -122,6 +111,7 @@
                       <template v-else-if="node.flowCmd == CMD.COPY">抄送</template>
                       <template v-else-if="node.flowCmd == CMD.COMMENT">评论</template>
                       <template v-else-if="node.flowCmd == CMD.TRANSACT">办理</template>
+                      <template v-else-if="node.flowCmd == CMD.TRANSFER">转办</template>
                       <template v-else-if="node.underway">
                         <div class="in-approval">
                           <template v-if="node.type == NODE.APPROVE">审批中...</template>
@@ -176,17 +166,25 @@
                               转交给
                               <div class="node-sign-assignee-name">{{ ArrayUtil.get(users, "id", node.assignee).name }}</div>
                             </template>
+                            <template v-else-if="[CMD.TRANSFER].includes(node.flowCmd)">
+                              转办给
+                              <div class="node-sign-assignee-name">{{ ArrayUtil.get(users, "id", node.assignee).name }}</div>
+                            </template>
                           </div>
                         </template>
                       </template>
                     </div>
-                    <div class="comment" v-if="node.comment">
+                    <!-- 审批签字图片 -->
+                    <div class="signature" v-if="node.signatureFile">
+                      <!-- <img :src="`${FILE_PREVIEW_URL}?id=${node.signatureFile.id}`" /> -->
+                      <a-image height="100" :src="`${FILE_PREVIEW_URL}?id=${node.signatureFile.id}`" />
+                    </div>
+                    <!-- 审批意见 -->
+                    <div class="comment" v-if="node.comment || node.files">
                       <!-- <div class="commnet-title">审批意见</div> -->
-                      <div class="comment-content">
-                        {{ node.comment }}
-                      </div>
+                      <div class="comment-content" v-if="node.comment">{{ node.comment }}</div>
                       <div class="comment-attachment" v-if="node.files">
-                        <div class="comment-attachment-item" v-for="attachment in node.files">
+                        <div class="comment-attachment-list" v-for="attachment in node.files">
                           <div class="name"><icon-drive-file :size="16" /> {{ attachment ? attachment.name : "" }}</div>
                           <div class="download-icon">
                             <div class="link" @click.prevent.stop="onAttachmentDownload(attachment, $event)">
@@ -197,16 +195,72 @@
                       </div>
                     </div>
                   </div>
-                  <!-- 审批结果 -->
-                  <!-- <div class="cmd sgement">
-                    <template v-if="node.underway"></template>
-                    <template v-else-if="node.flowCmd == CMD.START"></template>
-                    <template v-else-if="node.flowCmd == CMD.APPROVED"> <a-tag color="green">通过</a-tag> </template>
-                    <template v-else-if="node.flowCmd == CMD.REJECTED"> <a-tag color="red">拒绝</a-tag> </template>
-                    <template v-else-if="node.flowCmd == CMD.CANCELED"> <a-tag color="orangered">撤销</a-tag> </template>
-                    <template v-else-if="node.flowCmd == CMD.COPY"> <a-tag color="blue">抄送</a-tag> </template>
-                    <template v-else><a-tag>完成</a-tag></template>
-                  </div> -->
+                </div>
+              </a-timeline-item>
+            </template>
+            <!-- 审批未完成的流程实例追加未审完成节点 -->
+            <template v-if="flowInst.status == STATUS.UNDERWAY">
+              <a-timeline-item v-for="node in flowFutureNodes.filter((node) => node.nodeType != NODE.END)" class="future-node-box">
+                <template #dot>
+                  <div class="assignee-container">
+                    <template v-if="node.nodeType == NODE.APPROVE">
+                      <a-avatar :size="36" style="background: #1989fa"><icon-stamp :size="24" /></a-avatar>
+                    </template>
+                    <template v-else-if="node.nodeType == NODE.TRANSACT">
+                      <a-avatar :size="36" style="background: #926bd5"><icon-pen-fill :size="24" /></a-avatar>
+                    </template>
+                    <template v-else-if="node.nodeType == NODE.COPY">
+                      <a-avatar :size="36" style="background: #1989fa"><svg-icon icon-class="copy" color="#fff" /></a-avatar>
+                    </template>
+                    <div class="badge"><svg-icon icon-class="underway" color="#2a5eff" /></div>
+                  </div>
+                </template>
+                <div class="audit-record">
+                  <div class="avatar sgement">
+                    <div class="node-name">
+                      <div class="in-approval">
+                        <template v-if="node.nodeType == NODE.APPROVE">待审批</template>
+                        <template v-else-if="node.nodeType == NODE.TRANSACT">待办理</template>
+                        <template v-else-if="node.nodeType == NODE.COPY">待抄送</template>
+                      </div>
+                      <template v-if="!!node.name">
+                        <!-- 审批节点名称 -->
+                        <div class="node-origin-box">
+                          <svg-icon icon-class="node-icon" />
+                          <div class="node-origin-name">{{ node.name }}</div>
+                        </div>
+                      </template>
+                    </div>
+                    <!-- 审批人姓名 -->
+                    <div class="auditor-name">
+                      <div class="node-sign-type">
+                        <template v-if="node.multiInstanceApprovalType == 2">
+                          <template v-if="node.nodeType == NODE.APPROVE">只需一人审批同意</template>
+                          <template v-if="node.nodeType == NODE.TRANSACT">只需一人办理同意</template>
+                        </template>
+                        <template v-else-if="node.userIds.length">
+                          <template v-if="node.nodeType == NODE.APPROVE">需所有人审批同意</template>
+                          <template v-if="node.nodeType == NODE.TRANSACT">需所有人办理同意</template>
+                        </template>
+                      </div>
+                      <div v-if="node.userIds && node.userIds.length" class="node-assignee">
+                        <flow-node-avatar v-for="userId in node.userIds" :size="20" :id="userId" class="assignee-item" />
+                      </div>
+                      <div v-else>
+                        <template v-if="node.flowNodeNoAuditorType == 0">
+                          <div class="null-tooltip">没有审批人，自动通过</div>
+                        </template>
+                        <template v-else-if="node.flowNodeNoAuditorType == 1">
+                          <div class="null-tooltip">没有审批人，指定人员审批</div>
+                          <flow-node-avatar :size="20" :id="node.flowNodeNoAuditorAssignee" class="assignee-item" />
+                        </template>
+                        <template v-else-if="node.flowNodeNoAuditorType == 2">
+                          <div class="null-tooltip">没有审批人，转交给流程管理员</div>
+                          <flow-node-avatar :size="20" :id="node.flowNodeAuditAdmin" class="assignee-item" />
+                        </template>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </a-timeline-item>
             </template>
@@ -233,6 +287,12 @@
         <template v-if="commentable">
           <a-button @click="onComment()">
             <template #icon><icon-message /></template> 评论
+          </a-button>
+        </template>
+
+        <template v-if="finished && relaunchable">
+          <a-button @click="onRelaunch()">
+            <template #icon><icon-redo /></template> 再次申请
           </a-button>
         </template>
 
@@ -292,7 +352,12 @@
     </template>
 
     <!-- 处理流程的弹窗 -->
-    <a-modal :visible="showHandleModal" @ok="onHandleModelOK" @cancel="onHandleModelCancel" draggable>
+    <a-modal
+      :visible="showHandleModal"
+      @ok="onHandleModalOK"
+      @cancel="onHandleModalCancel"
+      :okButtonProps="{ disabled: !handleFormSubmitable }"
+      draggable>
       <template #title> {{ handleModalTitle }} </template>
       <div class="flow-exe-box">
         <a-form :model="handleModalForm" layout="vertical">
@@ -363,25 +428,26 @@
 
           <a-form-item
             field="comment"
-            :label="handleModelCommentLabel(handleModalForm.flowCmd)"
+            :label="handleModalCommentLabel(handleModalForm.flowCmd)"
             :required="handleModalForm.flowCmd == CMD.COMMENT">
             <a-textarea
               v-model:model-value="handleModalForm.comment"
-              :placeholder="`请输入${handleModelCommentLabel(handleModalForm.flowCmd)}`"
+              :placeholder="`请输入${handleModalCommentLabel(handleModalForm.flowCmd)}`"
               allow-clear
-              :max-length="64"
+              :max-length="128"
               show-word-limit />
           </a-form-item>
 
           <a-form-item field="fileIds" label="附件">
             <a-upload
               v-model:file-list="handleModalForm.fileIds"
-              :action="fileUploadUrl"
+              :action="FILE_UPLOAD_URL"
               :headers="fileUploadHeaders"
               :with-credentials="true"
               multiple
               :limit="3"
-              class="action-attachment">
+              class="action-attachment"
+              @change="handleFileListChange">
               <template #upload-button>
                 <a-button>
                   <template #icon><icon-attachment /></template>上传
@@ -389,24 +455,54 @@
               </template>
             </a-upload>
           </a-form-item>
+
+          <!-- 签名 -->
+          <template v-if="handleModalForm.flowCmd == CMD.APPROVED && flowInst.signature">
+            <a-form-item field="signature" label="签名" :required="flowInst.signature">
+              <div class="action-signature-box">
+                <SignaturePad width="480px" height="200px" @ok="handleSignatureOk" @clear="handleSignatureCancel" />
+              </div>
+            </a-form-item>
+          </template>
         </a-form>
       </div>
     </a-modal>
+
+    <a-drawer
+      :width="500"
+      :visible="launchVisible"
+      :mask-closable="false"
+      :closable="false"
+      unmountOnClose
+      :header="false"
+      :footer="false"
+      @cancel="onLaunchClose()">
+      <template #title> {{ relaunchFlow.name }} </template>
+      <flow-launch
+        v-if="launchVisible"
+        :flow="relaunchFlow"
+        :relaunchFlowForm="relaunchFlowForm"
+        :flowWidgets="formWidgets"
+        @onCancel="onLaunchClose()"
+        @onSuccess="onLaunchClose()"></flow-launch>
+    </a-drawer>
   </section>
 </template>
 
 <script setup>
-import { FILE_BASE_URL } from "@/api/FileApi";
+import { FILE_DOWNLOAD_URL, FILE_PREVIEW_URL, FILE_UPLOAD_URL } from "@/api/FileApi";
 import FlowInstApi from "@/api/FlowInstApi";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
 import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
 import FlowNodeRoleAvatar from "@/components/common/FlowNodeRoleAvatar.vue";
+import SignaturePad from "@/components/common/SignaturePad.vue";
 import ArrayUtil from "@/components/flow/common/ArrayUtil";
 import { CMD, NODE, NODE_SIGN, STATUS, STATUS_LIST, WIDGET } from "@/components/flow/common/FlowConstant";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
 import { useOrganStore } from "@/stores";
 import { getToken } from "@/utils/auth";
+import { Message } from "@arco-design/web-vue";
 import {
   IconAttachment,
   IconBackward,
@@ -421,6 +517,7 @@ import {
   IconPenFill,
   IconPrinter,
   IconQuestionCircle,
+  IconRedo,
   IconRobot,
   IconStamp,
   IconSwap,
@@ -429,6 +526,7 @@ import {
 } from "@arco-design/web-vue/es/icon";
 import { computed, onMounted, ref, watch } from "vue";
 import FormDetail from "./flow-form-detail.vue";
+import FlowLaunch from "./flow-launch.vue";
 import FlowPrint from "./flow-print.vue";
 import FlowStatusStamp from "./flow-status-stamp.vue";
 import FormEditRecord from "./form-edit-record.vue";
@@ -443,18 +541,20 @@ let props = defineProps({
   commentable: { type: Boolean, default: true }, // 评论按钮
   actionable: { type: Boolean, default: false }, // 其他操作按钮
   editable: { type: Boolean, default: false }, // 表单是否可以编辑
+  relaunchable: { type: Boolean, default: false }, // 再次申请按钮
 });
 let emits = defineEmits(["onRemove", "update:flowInst"]);
 
-let fileUploadUrl = FILE_BASE_URL + "/upload"; // 文件上传地址
 let fileUploadHeaders = ref({ Authorization: getToken() }); // 文件上传请求头
 
 let formWidgets = ref([]);
 let formWidgetMap = ref({});
-let flowNodes = ref([]);
+let flowNodes = ref([]); // 已经执行和正在执行节点
+let flowFutureNodes = ref([]); // 未执行的节点
 let formValue = ref({});
 let formattedFormValue = ref({});
 let finished = computed(() => props.flowInst.status != 0);
+let loading = ref(false);
 
 // 查询表单组件
 const loadFormWidgets = () => {
@@ -476,7 +576,9 @@ const loadFormWidgets = () => {
 const loadFlowDetail = () => {
   FlowInstApi.getDetail({ flowInstId: props.flowInst.id }).then((resp) => {
     if (resp.code == 1) {
-      flowNodes.value = resp.data || [];
+      let { nodes, futureNodes } = resp.data;
+      flowNodes.value = nodes || [];
+      flowFutureNodes.value = futureNodes || [];
     }
   });
 };
@@ -484,7 +586,28 @@ const loadFlowDetail = () => {
 // 附件下载
 const onAttachmentDownload = (attachment, evt) => {
   evt.stopPropagation();
-  window.open(FILE_BASE_URL + "/download?id=" + attachment.id, "_blank");
+  window.open(`${FILE_DOWNLOAD_URL}?id=${attachment.id}`, "_blank");
+};
+
+// 上传组件列表变化
+const handleFileListChange = (fileList, fileItem) => {
+  let { response: resp } = fileItem;
+  if (!!!resp) return;
+  if (resp.code == 1) {
+    // 上传成功转换数据
+    let data = resp.data;
+    data.url = `${FILE_DOWNLOAD_URL}?id=${data.id}`;
+    for (let i = 0; i < fileList.length; i++) {
+      if (fileList[i].uid == fileItem.uid) {
+        fileList[i] = data;
+        return;
+      }
+    }
+  } else {
+    // 上传失败提示，删除文件
+    Message.error(`文件上传失败，原因是：${resp.msg}！`);
+    ArrayUtil.remove(fileList, "uid", fileItem.uid);
+  }
 };
 
 // 打印相关
@@ -500,7 +623,7 @@ let showHandleModal = ref(false);
 let handleModalTitle = ref("");
 let handleModalForm = ref({});
 
-const onHandleModelCancel = () => {
+const onHandleModalCancel = () => {
   showHandleModal.value = false;
   handleModalTitle.value = "";
   handleModalForm.value = {
@@ -512,8 +635,25 @@ const onHandleModelCancel = () => {
   };
 };
 
+// 审批签字
+const handleSignatureOk = (signature) => {
+  handleModalForm.value.base64SignatureData = signature;
+};
+const handleSignatureCancel = () => {
+  handleModalForm.value.base64SignatureData = null;
+};
+
+// 流程处理弹窗是否被提交
+const handleFormSubmitable = computed(() => {
+  let needSignature = props.flowInst.signature;
+  if (handleModalForm.value.flowCmd == CMD.APPROVED && !!needSignature) {
+    return !!handleModalForm.value.base64SignatureData;
+  }
+  return true;
+});
+
 // 处理流程弹窗表单评论label
-const handleModelCommentLabel = (cmd) => {
+const handleModalCommentLabel = (cmd) => {
   switch (cmd) {
     case CMD.APPROVED:
     case CMD.REJECTED:
@@ -534,13 +674,14 @@ const handleModelCommentLabel = (cmd) => {
   }
 };
 
-const onHandleModelOK = () => {
+const onHandleModalOK = () => {
   // 取出上传的文件id
   let handleModalFormValue = ObjectUtil.copy(handleModalForm.value);
   let { flowCmd: cmd, fileIds } = handleModalFormValue;
-  if (fileIds && fileIds.length > 0) handleModalFormValue.fileIds = fileIds.map((v) => (v.response || {}).data.id);
+  if (fileIds && fileIds.length > 0) handleModalFormValue.fileIds = fileIds.map((v) => v.id);
 
   let req = null;
+  loading.value = true; // 开启遮罩
   switch (cmd) {
     case CMD.CANCELED:
       req = FlowInstApi.cancel(handleModalFormValue);
@@ -576,20 +717,23 @@ const onHandleModelOK = () => {
       req = FlowInstApi.transact(handleModalFormValue);
       break;
   }
-  req.then((resp) => {
-    if (resp.code == 1) {
-      onHandleModelCancel();
-      if (cmd == CMD.CANCELED) {
-        props.flowInst.status = STATUS.CANCELLED;
-        emits("update:flowInst", props.flowInst);
+  req
+    .then((resp) => {
+      if (resp.code == 1) {
+        onHandleModalCancel();
+        if (cmd == CMD.CANCELED) {
+          props.flowInst.status = STATUS.CANCELLED;
+          emits("update:flowInst", props.flowInst);
+        }
+        if ([CMD.ASSIGN, CMD.BACK, CMD.ADD_BEFORE_SIGN, CMD.ADD_AFTER_SIGN, CMD.APPROVED, CMD.REJECTED, CMD.TRANSACT].includes(cmd)) {
+          emits("onRemove");
+        } else {
+          loadFlowDetail();
+        }
       }
-      if ([CMD.ASSIGN, CMD.BACK, CMD.ADD_BEFORE_SIGN, CMD.ADD_AFTER_SIGN, CMD.APPROVED, CMD.REJECTED, CMD.TRANSACT].includes(cmd)) {
-        emits("onRemove");
-      } else {
-        loadFlowDetail();
-      }
-    }
-  });
+      loading.value = false;
+    })
+    .catch((_) => (loading.value = false));
 };
 
 const initModalForm = (cmd) => {
@@ -663,6 +807,28 @@ const formEditRecordBtnVisible = ref(false);
 const hasFormEditRecord = () => {
   FlowInstApi.hasFormEditRecord({ flowInstId: props.flowInst.id }).then((resp) => {
     if (resp.code == 1) formEditRecordBtnVisible.value = resp.data;
+  });
+};
+
+// 再次申请相关
+let launchVisible = ref(false);
+let relaunchFlow = ref(); // 再次申请流程
+let relaunchFlowForm = ref(); // 再次申请表单
+// 关闭再次申请侧边栏
+const onLaunchClose = () => {
+  launchVisible.value = false;
+};
+// 再次申请
+const onRelaunch = () => {
+  FlowManApi.checkRelaunchable({ flowDefId: props.flowInst.flowDefId }).then((resp) => {
+    let { data: flowDef } = resp;
+    if (resp.code == 1 && flowDef && flowDef.id) {
+      relaunchFlow.value = flowDef;
+      relaunchFlowForm.value = ObjectUtil.copy(formValue.value);
+      launchVisible.value = true;
+    } else {
+      Message.error("流程已经变更，不能再次申请！");
+    }
   });
 };
 
@@ -834,6 +1000,10 @@ onMounted(() => {
   .flow-box {
     user-select: none;
 
+    .future-node-box {
+      opacity: 0.5;
+    }
+
     // 流程头像
     .assignee-container {
       position: relative;
@@ -863,7 +1033,7 @@ onMounted(() => {
       justify-content: space-between;
 
       .sgement {
-        margin-left: 8px;
+        margin: 0 0 16px 8px;
         flex: 1;
       }
 
@@ -914,13 +1084,26 @@ onMounted(() => {
         }
       }
 
+      .signature {
+        margin-top: 4px;
+        height: 100px;
+        border-radius: 4px;
+        img {
+          height: 100px;
+          border: 1px solid #f8f8fa;
+          border-radius: 4px;
+        }
+      }
+
       .comment {
         user-select: none;
-        margin: 4px 0 16px;
-        padding: 8px 16px;
-        border-radius: 4px;
+        margin-top: 4px;
+        border-radius: 6px;
+        // min-height: 38px;
+        padding: 6px 10px;
         // background: #f2f4f5;
         background-color: #f8f8fa;
+        width: fit-content;
 
         .commnet-title {
           font-weight: 400;
@@ -939,7 +1122,7 @@ onMounted(() => {
           display: flex;
           flex-wrap: wrap;
 
-          .comment-attachment-item {
+          .comment-attachment-list {
             border-radius: 4px;
             border: 1px solid #e1e1e1;
             padding: 4px 8px;
@@ -952,6 +1135,9 @@ onMounted(() => {
               display: flex;
               align-items: center;
               gap: 4px;
+              white-space: normal;
+              word-wrap: break-word;
+              word-break: break-all;
             }
 
             .download-icon {

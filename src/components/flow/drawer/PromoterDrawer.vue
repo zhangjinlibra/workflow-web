@@ -49,10 +49,10 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, toRaw } from "vue";
 import { useFlowStore, useOrganStore } from "@/stores/index";
-import OrganChooseBox from "../dialog/OrganChooseBox.vue";
 import { IconPlus } from "@arco-design/web-vue/es/icon";
+import { computed, ref, toRaw, watch } from "vue";
+import OrganChooseBox from "../dialog/OrganChooseBox.vue";
 
 let initiatorChooseBoxVisible = ref(false);
 let selected = ref([]); // 发起人选项

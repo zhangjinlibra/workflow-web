@@ -1,7 +1,7 @@
 "use strict";
+import vue from "@vitejs/plugin-vue";
 import { fileURLToPath, URL } from "node:url";
 import path from "path";
-import vue from "@vitejs/plugin-vue";
 import { defineConfig, loadEnv } from "vite";
 
 // svg-icon
@@ -9,8 +9,8 @@ import { createSvgIconsPlugin } from "vite-plugin-svg-icons";
 
 // arco按需加载
 import AutoImport from "unplugin-auto-import/vite";
-import Components from "unplugin-vue-components/vite";
 import { ArcoResolver } from "unplugin-vue-components/resolvers";
+import Components from "unplugin-vue-components/vite";
 
 // index.html title
 import { createHtmlPlugin } from "vite-plugin-html";
@@ -19,7 +19,7 @@ import defaultSettings from "./src/settings.js";
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd());
-  console.log("env", env, mode, command);
+  console.log("env", env, mode, command, URL);
   return {
     base: env.VITE_BASE_PATH,
     plugins: [
@@ -75,6 +75,9 @@ export default defineConfig(({ command, mode }) => {
         "@": path.resolve(path.dirname(fileURLToPath(import.meta.url)), "src"),
       },
     },
+    // esbuild: {
+    //   drop: command === "build" ? ["console", "debugger"] : [],
+    // },
     server: {
       open: true,
       https: false,

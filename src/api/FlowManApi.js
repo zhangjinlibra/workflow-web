@@ -131,6 +131,14 @@ function formWidgetListToMap(flowWidgets) {
   return flowWidgetMap;
 }
 
+function checkRelaunchable(params) {
+  return request({
+    url: "/flowdefinition/checkRelaunchable",
+    method: "get",
+    params,
+  });
+}
+
 export default {
   listGroups,
   listGroupsWithFlowDefinition,
@@ -146,4 +154,5 @@ export default {
   getFlowFormWidget,
   formWidgetListToMap,
   copy,
+  checkRelaunchable,
 };

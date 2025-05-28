@@ -18,8 +18,8 @@
 <script setup>
 import { useFlowStore } from "@/stores/index";
 import { onMounted, ref } from "vue";
-let { flowDefinition, setFlowDef } = useFlowStore();
 
+let { flowDefinition, setFlowDef } = useFlowStore();
 let flowDef = ref({});
 
 onMounted(() => {

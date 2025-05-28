@@ -36,15 +36,15 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from "vue";
-import { useRouter } from "vue-router";
-import { useFlowStore } from "@/stores/index";
 import ApproverDrawer from "@/components/flow/drawer/ApproverDrawer.vue";
 import ConditionDrawer from "@/components/flow/drawer/ConditionDrawer.vue";
 import CopyerDrawer from "@/components/flow/drawer/CopyerDrawer.vue";
 import PromoterDrawer from "@/components/flow/drawer/PromoterDrawer.vue";
 import TransactDrawer from "@/components/flow/drawer/TransactDrawer.vue";
-import { IconPlus, IconMinus } from "@arco-design/web-vue/es/icon";
+import { useFlowStore } from "@/stores/index";
+import { IconMinus, IconPlus } from "@arco-design/web-vue/es/icon";
+import { onMounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 
 let { flowDefinition, setFlowDefId } = useFlowStore();
 const router = useRouter();

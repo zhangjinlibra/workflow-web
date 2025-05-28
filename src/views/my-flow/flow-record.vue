@@ -97,14 +97,14 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount, ref } from "vue";
-import { useOrganStore } from "@/stores";
 import FlowInstApi from "@/api/FlowInstApi";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
-import { STATUS_LIST } from "@/components/flow/common/FlowConstant";
-import { IconFilter, IconRefresh, IconSearch } from "@arco-design/web-vue/es/icon";
 import RollLoading from "@/components/common/RollLoading.vue";
+import { STATUS_LIST } from "@/components/flow/common/FlowConstant";
+import { useOrganStore } from "@/stores";
+import { IconFilter, IconRefresh, IconSearch } from "@arco-design/web-vue/es/icon";
+import { computed, onBeforeMount, ref } from "vue";
 import FlowCard from "./flow-card.vue";
 import FlowDetail from "./flow-detail.vue";
 

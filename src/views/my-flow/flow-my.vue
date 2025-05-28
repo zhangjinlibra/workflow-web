@@ -91,21 +91,21 @@
 
     <!-- 流程详情 -->
     <div class="flow-detail-content">
-      <flow-detail :flow-inst="selectedFlow" :cancelable="true" :actionable="false" />
+      <flow-detail :flow-inst="selectedFlow" :cancelable="true" :actionable="false" :relaunchable="true" />
     </div>
   </section>
 </template>
 
 <script setup>
-import { onBeforeMount, ref } from "vue";
 import FlowInstApi from "@/api/FlowInstApi";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
+import RollLoading from "@/components/common/RollLoading.vue";
 import { STATUS_LIST } from "@/components/flow/common/FlowConstant";
 import { IconFilter, IconRefresh, IconSearch } from "@arco-design/web-vue/es/icon";
-import FlowDetail from "./flow-detail.vue";
-import RollLoading from "@/components/common/RollLoading.vue";
+import { onBeforeMount, ref } from "vue";
 import FlowCard from "./flow-card.vue";
+import FlowDetail from "./flow-detail.vue";
 
 let groups = ref([]);
 

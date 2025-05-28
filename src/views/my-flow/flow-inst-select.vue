@@ -111,16 +111,16 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onBeforeMount } from "vue";
 import FlowInstApi from "@/api/FlowInstApi";
 import FlowManApi from "@/api/FlowManApi";
 import OrganApi from "@/api/OrganApi";
-import FlowCard from "./flow-card.vue";
-import ArrayUtil from "lodash/array";
 import RollLoading from "@/components/common/RollLoading.vue";
-import { IconSearch, IconRefresh, IconFilter } from "@arco-design/web-vue/es/icon";
-import { useOrganStore } from "@/stores";
 import { STATUS_LIST } from "@/components/flow/common/FlowConstant";
+import { useOrganStore } from "@/stores";
+import { IconFilter, IconRefresh, IconSearch } from "@arco-design/web-vue/es/icon";
+import ArrayUtil from "lodash/array";
+import { computed, onBeforeMount, ref, watch } from "vue";
+import FlowCard from "./flow-card.vue";
 
 let props = defineProps({
   visible: { type: Boolean, default: false },

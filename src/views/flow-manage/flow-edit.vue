@@ -27,11 +27,11 @@
       <div class="fd-main">
         <transition name="fade-transform" mode="out-in">
           <template v-if="step == 1" :key="1"> <Base ref="baseBox"></Base> </template>
-          <template v-else-if="step == 2" :key="2"> <FormMake></FormMake> </template>
+          <template v-else-if="step == 2" :key="2"> <FormMake ref="formMakeBox"></FormMake> </template>
           <template v-else-if="step == 3" :key="3">
             <div class="fd-main-box" v-dragscroll><Flow ref="flowBox"></Flow></div>
           </template>
-          <template v-else-if="step == 4" :key="4"> <Setting></Setting> </template>
+          <template v-else-if="step == 4" :key="4"> <Setting ref="settingBox"></Setting> </template>
         </transition>
       </div>
     </div>
@@ -39,27 +39,30 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, toRaw } from "vue";
-import { useFlowStore } from "@/stores/index";
-import { useRouter } from "vue-router";
+import FlowManApi from "@/api/FlowManApi";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
+import { initWidgetFormula } from "@/components/flow/common/FlowFormula";
+import { filterConditionWidgets, resetAllNodeFormAuth } from "@/components/flow/common/FormAuth";
+import { cleanUnrequiredWidget, initBranchExp } from "@/components/flow/common/FormExp";
+import Flow from "@/components/flow/index.vue";
+import FormMake from "@/components/form-make/index.vue";
+import { useFlowStore } from "@/stores/index";
 import { Notification } from "@arco-design/web-vue";
 import { IconLeft } from "@arco-design/web-vue/es/icon";
-import FlowValidate from "./flow-validate";
-import FlowManApi from "@/api/FlowManApi";
+import { onBeforeMount, ref, toRaw } from "vue";
+import { useRouter } from "vue-router";
 import Base from "./base.vue";
-import FormMake from "@/components/form-make/index.vue";
-import Flow from "@/components/flow/index.vue";
+import FlowValidate from "./flow-validate";
 import Setting from "./setting.vue";
-import { cleanUnrequiredWidget, initBranchExp } from "@/components/flow/common/FormExp";
-import { filterConditionWidgets, resetAllNodeFormAuth } from "@/components/flow/common/FormAuth";
 
 let { flowDefinition } = useFlowStore();
 const router = useRouter();
 
 let launching = ref(false); // 流程发布中
 let baseBox = ref(); // 基本信息组件
+let formMakeBox = ref(); // 表单设计组件
 let flowBox = ref(); // 流程组件
+let settingBox = ref(); // 更多设置组件
 let step = ref(1);
 const hanldeStepClick = (nStep) => {
   if (step.value == 1) {
@@ -67,6 +70,8 @@ const hanldeStepClick = (nStep) => {
   } else if (step.value == 2) {
     let { nodeConfig, flowWidgets } = flowDefinition;
     cleanUnrequiredWidget(flowWidgets, nodeConfig);
+    let ok = formMakeBox.value.validate();
+    if (!ok) return;
   }
   step.value = nStep;
 };
@@ -111,6 +116,8 @@ const initNodeConfig = (flowDef) => {
   let conditionWidgets = [];
   filterConditionWidgets(nodeConfig, conditionWidgets);
   resetAllNodeFormAuth(nodeConfig, flowWidgets, conditionWidgets);
+  // 组件重新生成一下计算表达式
+  initWidgetFormula(flowWidgets);
 };
 
 const deploy = () => {
@@ -118,12 +125,12 @@ const deploy = () => {
   let flowDef = JSON.parse(JSON.stringify(toRaw(flowDefinition)));
   if (validate(flowDef)) {
     initNodeConfig(flowDef);
-    console.log("流程", flowDef);
+    console.log("发布审批", flowDef);
     FlowManApi.saveOrUpdate({ ...flowDef, flowDefJson: JSON.stringify(flowDef) }).then(
       (resp) => {
         launching.value = false;
         if (resp.code == 1) {
-          Notification.success(`流程${flowDefinition.workFlowDef.name}发布成功`);
+          Notification.success(`流程${flowDefinition.workFlowDef.name}发布成功！`);
           router.push("/flowmanindex");
         }
       },

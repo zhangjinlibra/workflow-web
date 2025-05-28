@@ -198,14 +198,14 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount, onMounted, ref, toRaw, watch } from "vue";
+import EditableText from "@/components/common/EditableText.vue";
 import { useFlowStore, useOrganStore } from "@/stores/index";
+import { IconDelete, IconPlus, IconSwap } from "@arco-design/web-vue/es/icon";
+import { computed, onBeforeMount, onMounted, ref, toRaw, watch } from "vue";
 import ArrayUtil from "../common/ArrayUtil";
+import { ASSIGNEE } from "../common/FlowConstant";
 import Snowflake from "../common/Snowflake";
 import OrganChooseBox from "../dialog/OrganChooseBox.vue";
-import { IconDelete, IconSwap, IconPlus } from "@arco-design/web-vue/es/icon";
-import EditableText from "@/components/common/EditableText.vue";
-import { ASSIGNEE } from "../common/FlowConstant";
 import NodeFormAuthSetting from "../NodeFormAuthSetting.vue";
 
 let flowStore = useFlowStore();

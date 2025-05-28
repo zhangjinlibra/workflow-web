@@ -245,9 +245,15 @@
           <div class="content-wrap">
             <div class="item-content">
               <div class="item-wrap auth-list">
-                <a-checkbox class="auth-item" v-model="flowNodeConfig.assignable" :value="1">允许转交</a-checkbox>
-                <a-checkbox class="auth-item" v-model="flowNodeConfig.signable" :value="1">允许加签 / 减签</a-checkbox>
-                <a-checkbox class="auth-item" v-model="flowNodeConfig.backable" :value="1">允许回退</a-checkbox>
+                <a-checkbox class="auth-item" v-model="flowNodeConfig.assignable" :value="1"> 允许转交 </a-checkbox>
+                <a-checkbox class="auth-item" v-model="flowNodeConfig.signable" :value="1"> 允许加签 / 减签 </a-checkbox>
+                <a-checkbox class="auth-item" v-model="flowNodeConfig.backable" :value="1"> 允许回退 </a-checkbox>
+                <a-checkbox class="auth-item" v-model="flowNodeConfig.signature" :value="0">
+                  审批签字
+                  <a-tooltip content="审批人在审批同意时需要签字确认">
+                    <icon-question-circle class="tip" />
+                  </a-tooltip>
+                </a-checkbox>
               </div>
               <div class="item-wrap tip">
                 <div class="item-key-wrapper">
@@ -267,13 +273,13 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount, onMounted, ref, toRaw, watch } from "vue";
+import EditableText from "@/components/common/EditableText.vue";
 import { useFlowStore, useOrganStore } from "@/stores/index";
+import { IconDelete, IconPlus, IconQuestionCircle, IconSwap } from "@arco-design/web-vue/es/icon";
+import { computed, onBeforeMount, onMounted, ref, toRaw, watch } from "vue";
 import ArrayUtil from "../common/ArrayUtil";
 import Snowflake from "../common/Snowflake";
 import OrganChooseBox from "../dialog/OrganChooseBox.vue";
-import { IconDelete, IconSwap, IconPlus } from "@arco-design/web-vue/es/icon";
-import EditableText from "@/components/common/EditableText.vue";
 import NodeFormAuthSetting from "../NodeFormAuthSetting.vue";
 
 let flowStore = useFlowStore();
@@ -588,6 +594,10 @@ onMounted(() => {});
 
         .auth-item {
           margin-top: 10px;
+
+          .tip {
+            color: var(--color-text-4);
+          }
         }
       }
 

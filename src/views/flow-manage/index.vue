@@ -8,7 +8,10 @@
         </a-input>
       </div>
       <div class="btns">
-        <a-button @click="onNewFlowBtnClick()">新建分组</a-button>
+        <a-button @click="onNewFlowBtnClick()">
+          新建分组
+          <template #icon> <icon-layers /> </template>
+        </a-button>
         <a-button type="primary" @click="onFlowCreate()">
           创建审批
           <template #icon> <icon-plus /> </template>
@@ -65,7 +68,15 @@
                   <a-button size="small" @click="onFlowEdit(item)">
                     <template #icon> <icon-edit :size="18" /> </template>
                   </a-button>
-                  <a-popconfirm v-if="item.status == 0" type="warning" content="确认禁用该流程 ?" @ok="onFlowFreeze(item, group)" position="tr">
+                  <a-button size="small" @click="onFlowCopy(item)">
+                    <template #icon> <icon-copy :size="18" /> </template>
+                  </a-button>
+                  <a-popconfirm
+                    v-if="item.status == 0"
+                    type="warning"
+                    content="确认禁用该审批流程？"
+                    @ok="onFlowFreeze(item, group)"
+                    position="tr">
                     <a-button size="small">
                       <template #icon> <icon-stop :size="18" /> </template>
                     </a-button>
@@ -80,9 +91,6 @@
                       <template #icon> <icon-delete :size="18" /> </template>
                     </a-button>
                   </a-popconfirm>
-                  <a-button size="small" @click="onFlowCopy(item)">
-                    <template #icon> <icon-copy :size="18" /> </template>
-                  </a-button>
                 </template>
               </div>
             </div>
@@ -106,7 +114,7 @@ import ArrayUtil from "@/components/flow/common/ArrayUtil";
 import FlowIcon from "@/components/icons/FlowIcon.vue";
 import { useFlowStore, useOrganStore, useUserStore } from "@/stores";
 import { Notification } from "@arco-design/web-vue";
-import { IconCheckCircle, IconCopy, IconDelete, IconEdit, IconPlus, IconSearch, IconStop } from "@arco-design/web-vue/es/icon";
+import { IconCheckCircle, IconCopy, IconDelete, IconEdit, IconLayers, IconPlus, IconSearch, IconStop } from "@arco-design/web-vue/es/icon";
 import { onBeforeMount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import FlowCopy from "./flow-copy.vue";

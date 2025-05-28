@@ -62,12 +62,12 @@ service.interceptors.response.use(
         }
       } else {
         Message.error({
-          content: res.msg || "请求出错",
+          content: res.msg || "请求出错！",
           duration: 5 * 1000,
         });
       }
 
-      return Promise.reject(new Error(res.msg || "请求出错"));
+      return Promise.reject(new Error(res.msg || "请求出错！"));
     } else {
       return res;
     }
@@ -75,7 +75,7 @@ service.interceptors.response.use(
   (error) => {
     // console.log("err", error); // for debug
     Message.error({
-      content: error.msg || "请求出错",
+      content: error.msg || "请求出错！",
       duration: 5 * 1000,
     });
     return Promise.reject(error);

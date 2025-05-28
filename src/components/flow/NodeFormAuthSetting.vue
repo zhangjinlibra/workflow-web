@@ -31,10 +31,7 @@
               <a-checkbox :model-value="widget.readable" @change="handleReadableChange($event, widget)" />
             </td>
             <td v-if="editable">
-              <a-checkbox
-                :model-value="widget.editable"
-                :disabled="conditionWidgets.includes(widget.name)"
-                @change="handleEditableChange($event, widget)" />
+              <a-checkbox :model-value="widget.editable" :disabled="formFieldDisabled(widget)" @change="handleEditableChange($event, widget)" />
             </td>
           </tr>
           <template v-else>
@@ -47,7 +44,7 @@
               <td v-if="editable">
                 <a-checkbox
                   :model-value="detail.editable"
-                  :disabled="conditionWidgets.includes(detail.name)"
+                  :disabled="formFieldDisabled(detail)"
                   @change="handleEditableChange($event, detail, widget)" />
               </td>
             </tr>
@@ -111,11 +108,11 @@ const handleChangeAllEditable = (checked) => {
   }
   formAuths.value.forEach((widget) => {
     if (widget.type !== WIDGET.DETAIL) {
-      if (!conditionWidgets.value.includes(widget.name)) widget.editable = checked;
+      if (!formFieldDisabled(widget)) widget.editable = checked;
       if (checked) widget.readable = checked;
     } else
       widget.details.forEach((detail) => {
-        if (!conditionWidgets.value.includes(detail.name)) detail.editable = checked;
+        if (!formFieldDisabled(detail)) detail.editable = checked;
         if (checked) detail.readable = checked;
       });
   });
@@ -168,6 +165,11 @@ const handleEditableChange = (checked, widget, parent) => {
   widget.editable = checked;
   if (checked) widget.readable = checked;
   banXuan();
+};
+
+const formFieldDisabled = (widget) => {
+  let { name, type } = widget;
+  return conditionWidgets.value.includes(name) || type == WIDGET.FORMULA;
 };
 
 onMounted(() => {

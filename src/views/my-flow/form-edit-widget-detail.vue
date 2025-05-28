@@ -166,6 +166,12 @@
                   :disabled="[flowInst.id]" />
               </div>
             </template>
+            <template v-else-if="widget.type == WIDGET.RATE">
+              <a-rate v-model:model-value="formDetailVal[widget.name]" allow-half allow-clear />
+            </template>
+            <template v-else-if="widget.type == WIDGET.FORMULA">
+              <a-input v-model:model-value="formDetailVal[widget.name]" :placeholder="`=${widget.placeholder}`" disabled />
+            </template>
           </a-form-item>
           <template v-else-if="widget.type == WIDGET.DESCRIBE">
             <div class="describe"><icon-info-circle />{{ widget.placeholder }}</div>
@@ -187,14 +193,14 @@
 </template>
 
 <script setup>
-import { computed, watch, ref } from "vue";
-import { useOrganStore } from "@/stores";
+import CHINA_AREA from "@/components/flow/common/ChinaArea";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
-import { IconPlus, IconInfoCircle } from "@arco-design/web-vue/es/icon";
-import CHINA_AREA from "@/components/flow/common/ChinaArea";
-import FlowInstSelect from "./flow-inst-select.vue";
+import { useOrganStore } from "@/stores";
+import { IconInfoCircle, IconPlus } from "@arco-design/web-vue/es/icon";
+import { computed, ref, watch } from "vue";
 import FlowCard from "./flow-card.vue";
+import FlowInstSelect from "./flow-inst-select.vue";
 
 let props = defineProps({
   url: { type: String },
@@ -251,6 +257,7 @@ watch(
       display: flex;
       align-items: center;
       justify-content: space-between;
+      height: 32px;
     }
 
     .describe {

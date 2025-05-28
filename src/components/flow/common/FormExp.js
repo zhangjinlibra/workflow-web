@@ -1,5 +1,5 @@
-import { useOrganStore } from "@/stores";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
+import { useOrganStore } from "@/stores";
 import ArrayUtil from "./ArrayUtil";
 import ObjectUtil from "./ObjectUtil";
 
@@ -55,32 +55,27 @@ export const exps = {
   },
 };
 
-const initiatorBelong = (v, t) => {
+// 发起人变量名称
+export const INITIATOR_VAR_NAME = "initiator";
+
+const initiatorIn = (v, t) => {
   let prams = t.map((v) => `"${v}"`).join(",");
   return `fo.belong(businessKey,${v},${prams})`;
 };
 
-const initiatorNotBelong = (v, t) => {
+const initiatorNotIn = (v, t) => {
   let prams = t.map((v) => `"${v}"`).join(",");
   return `!fo.belong(businessKey,${v},${prams})`;
 };
 
-// export const initiator = [20, 21];
-// export const number = [0, 1, 2, 3, 4, 5];
-// export const string = [10, 11, 12, 13];
-// export const array = [20, 21];
-
-// 根据组件名称查询组件
+// 根据名称查询组件
 const lookupWidget = (flowWidgets, name) => {
-  if (flowWidgets && flowWidgets.length > 0) {
-    for (let i = 0; i < flowWidgets.length; i++) {
-      let flowWidget = flowWidgets[i];
-      if (flowWidget.type != WIDGET.DETAIL) {
-        if (flowWidget.name == name) return flowWidget;
-      } else {
-        let { details } = flowWidget;
-        for (let ii = 0; ii < details.length; ii++) {
-          if (details[ii].name == name) return details[ii];
+  if (flowWidgets && flowWidgets.length) {
+    for (let flowWidget of flowWidgets) {
+      if (flowWidget.name == name) return flowWidget;
+      if (flowWidget.type == WIDGET.DETAIL) {
+        for (let detail of flowWidget.details || []) {
+          if (detail.name == name) return detail;
         }
       }
     }
@@ -88,11 +83,9 @@ const lookupWidget = (flowWidgets, name) => {
   return null;
 };
 
-// 根据组件name查询组件名称
+// 获取组件名称
 const lookupWidgetLabel = (flowWidget) => {
-  if (!flowWidget) return "";
-  else if (flowWidget.type !== WIDGET.DETAIL) return flowWidget.label;
-  else return ArrayUtil.get(flowWidget.details, "name", flowWidget.name).label + "合计";
+  return flowWidget ? flowWidget.label : "";
 };
 
 // 条件节点卡片上的展示文字
@@ -109,7 +102,7 @@ export const showExpNodeContent = (branchNode, flowWidgets) => {
           .map((condition) => {
             let { varName, operator, val } = condition;
             let name, operatorName, newVal;
-            if (varName === "initiator") {
+            if (varName === INITIATOR_VAR_NAME) {
               name = "发起人";
               operatorName = names[operator];
               newVal = val.map((i) => getById(i).name).join("/");
@@ -121,9 +114,12 @@ export const showExpNodeContent = (branchNode, flowWidgets) => {
                 newVal = ObjectUtil.isArray(val) ? val.map((id) => getDeptById(id).name).join("/") : getDeptById(val).name;
               } else if (widget.type == WIDGET.EMPLOYEE) {
                 newVal = ObjectUtil.isArray(val) ? val.map((id) => getUserById(id).name).join("/") : getUserById(val).name;
-              } else newVal = [20, 21].includes(operator) ? val.join("/") : val;
+              } else {
+                newVal = [20, 21].includes(operator) ? val.join("/") : val;
+              }
             }
-            return name + " " + operatorName + " " + newVal;
+            return `${name} ${operatorName} ${newVal}`;
+            // return name + " " + operatorName + " " + newVal;
           })
           .join(" 且 ");
       })
@@ -163,8 +159,8 @@ export const initExp = (branchNode) => {
         .map((condition) => {
           let { varName, val, operator } = condition;
           let fun, newVal, segexp;
-          if (varName == "initiator") {
-            fun = operator == 20 ? initiatorBelong : initiatorNotBelong;
+          if (varName === INITIATOR_VAR_NAME) {
+            fun = operator == 20 ? initiatorIn : initiatorNotIn;
             newVal = val.map((i) => i);
             segexp = fun(varName, newVal);
           } else {
@@ -193,26 +189,30 @@ const branchWidgets = [
   WIDGET.DATE_RANGE,
   WIDGET.DEPARTMENT,
   WIDGET.EMPLOYEE,
+  WIDGET.DETAIL,
+  WIDGET.FORMULA,
 ];
-const branchDetailWidgets = [WIDGET.NUMBER, WIDGET.MONEY];
+// const branchDetailWidgets = [WIDGET.NUMBER, WIDGET.MONEY];
 
-// 清除依赖的非必填的组件-流程条件节点
+// 条件分支中，不可引用的组件需要被清除掉
 export const cleanUnrequiredWidget = (flowWidgets, nodeConfig) => {
-  let requireds = [];
+  let quotable = []; // 可被作为变量的组件
   (flowWidgets || []).forEach((flowWidget) => {
-    if (flowWidget.required && branchWidgets.includes(flowWidget.type)) {
-      requireds.push(flowWidget);
-    } else if (WIDGET.DETAIL == flowWidget.type) {
-      (flowWidget.details || []).forEach((detail) => {
-        if (detail.required && branchDetailWidgets.includes(detail.type)) {
-          requireds.push(detail);
-        }
-      });
+    let { type, required, details, formulaItems } = flowWidget;
+    if ((required && branchWidgets.includes(type)) || WIDGET.FORMULA == type) {
+      quotable.push(flowWidget);
+    } else if (WIDGET.DETAIL == type && details && details.length && formulaItems && formulaItems.length) {
+      quotable.push(flowWidget);
+      // (flowWidget.details || []).forEach((detail) => {
+      //   if (detail.required && branchDetailWidgets.includes(detail.type)) {
+      //     quotable.push(detail);
+      //   }
+      // });
     }
   });
-  requireds = requireds.map((i) => i.name);
-  requireds.push("initiator"); // 添加固定的变量
-  rmNotRequiredWidget(nodeConfig, requireds);
+  quotable = quotable.map((i) => i.name);
+  quotable.push(INITIATOR_VAR_NAME); // 添加固定的变量
+  rmNotRequiredWidget(nodeConfig, quotable);
 };
 
 // 删除依赖非填项的分支条件

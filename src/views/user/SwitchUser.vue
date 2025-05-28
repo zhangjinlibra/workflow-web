@@ -39,11 +39,11 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount, computed } from "vue";
-import { setToken } from "@/utils/auth";
 import TmpApi from "@/api/TmpApi";
+import { setToken } from "@/utils/auth";
+import { IconCaretRight, IconSearch, IconUser } from "@arco-design/web-vue/es/icon";
 import Cookies from "js-cookie";
-import { IconSearch, IconUser, IconCaretRight } from "@arco-design/web-vue/es/icon";
+import { computed, onBeforeMount, ref } from "vue";
 
 let props = defineProps({ visible: Boolean });
 let emits = defineEmits(["update:visible"]);

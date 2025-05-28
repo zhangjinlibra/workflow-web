@@ -6,7 +6,6 @@
         v-if="
           [
             WIDGET.SINGLELINE_TEXT,
-            WIDGET.MULTILINE_TEXT,
             WIDGET.NUMBER,
             WIDGET.MONEY,
             WIDGET.SINGLE_CHOICE,
@@ -16,52 +15,51 @@
             WIDGET.DEPARTMENT,
             WIDGET.EMPLOYEE,
             WIDGET.AREA,
+            WIDGET.MAILBOX,
+            WIDGET.MOBILE,
+            WIDGET.IDCARD,
+            WIDGET.FORMULA,
           ].includes(formWidget.type)
         ">
-        <div
-          v-if="[WIDGET.SINGLELINE_TEXT, WIDGET.MULTILINE_TEXT, WIDGET.SINGLE_CHOICE, WIDGET.DATE].includes(formWidget.type)"
-          class="form-item">
+        <div class="form-item">
           <div class="label">{{ formWidget.label }}</div>
           <div class="value">{{ formValue0[formWidget.name] }}</div>
         </div>
-        <!-- 数值 -->
-        <div v-else-if="[WIDGET.NUMBER].includes(formWidget.type)" class="form-item">
+      </template>
+      <!-- 多行文本 -->
+      <template v-else-if="[WIDGET.MULTILINE_TEXT].includes(formWidget.type)">
+        <div class="form-item">
           <div class="label">{{ formWidget.label }}</div>
-          <div class="value">{{ formValue0[formWidget.name] }}</div>
+          <div class="value" v-html="newline(formValue0[formWidget.name])"></div>
         </div>
-        <!-- 金额 -->
-        <div v-else-if="[WIDGET.MONEY].includes(formWidget.type)" class="form-item">
-          <div class="label">{{ formWidget.label }}</div>
-          <div class="value">{{ formWidget.comma ? ObjectUtil.comma(formValue0[formWidget.name]) : formValue0[formWidget.name] }}</div>
-        </div>
-        <!-- 多选 -->
-        <div v-else-if="[WIDGET.MULTI_CHOICE].includes(formWidget.type)" class="form-item">
-          <div class="label">{{ formWidget.label }}</div>
-          <div class="value">{{ (formValue0[formWidget.name] || []).join("，") }}</div>
-        </div>
-        <!-- 日期区间 -->
-        <div v-else-if="[WIDGET.DATE_RANGE].includes(formWidget.type)" class="form-item">
+      </template>
+      <!-- 富文本 -->
+      <template v-else-if="[WIDGET.RICH_TEXT].includes(formWidget.type)">
+        <div class="form-item">
           <div class="label">{{ formWidget.label }}</div>
           <div class="value">
-            <template v-if="formValue0[formWidget.name] && formValue0[formWidget.name].length == 2">
-              {{ `${formValue0[formWidget.name][0]} 至 ${formValue0[formWidget.name][1]}` }}
-            </template>
+            <div class="rich-text w-e-text-container">
+              <div v-html="formValue0[formWidget.name]" data-slate-editor></div>
+            </div>
           </div>
         </div>
-        <!-- 部门 -->
-        <div v-else-if="[WIDGET.DEPARTMENT].includes(formWidget.type)" class="form-item">
+      </template>
+      <!-- 网站 -->
+      <template v-else-if="[WIDGET.WEBSITE].includes(formWidget.type)">
+        <div class="form-item">
           <div class="label">{{ formWidget.label }}</div>
-          <div class="value">{{ formValue0[formWidget.name] }}</div>
+          <div class="value">
+            <a class="link" :href="formValue0[formWidget.name]" target="_blank">{{ formValue0[formWidget.name] }}</a>
+          </div>
         </div>
-        <!-- 员工 -->
-        <div v-else-if="[WIDGET.EMPLOYEE].includes(formWidget.type)" class="form-item">
+      </template>
+      <!-- 评分 -->
+      <template v-else-if="[WIDGET.RATE].includes(formWidget.type)">
+        <div class="form-item">
           <div class="label">{{ formWidget.label }}</div>
-          <div class="value">{{ formValue0[formWidget.name] }}</div>
-        </div>
-        <!-- 省市区 -->
-        <div v-else-if="[WIDGET.AREA].includes(formWidget.type)" class="form-item">
-          <div class="label">{{ formWidget.label }}</div>
-          <div class="value">{{ (formValue0[formWidget.name] || []).join(" / ") }}</div>
+          <div class="value">
+            <a-rate :default-value="formValue0[formWidget.name]" readonly />
+          </div>
         </div>
       </template>
       <!-- 关联审批 -->
@@ -77,15 +75,10 @@
       <template v-else-if="[WIDGET.PICTURE].includes(formWidget.type)">
         <div class="form-item">
           <div class="label">{{ formWidget.label }}</div>
-          <div class="value img-preview">
-            <!-- <a-image-preview-group infinite>
-              <a-space>
-                <a-image v-for="id in formValue0[formWidget.name] || []" :src="`${FILE_BASE_URL}/download?id=${id}`" width="40" />
-              </a-space>
-            </a-image-preview-group> -->
+          <div class="value image-list">
             <img
               v-for="(id, idx) in formValue0[formWidget.name] || []"
-              :src="`${FILE_BASE_URL}/download?id=${id}`"
+              :src="`${FILE_DOWNLOAD_URL}?id=${id}`"
               @click="onImgPreview(idx, formValue0[formWidget.name])" />
           </div>
         </div>
@@ -96,7 +89,7 @@
           <div class="label">{{ formWidget.label }}</div>
           <div class="value">
             <div class="attachment-box">
-              <div class="attachment-item" v-for="attachment in formValue0[formWidget.name]">
+              <div class="attachment-list" v-for="attachment in formValue0[formWidget.name]">
                 <div class="link" @click="onAttachmentDownload(attachment, $event)">
                   {{ attachment ? attachment.name : "" }}
                 </div>
@@ -110,89 +103,92 @@
       <template v-else-if="[WIDGET.DETAIL].includes(formWidget.type)">
         <div class="form-item">
           <div class="label">{{ formWidget.label }}</div>
-          <a-table
-            :data="formValue0[formWidget.name]"
-            :pagination="false"
-            size="small"
-            :scrollbar="false"
-            :hoverable="false"
-            :bordered="{ cell: true }"
-            class="value detail-value">
-            <template #columns>
-              <a-table-column
-                v-for="subWidget in formWidget.details.filter((i) => i.type != WIDGET.DESCRIBE)"
-                :title="subWidget.label"
-                :width="subWidget.type == WIDGET.FLOW_INST ? 300 : 100">
-                <template #cell="{ record }">
-                  <!-- 纯文本 -->
-                  <template v-if="[WIDGET.SINGLELINE_TEXT, WIDGET.MULTILINE_TEXT, WIDGET.SINGLE_CHOICE, WIDGET.DATE].includes(subWidget.type)">
-                    {{ record[subWidget.name] }}
-                  </template>
-                  <!-- 数值 -->
-                  <template v-else-if="[WIDGET.NUMBER].includes(subWidget.type)">
-                    {{ record[subWidget.name] }}
-                  </template>
-                  <!-- 金额 -->
-                  <template v-else-if="[WIDGET.MONEY].includes(subWidget.type)">
-                    {{ subWidget.comma ? ObjectUtil.comma(record[subWidget.name]) : record[subWidget.name] }}
-                  </template>
-                  <!-- 多选 -->
-                  <template v-else-if="[WIDGET.MULTI_CHOICE].includes(subWidget.type)">
-                    {{ (record[subWidget.name] || []).join("，") }}
-                  </template>
-                  <!-- 日期区间 -->
-                  <template v-else-if="[WIDGET.DATE_RANGE].includes(subWidget.type)">
-                    <template v-if="record[subWidget.name] && record[subWidget.name].length == 2">
-                      {{ `${record[subWidget.name][0]} 至 ${record[subWidget.name][1]}` }}
+          <div class="value detail-value">
+            <a-table
+              :data="formValue0[formWidget.name]"
+              :pagination="false"
+              size="small"
+              :scrollbar="false"
+              :hoverable="false"
+              :bordered="{ cell: true }">
+              <template #columns>
+                <a-table-column
+                  v-for="subWidget in formWidget.details.filter((i) => i.type != WIDGET.DESCRIBE)"
+                  :title="subWidget.label"
+                  :width="subWidget.type == WIDGET.FLOW_INST ? 300 : 100">
+                  <template #cell="{ record }">
+                    <!-- 纯文本 -->
+                    <template
+                      v-if="
+                        [
+                          WIDGET.SINGLELINE_TEXT,
+                          WIDGET.SINGLE_CHOICE,
+                          WIDGET.DATE,
+                          WIDGET.NUMBER,
+                          WIDGET.MONEY,
+                          WIDGET.MULTI_CHOICE,
+                          WIDGET.DATE_RANGE,
+                          WIDGET.DEPARTMENT,
+                          WIDGET.EMPLOYEE,
+                          WIDGET.AREA,
+                          WIDGET.MAILBOX,
+                          WIDGET.MOBILE,
+                          WIDGET.IDCARD,
+                          WIDGET.FORMULA,
+                        ].includes(subWidget.type)
+                      ">
+                      {{ record[subWidget.name] }}
                     </template>
-                  </template>
-                  <!-- 部门 -->
-                  <template v-else-if="[WIDGET.DEPARTMENT].includes(subWidget.type)">
-                    {{ record[subWidget.name] }}
-                  </template>
-                  <!-- 员工 -->
-                  <template v-else-if="[WIDGET.EMPLOYEE].includes(subWidget.type)">
-                    {{ record[subWidget.name] }}
-                  </template>
-                  <!-- 图片 -->
-                  <template v-else-if="[WIDGET.PICTURE].includes(subWidget.type)">
-                    <div class="img-preview">
-                      <!-- <a-image-preview-group infinite>
-                        <a-space>
-                          <a-image v-for="id in record[subWidget.name] || []" :src="`${FILE_BASE_URL}/download?id=${id}`" width="40" />
-                        </a-space>
-                      </a-image-preview-group> -->
-                      <img
-                        v-for="(id, idx) in record[subWidget.name] || []"
-                        :src="`${FILE_BASE_URL}/download?id=${id}`"
-                        @click="onImgPreview(idx, record[subWidget.name])" />
-                    </div>
-                  </template>
-                  <!-- 附件 -->
-                  <template v-else-if="[WIDGET.ATTACHMENT].includes(subWidget.type)">
-                    <template v-for="attachment in record[subWidget.name]">
-                      <div class="attachment-item">
-                        <div class="link" @click="onAttachmentDownload(attachment, $event)">
-                          {{ attachment ? attachment.name : "" }}
+                    <!-- 多行文本 -->
+                    <template v-else-if="[WIDGET.MULTILINE_TEXT].includes(subWidget.type)">
+                      <span v-html="newline(record[subWidget.name])"></span>
+                    </template>
+                    <!-- 网站 -->
+                    <template v-else-if="[WIDGET.WEBSITE].includes(subWidget.type)">
+                      <a class="link" :href="record[subWidget.name]" target="_blank">{{ record[subWidget.name] }}</a>
+                    </template>
+                    <!-- 评分 -->
+                    <template v-else-if="[WIDGET.RATE].includes(subWidget.type)">
+                      <a-rate :default-value="record[subWidget.name]" readonly />
+                    </template>
+                    <!-- 图片 -->
+                    <template v-else-if="[WIDGET.PICTURE].includes(subWidget.type)">
+                      <div class="image-list">
+                        <img
+                          v-for="(id, idx) in record[subWidget.name] || []"
+                          :src="`${FILE_DOWNLOAD_URL}?id=${id}`"
+                          @click="onImgPreview(idx, record[subWidget.name])" />
+                      </div>
+                    </template>
+                    <!-- 附件 -->
+                    <template v-else-if="[WIDGET.ATTACHMENT].includes(subWidget.type)">
+                      <template v-for="attachment in record[subWidget.name]">
+                        <div class="attachment-list">
+                          <div class="link" @click="onAttachmentDownload(attachment, $event)">
+                            {{ attachment ? attachment.name : "" }}
+                          </div>
+                          <div class="action"></div>
                         </div>
-                        <div class="action"></div>
+                      </template>
+                    </template>
+                    <!-- 关联审批 -->
+                    <template v-else-if="[WIDGET.FLOW_INST].includes(subWidget.type)">
+                      <div class="flow-inst-list">
+                        <FlowCard v-for="id in record[subWidget.name] || []" :flow-inst-id="id" :clickable="true"></FlowCard>
                       </div>
                     </template>
                   </template>
-                  <!-- 省市区 -->
-                  <template v-else-if="[WIDGET.AREA].includes(subWidget.type)">
-                    {{ (record[subWidget.name] || []).join(" / ") }}
-                  </template>
-                  <!-- 关联审批 -->
-                  <template v-else-if="[WIDGET.FLOW_INST].includes(subWidget.type)">
-                    <div class="flow-inst-list">
-                      <FlowCard v-for="id in record[subWidget.name] || []" :flow-inst-id="id" :clickable="true"></FlowCard>
-                    </div>
-                  </template>
-                </template>
-              </a-table-column>
-            </template>
-          </a-table>
+                </a-table-column>
+              </template>
+            </a-table>
+            <!-- 明细汇总 -->
+            <div class="detail-amount" v-if="formWidget.formula">
+              <div class="name">{{ `${formWidget.label}（合计）` }}</div>
+              <div class="amount">
+                {{ ObjectUtil.comma((formFormulaDetailCalc(formValue0[formWidget.name], formWidget.formula) || 0).toFixed(2)) }}
+              </div>
+            </div>
+          </div>
         </div>
       </template>
     </template>
@@ -202,10 +198,12 @@
 </template>
 
 <script setup>
-import { FILE_BASE_URL } from "@/api/FileApi";
+import { FILE_DOWNLOAD_URL } from "@/api/FileApi";
 import FlowManApi from "@/api/FlowManApi";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
+import { formFormulaDetailCalc } from "@/components/flow/common/FlowFormula";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
+import { newline } from "@/utils/format";
 import { computed, onMounted, ref, toRaw, watch } from "vue";
 import FlowCard from "./flow-card.vue";
 
@@ -277,14 +275,14 @@ const currentImageIdx = ref(0);
 const imageList = ref([]);
 const onImgPreview = (idx, idList) => {
   currentImageIdx.value = idx || 0;
-  imageList.value = (idList || []).map((id) => `${FILE_BASE_URL}/download?id=${id}`);
+  imageList.value = (idList || []).map((id) => `${FILE_DOWNLOAD_URL}?id=${id}`);
   imagePreviewVisible.value = true;
 };
 
 // 附件下载
 const onAttachmentDownload = (attachment, evt) => {
   evt.stopPropagation();
-  window.open(FILE_BASE_URL + "/download?id=" + attachment.id, "_blank");
+  window.open(`${FILE_DOWNLOAD_URL}?id=${attachment.id}`, "_blank");
 };
 
 watch(
@@ -311,29 +309,34 @@ onMounted(() => {
 });
 </script>
 
+<style lang="less">
+@import "@/styles/rich.text.less";
+</style>
+
 <style lang="less" scoped>
 @import "@/styles/variables.module.less";
 @FormLabelWidth: 84px;
 
 .flow-form-box {
   padding: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 
   .form-item {
     font-size: 14px;
     display: flex;
-
-    + .form-item {
-      margin-top: 12px;
-    }
+    gap: 16px;
 
     .label {
       color: #9ba5b3;
       width: @FormLabelWidth;
-      white-space: nowrap;
       overflow: hidden;
-      text-align: right;
-      margin-right: 16px;
+      white-space: nowrap;
       flex-shrink: 0;
+      // display: flex;
+      // justify-content: flex-end;
+      text-align: right;
     }
 
     .value {
@@ -349,14 +352,41 @@ onMounted(() => {
       display: block;
     }
 
+    .detail-amount {
+      color: var(--color-text-2);
+      height: 20px;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: flex-end;
+      gap: 8px;
+
+      .amount {
+        font-weight: bold;
+      }
+    }
+
     .link {
-      color: #1d2129;
+      // color: #1d2129;
       text-decoration: none;
       cursor: pointer;
       &:hover {
         color: #165cfd;
         text-decoration: underline;
       }
+    }
+
+    .rich-text {
+      width: 100%;
+      border: 1px solid var(--color-neutral-2);
+      border-radius: var(--border-radius-medium);
+      // border: 0.5px dashed var(--color-neutral-3);
+      // background-color: #fafafa;
+    }
+
+    .arco-rate {
+      min-height: 14px;
+      font-size: 14px;
     }
   }
 
@@ -367,7 +397,7 @@ onMounted(() => {
     gap: 8px;
   }
 
-  .img-preview {
+  .image-list {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -386,7 +416,7 @@ onMounted(() => {
     flex-wrap: wrap;
     gap: 8px;
 
-    .attachment-item {
+    .attachment-list {
       background-color: #f7f8fa;
       display: flex;
       align-items: center;

@@ -9,8 +9,8 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
 import { STATUS } from "@/components/flow/common/FlowConstant";
+import { computed } from "vue";
 
 let props = defineProps({
   status: Number,

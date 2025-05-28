@@ -39,11 +39,11 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
 import FlowInstApi from "@/api/FlowInstApi";
-import { STATUS_LIST } from "@/components/flow/common/FlowConstant";
-import FlowDetail from "./flow-detail.vue";
 import FlowNodeAvatar from "@/components/common/FlowNodeAvatar.vue";
+import { STATUS_LIST } from "@/components/flow/common/FlowConstant";
+import { ref, watch } from "vue";
+import FlowDetail from "./flow-detail.vue";
 
 const props = defineProps({
   flowInst: { type: Object, default: null },

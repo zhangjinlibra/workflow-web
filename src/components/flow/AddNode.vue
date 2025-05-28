@@ -36,13 +36,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, toRaw } from "vue";
 import { useFlowStore } from "@/stores/index";
-import Snowflake from "./common/Snowflake";
-import { NODE } from "./common/FlowConstant";
-import ObjectUtil from "./common/ObjectUtil";
 import { IconPlus } from "@arco-design/web-vue/es/icon";
+import { computed, reactive, ref, toRaw } from "vue";
+import { NODE } from "./common/FlowConstant";
 import { filterConditionWidgets, initNodeFormAuth } from "./common/FormAuth";
+import ObjectUtil from "./common/ObjectUtil";
+import Snowflake from "./common/Snowflake";
 
 let emits = defineEmits(["update:childNodeP"]);
 let visible = ref(false);

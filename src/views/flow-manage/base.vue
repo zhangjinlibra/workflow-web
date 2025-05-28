@@ -73,13 +73,13 @@
 </template>
 
 <script setup>
-import { onBeforeMount, onMounted, ref } from "vue";
-import { useFlowStore, useOrganStore } from "@/stores/index";
+import IconApi from "@/api/IconApi";
 import OrganChooseBox from "@/components/flow/dialog/OrganChooseBox.vue";
 import FlowIcon from "@/components/icons/FlowIcon.vue";
-import FlowGroupEdit from "./flow-gorup-edit.vue";
-import IconApi from "@/api/IconApi";
+import { useFlowStore, useOrganStore } from "@/stores/index";
 import { IconPlus } from "@arco-design/web-vue/es/icon";
+import { onBeforeMount, onMounted, ref } from "vue";
+import FlowGroupEdit from "./flow-gorup-edit.vue";
 // import { Icon } from "@arco-design/web-vue";
 // import FlowManApi from "@/api/FlowManApi";
 // import { Sketch } from "@ckpack/vue-color";

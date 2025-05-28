@@ -7,16 +7,25 @@
             <div class="logo"><img alt="Vue logo" class="logo" src="@/assets/logo.png" height="24" /></div>
             <!-- <div class="slogan">审批</div> -->
             <a-trigger trigger="hover" position="bottom" :show-arrow="false" :popup-translate="[0, 10]" animation-name="uido">
-              <a-tag class="version">20241015版本</a-tag>
+              <a-tag class="version">20250214版本</a-tag>
               <template #content>
                 <div class="change-log-list">
                   <div class="change-log">
                     <div class="version-title">本次更新</div>
                     <a-divider />
                     <div class="version-content">
-                      <p>新增：流程复制</p>
-                      <p>新增：流程时间线展示节点原始名称</p>
-                      <p>修复已知问题，优化体验</p>
+                      <p>新增：计算公式控件</p>
+                      <p>新增：明细控件增加单项公式</p>
+                      <p>新增：手写签名签署控件</p>
+                      <p>新增：再次申请</p>
+                      <p>新增：流程催办</p>
+                      <p>新增：流程管理流程转交、审批人员状态确认（优化人员离职）</p>
+                      <p>新增：数据管理增加摘要/导出</p>
+                      <p>新增：流程管理员（管理员可以任何流程）</p>
+                      <p>修复：多行文本换行符丢失</p>
+                      <p>修复：多个自选审批人节点错位</p>
+                      <p>优化：文件上传优化</p>
+                      <p>其他：修复已知问题，优化体验，感兴趣的点个星星</p>
                     </div>
                   </div>
                 </div>

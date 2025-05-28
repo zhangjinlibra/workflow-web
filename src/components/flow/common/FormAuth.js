@@ -1,4 +1,5 @@
 import { NODE, WIDGET } from "@/components/flow/common/FlowConstant";
+import { INITIATOR_VAR_NAME } from "./FormExp";
 
 /**
  * 筛选出所有作为条件的组件
@@ -14,7 +15,7 @@ export function filterConditionWidgets(startNode, conditionWidgets) {
     (conditionNode.conditionGroups || []).forEach((conditionGroup) => {
       (conditionGroup.conditions || []).forEach((condition) => {
         let { varName } = condition;
-        if (varName && varName !== "initiator") conditionWidgets.push(varName);
+        if (varName && varName !== INITIATOR_VAR_NAME) conditionWidgets.push(varName);
       });
     });
   });

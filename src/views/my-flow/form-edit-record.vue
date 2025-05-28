@@ -13,7 +13,7 @@
       <div class="form-edit-box" v-for="record in formEditRecords">
         <div class="header">
           <flow-node-avatar :size="16" :id="record.creatorId" />
-          <div>{{ record.createTime }}</div>
+          <div class="modify-time">{{ record.createTime }} 前表单</div>
         </div>
         <div class="content">
           <FlowFormDetail :form-widgets="formWidgets" :form-value="JSON.parse(record.formValue)" :only-value="true" />
@@ -84,6 +84,10 @@ const handleOk = () => {
         align-items: center;
         gap: 16px;
       }
+
+      // .modify-time {
+      //   font-size: 12px;
+      // }
     }
   }
 }

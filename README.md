@@ -19,9 +19,9 @@
 
 `项目会长期维护和不定期更新，有需求的小伙伴可以 ⭐ 一下，感谢支持。`
 
-🏡 访问 [官方网站](https://www.beeflow.top)
+🏡 访问：[官方网站](https://www.beeflow.top)
 
-👉 演示地址：[beeflow](http://49.235.72.105:8080) 👈
+👉 演示试用：[beeflow](http://49.235.72.105:8080) 👈
 
 😁 源码：[Github](https://github.com/zhangjinlibra/workflow-web.git) | [Gitee](https://gitee.com/zhangjinlibra/beeflow-engine)
 
@@ -89,6 +89,7 @@
 - 加签
 - 减签
 - 评论
+- 转办
 
 ---
 
@@ -109,7 +110,7 @@ npm run test
     <tr>
       <td align="center" valign="middle">
         <img src="https://inus-markdown.oss-cn-beijing.aliyuncs.com/img/weichat_qcode_qun.png" class="no-zoom" style="width:120px;margin: 10px;">
-        <p>微信群</p>
+        <p>微信群(备注:beeflow)</p>
       </td>
       <td align="center" valign="middle">
         <img src="https://inus-markdown.oss-cn-beijing.aliyuncs.com/img/qq_qcode_qun.png" class="no-zoom" style="width:120px;margin: 10px;">

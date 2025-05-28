@@ -79,6 +79,11 @@
           font-family: PingFang SC, Microsoft YaHei;
           font-size: 24px;
           color: #646a73;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
         }
       }
     }
@@ -96,7 +101,6 @@
     padding: 12px;
     // box-shadow: 2px 4px 12px 0 rgba(0, 0, 0, 0.16), inset 0 -1px 1px 0 #c9cbd5, inset -1px 0 4px 0 rgba(57, 63, 89, 0.09);
     border: 1px solid #eee;
-    border-radius: 4px;
     background-color: #fff;
     border-radius: var(--border-radius-large);
 
@@ -108,12 +112,11 @@
       overflow: hidden;
       overflow-y: auto;
       position: relative;
-      padding: 10px 0;
+      padding: 8px;
 
       .blank-tip {
         position: absolute;
         height: 110px;
-        margin: 8px;
         width: calc(100% - 16px);
         color: #1f2329;
         border: 1px dashed #bbbfc4;
@@ -128,11 +131,13 @@
 
   .choosed-widgets-box {
     width: 100%;
-    height: 100%;
+    min-height: calc(100%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 
     .ghost {
       border: 2px solid @widget-border-color;
-      border-radius: 0;
       outline-width: 0;
       width: 100%;
       height: 3px;
@@ -142,10 +147,6 @@
       overflow: hidden;
       padding: 0;
       margin: 10px 0;
-    }
-
-    .arco-form-item {
-      margin-bottom: 0;
     }
   }
 }
@@ -181,6 +182,32 @@
       }
     }
   }
+
+  .formula-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: 100%;
+
+    .formula-text {
+      background-color: var(--color-fill-2);
+      padding: 4px 12px;
+      border-radius: var(--border-radius-small);
+      color: var(--color-text-1);
+      min-height: 32px;
+      white-space: normal;
+      word-wrap: break-word;
+      word-break: break-all;
+      display: flex;
+      align-items: center;
+      width: 100%;
+
+      &:hover {
+        background-color: var(--color-fill-3);
+      }
+    }
+  }
 }
 
 // 中间组件栏的每个组件
@@ -190,9 +217,10 @@
   border: 1px solid transparent;
   position: relative;
   user-select: none;
-  margin-bottom: 10px;
+  // margin-bottom: 10px;
   display: flex;
   align-items: center;
+  border-radius: 4px;
 
   &:hover {
     border-color: rgba(51, 112, 255, 0.5);
@@ -235,6 +263,7 @@
     width: 100%;
     display: flex;
     justify-content: space-between;
+    gap: 10px;
     margin: 10px;
 
     .form-item-name {
@@ -250,7 +279,6 @@
 
     .form-item-widget {
       flex: 1;
-      margin-left: 10px;
 
       .arco-textarea-wrapper {
         display: block;
@@ -296,6 +324,10 @@
     opacity: 1;
   }
 }
+// 组件设置有错误
+.field-widget-error {
+  border-color: rgb(var(--orangered-6)) !important;
+}
 
 // 明细组件
 .form-item-widget-detail-box {
@@ -329,6 +361,10 @@
     min-height: 32px;
     background: #f5f6f7;
     border: 5px solid #f5f6f7;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    border-radius: 4px;
   }
 
   .empty-box {
@@ -353,14 +389,6 @@
       text-align: center;
       background-color: #f5f6f7;
       border-radius: 4px;
-    }
-  }
-
-  .field-widget {
-    margin-bottom: 0;
-
-    + .field-widget {
-      margin-top: 5px;
     }
   }
 }

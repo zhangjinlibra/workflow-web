@@ -42,7 +42,7 @@
                 </a-select>
               </div>
               <!-- 发起人条件 -->
-              <template v-if="condition.varName == 'initiator'">
+              <template v-if="condition.varName == INITIATOR_VAR_NAME">
                 <div class="value-select">
                   <div class="content" placeholder="选择">
                     <template v-if="ArrayUtil.isArray(condition.val)">
@@ -60,7 +60,7 @@
                   <div v-if="getWidget(condition.varName).type == WIDGET.SINGLELINE_TEXT">
                     <a-input v-model:model-value="condition.val" :max-length="64" allow-clear />
                   </div>
-                  <div v-else-if="[WIDGET.NUMBER].includes(getWidget(condition.varName).type)">
+                  <div v-else-if="[WIDGET.NUMBER, WIDGET.DETAIL, WIDGET.FORMULA].includes(getWidget(condition.varName).type)">
                     <a-input-number
                       v-model="condition.val"
                       :max-length="15"
@@ -125,16 +125,16 @@
 </template>
 
 <script setup>
-import { computed, ref, toRaw, watch } from "vue";
-import { useFlowStore, useOrganStore } from "@/stores/index";
-import Snowflake from "../common/Snowflake";
-import { WIDGET } from "@/components/flow/common/FlowConstant";
-import ArrayUtil from "../common/ArrayUtil";
-import ObjectUtil from "../common/ObjectUtil";
-import { names as FunNames } from "../common/FormExp";
-import OrganChooseBox from "../dialog/OrganChooseBox.vue";
-import { IconPlus, IconDelete } from "@arco-design/web-vue/es/icon";
 import EditableText from "@/components/common/EditableText.vue";
+import { WIDGET } from "@/components/flow/common/FlowConstant";
+import { useFlowStore, useOrganStore } from "@/stores/index";
+import { IconDelete, IconPlus } from "@arco-design/web-vue/es/icon";
+import { computed, ref, toRaw, watch } from "vue";
+import ArrayUtil from "../common/ArrayUtil";
+import { names as FunNames, INITIATOR_VAR_NAME } from "../common/FormExp";
+import ObjectUtil from "../common/ObjectUtil";
+import Snowflake from "../common/Snowflake";
+import OrganChooseBox from "../dialog/OrganChooseBox.vue";
 
 let flowStore = useFlowStore();
 let { getById, users: allUsers, depts: allDepts } = useOrganStore();
@@ -179,46 +179,65 @@ const initCondition = () => {
   flowNodeConfig.value = gatewayConfig.value.conditionNodes[priorityLevel - 1];
 
   // 初始化分组条件选项
-  conditionOptions.value = [{ name: "initiator", label: "发起人", operators: [20, 21] }];
+  conditionOptions.value = [{ name: INITIATOR_VAR_NAME, label: "发起人", operators: [20, 21] }];
 
   // 将表单必填项转换为分支条件
-  let widgets = ObjectUtil.copy(toRaw(flowDefinition.flowWidgets || []));
-  if (widgets && widgets.length > 0) {
+  let widgets = ObjectUtil.copy(flowDefinition.flowWidgets || []);
+  if (widgets && widgets.length) {
     widgets.forEach((widget) => {
-      let { type, required, details } = widget;
+      let { name, type, required, label, formulaItems, details } = widget;
       // 非明细组件
       if (required) {
-        if ([WIDGET.SINGLELINE_TEXT].includes(type)) widget.operators = [14, 15, 10, 11, 12, 13];
-        else if ([WIDGET.NUMBER, WIDGET.MONEY, WIDGET.DATE_RANGE].includes(type)) widget.operators = [0, 1, 2, 3, 4, 5];
-        else if ([WIDGET.SINGLE_CHOICE].includes(type)) {
+        if ([WIDGET.SINGLELINE_TEXT].includes(type)) {
+          widget.operators = [14, 15, 10, 11, 12, 13];
+        } else if ([WIDGET.NUMBER, WIDGET.MONEY, WIDGET.DATE_RANGE].includes(type)) {
+          widget.operators = [0, 1, 2, 3, 4, 5];
+        } else if ([WIDGET.SINGLE_CHOICE].includes(type)) {
           widget.operators = [12, 13];
           widget.options = widget.options.filter((item) => !!item); // 过滤掉为空的选项
         } else if ([WIDGET.MULTI_CHOICE].includes(type)) {
           widget.operators = [20, 21];
           widget.options = widget.options.filter((item) => !!item);
         } else if ([WIDGET.DATE].includes(type)) widget.operators = [12, 13];
-        else if ([WIDGET.DEPARTMENT, WIDGET.EMPLOYEE].includes(type)) widget.operators = [20, 21];
+        else if ([WIDGET.DEPARTMENT, WIDGET.EMPLOYEE].includes(type)) {
+          widget.operators = [20, 21];
+        }
 
         // 加入条件列表
-        if (widget.operators) conditionOptions.value.push(widget);
+        if (widget.operators) {
+          conditionOptions.value.push(widget);
+        }
+      }
+
+      // 计算公式组件
+      if (type == WIDGET.FORMULA) {
+        widget.operators = [0, 1, 2, 3, 4, 5];
+        conditionOptions.value.push(widget);
       }
 
       // 明细组件
-      if (type == WIDGET.DETAIL && details && details.length > 0) {
-        details.forEach((detail) => {
-          let { type: detailType, required: detailRequired } = detail;
-          if (detailRequired && [WIDGET.NUMBER, WIDGET.MONEY].includes(detailType)) {
-            detail.operators = [0, 1, 2, 3, 4, 5];
-            detail.label = detail.label + "（合计）";
-            conditionOptions.value.push(detail);
-          }
+      if (type == WIDGET.DETAIL && formulaItems && formulaItems.length && details && details.length) {
+        conditionOptions.value.push({
+          name,
+          type,
+          label: label,
+          operators: [0, 1, 2, 3, 4, 5],
         });
+        // // TODO 明细组件作为分支条件
+        // details.forEach((detail) => {
+        //   let { type: detailType, required: detailRequired } = detail;
+        //   if (detailRequired && [WIDGET.NUMBER, WIDGET.MONEY].includes(detailType)) {
+        //     detail.operators = [0, 1, 2, 3, 4, 5];
+        //     detail.label = detail.label + "（合计）";
+        //     conditionOptions.value.push(detail);
+        //   }
+        // });
       }
     });
   }
 
   // conditionOptions.value = [
-  //   { name: "initiator", label: "发起人", operators: [20, 21] },
+  //   { name: INITIATOR_VAR_NAME, label: "发起人", operators: [20, 21] },
   //   ...toRaw(flowDefinition.flowWidgets || []).filter((widget) => {
   //     let { type, required } = widget;
   //     if ([WIDGET.SINGLELINE_TEXT].includes(type)) widget.operators = [10, 11, 12, 13];

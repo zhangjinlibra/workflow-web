@@ -23,7 +23,6 @@
               v-if="
                 [
                   WIDGET.SINGLELINE_TEXT,
-                  WIDGET.MULTILINE_TEXT,
                   WIDGET.NUMBER,
                   WIDGET.MONEY,
                   WIDGET.SINGLE_CHOICE,
@@ -33,43 +32,40 @@
                   WIDGET.DEPARTMENT,
                   WIDGET.EMPLOYEE,
                   WIDGET.AREA,
+                  WIDGET.MAILBOX,
+                  WIDGET.MOBILE,
+                  WIDGET.IDCARD,
+                  WIDGET.WEBSITE,
+                  WIDGET.FORMULA,
                 ].includes(formWidget.type)
               ">
-              <tr v-if="[WIDGET.SINGLELINE_TEXT, WIDGET.MULTILINE_TEXT, WIDGET.SINGLE_CHOICE, WIDGET.DATE].includes(formWidget.type)">
+              <tr>
                 <td class="label">{{ formWidget.label }}</td>
                 <td class="value">{{ formValue[formWidget.name] }}</td>
               </tr>
-              <tr v-else-if="[WIDGET.NUMBER].includes(formWidget.type)">
+            </template>
+            <template v-else-if="[WIDGET.MULTILINE_TEXT].includes(formWidget.type)">
+              <tr>
                 <td class="label">{{ formWidget.label }}</td>
-                <td class="value">{{ formValue[formWidget.name] }}</td>
+                <td class="value" v-html="newline(formValue[formWidget.name])"></td>
               </tr>
-              <tr v-else-if="[WIDGET.MONEY].includes(formWidget.type)">
-                <td class="label">{{ formWidget.label }}</td>
-                <td class="value">{{ ObjectUtil.comma(formValue[formWidget.name]) }}</td>
-              </tr>
-              <tr v-else-if="[WIDGET.MULTI_CHOICE].includes(formWidget.type)">
-                <td class="label">{{ formWidget.label }}</td>
-                <td class="value">{{ (formValue[formWidget.name] || []).join("，") }}</td>
-              </tr>
-              <tr v-else-if="[WIDGET.DATE_RANGE].includes(formWidget.type)">
+            </template>
+            <template v-else-if="[WIDGET.RICH_TEXT].includes(formWidget.type)">
+              <tr>
                 <td class="label">{{ formWidget.label }}</td>
                 <td class="value">
-                  <template v-if="formValue[formWidget.name] && formValue[formWidget.name].length == 2">
-                    {{ `${formValue[formWidget.name][0]} 至 ${formValue[formWidget.name][1]}` }}
-                  </template>
+                  <div class="rich-text">
+                    <div v-html="formValue[formWidget.name]" data-slate-editor></div>
+                  </div>
                 </td>
               </tr>
-              <tr v-else-if="[WIDGET.DEPARTMENT].includes(formWidget.type)">
+            </template>
+            <template v-else-if="[WIDGET.RATE].includes(formWidget.type)">
+              <tr>
                 <td class="label">{{ formWidget.label }}</td>
-                <td class="value">{{ formValue[formWidget.name] }}</td>
-              </tr>
-              <tr v-else-if="[WIDGET.EMPLOYEE].includes(formWidget.type)">
-                <td class="label">{{ formWidget.label }}</td>
-                <td class="value">{{ formValue[formWidget.name] }}</td>
-              </tr>
-              <tr v-else-if="[WIDGET.AREA].includes(formWidget.type)">
-                <td class="label">{{ formWidget.label }}</td>
-                <td class="value">{{ (formValue[formWidget.name] || []).join(" / ") }}</td>
+                <td class="value">
+                  <a-rate :default-value="formValue[formWidget.name]" readonly />
+                </td>
               </tr>
             </template>
             <template v-else-if="[WIDGET.PICTURE].includes(formWidget.type)">
@@ -110,19 +106,32 @@
                     <template v-for="record in formValue[formWidget.name]">
                       <tr>
                         <template v-for="subWidget in formWidget.details">
-                          <td v-if="[WIDGET.SINGLELINE_TEXT, WIDGET.MULTILINE_TEXT, WIDGET.SINGLE_CHOICE, WIDGET.DATE].includes(subWidget.type)">
+                          <td
+                            v-if="
+                              [
+                                WIDGET.SINGLELINE_TEXT,
+                                WIDGET.SINGLE_CHOICE,
+                                WIDGET.DATE,
+                                WIDGET.NUMBER,
+                                WIDGET.MONEY,
+                                WIDGET.MULTI_CHOICE,
+                                WIDGET.DATE_RANGE,
+                                WIDGET.DEPARTMENT,
+                                WIDGET.EMPLOYEE,
+                                WIDGET.AREA,
+                                WIDGET.MAILBOX,
+                                WIDGET.MOBILE,
+                                WIDGET.IDCARD,
+                                WIDGET.WEBSITE,
+                                WIDGET.FORMULA,
+                              ].includes(subWidget.type)
+                            ">
                             {{ record[subWidget.name] }}
                           </td>
-                          <td v-else-if="[WIDGET.NUMBER].includes(subWidget.type)">{{ record[subWidget.name] }}</td>
-                          <td v-else-if="[WIDGET.MONEY].includes(subWidget.type)">{{ ObjectUtil.comma(record[subWidget.name]) }}</td>
-                          <td v-else-if="[WIDGET.MULTI_CHOICE].includes(subWidget.type)">{{ (record[subWidget.name] || []).join("，") }}</td>
-                          <td v-else-if="[WIDGET.DATE_RANGE].includes(subWidget.type)">
-                            <template v-if="record[subWidget.name] && record[subWidget.name].length == 2">
-                              {{ `${record[subWidget.name][0]} 至 ${record[subWidget.name][1]}` }}
-                            </template>
+                          <td v-if="[WIDGET.MULTILINE_TEXT].includes(subWidget.type)" v-html="newline(record[subWidget.name])"></td>
+                          <td v-else-if="[WIDGET.RATE].includes(subWidget.type)">
+                            <a-rate :default-value="record[subWidget.name]" readonly />
                           </td>
-                          <td v-else-if="[WIDGET.DEPARTMENT].includes(subWidget.type)">{{ record[subWidget.name] }}</td>
-                          <td v-else-if="[WIDGET.EMPLOYEE].includes(subWidget.type)">{{ record[subWidget.name] }}</td>
                           <td v-else-if="[WIDGET.PICTURE].includes(subWidget.type)">
                             <div class="img-box">
                               <img v-for="id in record[subWidget.name] || []" :src="`${FILE_BASE_URL}/download?id=${id}`" />
@@ -133,7 +142,6 @@
                               <div>{{ attachment ? attachment.name : "" }}</div>
                             </template>
                           </td>
-                          <td v-else-if="[WIDGET.AREA].includes(subWidget.type)">{{ (record[subWidget.name] || []).join(" / ") }}</td>
                         </template>
                       </tr>
                     </template>
@@ -173,6 +181,9 @@
                     <template v-else-if="node.flowCmd == CMD.CANCELED">撤销</template>
                   </div>
                 </div>
+                <div class="signature-file-box" v-if="node.signatureFile && node.signatureFile.id">
+                  <img :src="`${FILE_BASE_URL}/download?id=${node.signatureFile.id}`" />
+                </div>
               </td>
             </template>
           </tr>
@@ -193,19 +204,19 @@
 </template>
 
 <script setup>
-import { onMounted, computed } from "vue";
-import { useUserStore, useOrganStore } from "@/stores";
-import moment from "moment";
-import ObjectUtil from "@/components/flow/common/ObjectUtil";
-import ArrayUtil from "@/components/flow/common/ArrayUtil";
-import { STATUS_LIST, WIDGET, CMD } from "@/components/flow/common/FlowConstant";
 import { FILE_BASE_URL } from "@/api/FileApi";
-import FlowStatusStamp from "./flow-status-stamp.vue";
+import ArrayUtil from "@/components/flow/common/ArrayUtil";
+import { CMD, STATUS_LIST, WIDGET } from "@/components/flow/common/FlowConstant";
+import { useOrganStore, useUserStore } from "@/stores";
+import { newline } from "@/utils/format";
+import moment from "moment";
+import { computed, onMounted } from "vue";
 import print from "vue3-print-nb";
+import FlowStatusStamp from "./flow-status-stamp.vue";
 const vPrint = print;
 
 let { loginUser } = useUserStore();
-let { getUserById, getDeptById, getRoleById } = useOrganStore();
+let { getUserById, getRoleById } = useOrganStore();
 
 let props = defineProps({
   visible: { type: Boolean, default: false },
@@ -291,6 +302,11 @@ onMounted(() => {});
       font-weight: bold;
     }
 
+    .arco-rate {
+      min-height: 14px;
+      font-size: 14px;
+    }
+
     .assignee-node {
       display: flex;
       justify-content: space-between;
@@ -308,18 +324,20 @@ onMounted(() => {});
       }
     }
 
+    .signature-file-box {
+      img {
+        width: 100px;
+      }
+    }
+
     .img-box {
       display: flex;
       align-items: center;
       flex-wrap: wrap;
+      gap: 10px;
 
       img {
         width: 40px;
-        height: 40px;
-
-        + img {
-          margin-left: 10px;
-        }
       }
     }
   }

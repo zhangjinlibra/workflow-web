@@ -1,7 +1,7 @@
 "use strict";
-import { NODE, WIDGET, ASSIGNEE } from "@/components/flow/common/FlowConstant";
+import { ASSIGNEE, NODE, WIDGET } from "@/components/flow/common/FlowConstant";
+import { formulaWidgetVerify } from "@/components/flow/common/FlowFormula.js";
 import { isArray, isNull, isNumber, isObject, isString, isUndefined } from "@/utils/is";
-import { flow } from "lodash";
 import array from "lodash/array";
 import validator from "validator";
 
@@ -112,20 +112,33 @@ const verifyFormInfo = (flowWidgets) => {
     };
 
     // 校验选项空间是否合法
+    let flowWidgetNameLabelKv = {}; // 组件name:label键值对
     flowWidgets.forEach((flowWidget) => {
+      flowWidgetNameLabelKv[flowWidget.name] = flowWidget.label;
       if ([WIDGET.DETAIL].includes(flowWidget.type)) {
         // 校验明细组件
         let { details } = flowWidget;
         if (!isArray(details) || details.length == 0) {
           errs.push(`${prefix} 请为明细控件（${flowWidget.label}）添加控件`);
         } else {
-          details.forEach((detail) => valifySelectWidgetOptions(detail));
+          details.forEach((detail) => {
+            flowWidgetNameLabelKv[detail.name] = detail.label;
+            valifySelectWidgetOptions(detail);
+          });
         }
       } else if ([WIDGET.SINGLE_CHOICE, WIDGET.MULTI_CHOICE].includes(flowWidget.type)) {
         // 校验选择框选项
         valifySelectWidgetOptions(flowWidget);
       }
     });
+
+    // 校验公式组件
+    let formulaErrorWidgetNameList = formulaWidgetVerify(flowWidgets);
+    if (!!formulaErrorWidgetNameList && formulaErrorWidgetNameList.length) {
+      formulaErrorWidgetNameList.forEach((widgetName) => {
+        errs.push(`${prefix} 控件（${flowWidgetNameLabelKv[widgetName]}）计算公式设置有误`);
+      });
+    }
   }
   return errs;
 };

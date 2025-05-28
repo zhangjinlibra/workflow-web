@@ -72,14 +72,6 @@ function listMineAuditRecords(data) {
   });
 }
 
-function listFlowInsts(data) {
-  return request({
-    url: `/flowinstance/listFlowInsts?page=${data.page}&size=${data.size}`,
-    method: "post",
-    data,
-  });
-}
-
 function approve(data) {
   return request({
     url: "/flowinstance/approve",
@@ -168,6 +160,14 @@ function delSign(data) {
   });
 }
 
+function urge(data) {
+  return request({
+    url: "/flowinstance/urge",
+    method: "post",
+    data,
+  });
+}
+
 function formModify(data) {
   return request({
     url: "/flowinstance/formModify",
@@ -232,7 +232,7 @@ export default {
   delSign,
   formModify,
   listRemoveableNodeAssignees,
-  listFlowInsts,
   listFormEditRecords,
   hasFormEditRecord,
+  urge,
 };

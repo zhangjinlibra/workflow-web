@@ -106,11 +106,12 @@
                 :show-upload-button="!!widget.editable"
                 list-type="picture-card"
                 :image-preview="true"
-                :action="fileUploadUrl"
+                :action="FILE_UPLOAD_URL"
                 :headers="fileUploadHeaders"
                 :with-credentials="true"
                 :limit="10"
-                :multiple="true" />
+                :multiple="true"
+                @change="handleFileListChange" />
             </template>
             <template v-else-if="widget.type == WIDGET.ATTACHMENT">
               <a-upload
@@ -118,11 +119,12 @@
                 :disabled="!widget.editable"
                 :show-remove-button="!!widget.editable"
                 :show-upload-button="!!widget.editable"
-                :action="fileUploadUrl"
+                :action="FILE_UPLOAD_URL"
                 :headers="fileUploadHeaders"
                 :with-credentials="true"
                 :limit="10"
-                :multiple="true">
+                :multiple="true"
+                @change="handleFileListChange">
                 <template #upload-button>
                   <a-button>
                     <template #icon><icon-plus /></template>上传文件
@@ -174,12 +176,21 @@
                 <FlowInstSelect v-model:visible="flowInstSelectVisible" v-model:selected="flowForm[widget.name]" :disabled="[flowInst.id]" />
               </div>
             </template>
+            <template v-else-if="widget.type == WIDGET.RICH_TEXT">
+              <RichText v-model:value="flowForm[widget.name]" :placeholder="widget.placeholder" />
+            </template>
+            <template v-else-if="widget.type == WIDGET.RATE">
+              <a-rate v-model:model-value="flowForm[widget.name]" allow-half allow-clear />
+            </template>
+            <template v-else-if="widget.type == WIDGET.FORMULA">
+              <a-input v-model:model-value="flowForm[widget.name]" :placeholder="`=${widget.placeholder}`" disabled />
+            </template>
           </a-form-item>
           <template v-else-if="widget.type == WIDGET.DESCRIBE">
             <div class="describe"><icon-info-circle />{{ widget.placeholder }}</div>
           </template>
           <template v-else-if="widget.type == WIDGET.DETAIL">
-            <FormEditWidgetDetail :widget="widget" :headers="fileUploadHeaders" :url="fileUploadUrl" :form="flowForm" :flow-inst="flowInst" />
+            <FormEditWidgetDetail :widget="widget" :headers="fileUploadHeaders" :url="FILE_UPLOAD_URL" :form="flowForm" :flow-inst="flowInst" />
           </template>
         </template>
       </a-form>
@@ -195,13 +206,18 @@
 </template>
 
 <script setup>
-import FileApi, { FILE_BASE_URL } from "@/api/FileApi";
+import FileApi, { FILE_DOWNLOAD_URL, FILE_UPLOAD_URL } from "@/api/FileApi";
 import FlowInstApi from "@/api/FlowInstApi";
+import FlowManApi from "@/api/FlowManApi";
+import RichText from "@/components/common/RichText.vue";
+import ArrayUtil from "@/components/flow/common/ArrayUtil";
 import CHINA_AREA from "@/components/flow/common/ChinaArea";
 import { WIDGET } from "@/components/flow/common/FlowConstant";
+import { formFormulaAutoCalc } from "@/components/flow/common/FlowFormula";
 import ObjectUtil from "@/components/flow/common/ObjectUtil";
 import { useOrganStore } from "@/stores";
 import { getToken } from "@/utils/auth";
+import { Message } from "@arco-design/web-vue";
 import { IconInfoCircle, IconPlus } from "@arco-design/web-vue/es/icon";
 import { ref, watch } from "vue";
 import FlowCard from "./flow-card.vue";
@@ -217,36 +233,32 @@ const props = defineProps({
 const emits = defineEmits(["update:visible", "onOk"]);
 
 let { users: allUsers, depts: allDepts } = useOrganStore();
-const fileUploadUrl = FILE_BASE_URL + "/upload"; // 文件上传地址
 const fileUploadHeaders = ref({ Authorization: getToken() }); // 文件上传请求头
 const flowForm = ref({}); // 流程表单
 const formWidgetMap = ref({}); // 将组件抽成map
 const loading = ref(false);
-
-const toMap = (widgets) => {
-  let map = {};
-  (widgets || []).forEach((widget) => {
-    map[widget.name] = widget;
-    (widget.details || []).forEach((detail) => {
-      map[detail.name] = detail;
-    });
-  });
-  return map;
-};
 
 watch(
   () => props.visible,
   (nv) => {
     if (nv) {
       flowForm.value = ObjectUtil.copy(props.formValue);
-      formWidgetMap.value = toMap(props.formWidgets);
-      fmt(flowForm.value);
+      formWidgetMap.value = FlowManApi.formWidgetListToMap(props.formWidgets);
+      formAntiFmt(flowForm.value);
     }
   }
 );
 
+watch(
+  () => flowForm,
+  () => {
+    formFormulaAutoCalc(flowForm.value, props.formWidgets || []);
+  },
+  { deep: true }
+);
+
 // 由于后端表单格式化了, 该处需要重新格式化一下
-const fmt = (form) => {
+const formAntiFmt = (form) => {
   for (let name in form) {
     let widget = formWidgetMap.value[name];
     let { type } = widget;
@@ -259,28 +271,20 @@ const fmt = (form) => {
       if (ids && ids.length > 0) {
         FileApi.batchMetadata({ ids: ids.join(",") }).then((resp) => {
           let attachments = resp.data || [];
-          form[name] = attachments.map((item) => {
-            let { id, name } = item;
-            return { uid: id, url: FILE_BASE_URL + `/download?id=${id}`, name: name, response: { data: item } };
-          });
+          attachments.forEach((i) => (i.url = `${FILE_DOWNLOAD_URL}?id=${i.id}`));
+          form[name] = attachments;
         });
       }
-      // for (let i = 0; i < files.length; i++) {
-      //   let file = files[i];
-      //   let resp = { data: { id: file.id } };
-      //   files[i] = { uid: file.id, url: FILE_BASE_URL + `/download?id=${file.id}`, name: file.name, response: resp };
-      // }
-      // form[name] = files;
     } else if ([WIDGET.PICTURE].includes(type)) {
       let fileIds = form[name];
       for (let i = 0; i < fileIds.length; i++) {
         let fileId = fileIds[i];
-        let resp = { data: { id: fileId } };
-        fileIds[i] = { uid: fileId, url: FILE_BASE_URL + `/download?id=${fileId}`, response: resp };
+        let data = { id: fileId, url: `${FILE_DOWNLOAD_URL}?id=${fileId}` };
+        fileIds[i] = data;
       }
       form[name] = fileIds;
     } else if (type == WIDGET.DETAIL) {
-      (form[name] || []).forEach((detail) => fmt(detail));
+      (form[name] || []).forEach((detail) => formAntiFmt(detail));
     }
   }
 };
@@ -292,13 +296,13 @@ const handleFormValue = (flowValue) => {
     let widget = formWidgetMap.value[name];
     if ([WIDGET.PICTURE, WIDGET.ATTACHMENT].includes(widget.type)) {
       // 取出上传的文件id
-      flowValue[name] = (flowValue[name] || []).map((v) => (v.response || {}).data.id);
+      flowValue[name] = (flowValue[name] || []).map((v) => v.id);
     } else if (widget.type == WIDGET.DETAIL) {
       flowValue[name].forEach((flowDetailValue) => {
         for (let detailName in flowDetailValue) {
           let detailWidget = formWidgetMap.value[detailName];
           if ([WIDGET.PICTURE, WIDGET.ATTACHMENT].includes(detailWidget.type)) {
-            flowDetailValue[detailName] = (flowDetailValue[detailName] || []).map((v) => (v.response || {}).data.id);
+            flowDetailValue[detailName] = (flowDetailValue[detailName] || []).map((v) => v.id);
           }
         }
       });
@@ -310,6 +314,27 @@ const handleFormValue = (flowValue) => {
 let flowInstSelectVisible = ref(false); // 是否显示流程选择框
 const onFlowSelectClicked = () => {
   flowInstSelectVisible.value = true;
+};
+
+// 上传组件列表变化
+const handleFileListChange = (fileList, fileItem) => {
+  let { response: resp } = fileItem;
+  if (!!!resp) return;
+  if (resp.code == 1) {
+    // 上传成功转换数据
+    let data = resp.data;
+    data.url = `${FILE_DOWNLOAD_URL}?id=${data.id}`;
+    for (let i = 0; i < fileList.length; i++) {
+      if (fileList[i].uid == fileItem.uid) {
+        fileList[i] = data;
+        return;
+      }
+    }
+  } else {
+    // 上传失败提示，删除文件
+    Message.error(`文件上传失败，原因是：${resp.msg}！`);
+    ArrayUtil.remove(fileList, "uid", fileItem.uid);
+  }
 };
 
 const onSave = () => {
@@ -371,6 +396,8 @@ const onClose = () => {
         cursor: default;
         margin-bottom: 10px;
         min-height: 32px;
+        display: flex;
+        align-items: center;
 
         svg {
           margin-right: 5px;
