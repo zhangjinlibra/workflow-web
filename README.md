@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://ecs-public.oss-cn-shanghai.aliyuncs.com/beeflow.png">
+<img src="https://xiaojv.oss-cn-shanghai.aliyuncs.com/flow/readme/logo.png">
 <p align="center"><a href="https://www.beeflow.top" target="_blank">BeeFlow工作流</a></p>
 </p>
 
@@ -31,14 +31,14 @@
 
 #### **基本信息**
 
-![基本信息](https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme10.png)
+![基本信息](https://xiaojv.oss-cn-shanghai.aliyuncs.com/flow/readme/base_info.png)
 
 #### **表单设计**
 
 > 我们提供了丰富的表单设计组件，可以让你方便、灵活的去构建复杂的表单项； \
 > 每个组件都有对应的参数配置，可以更加灵活的控制每个组件展现形式。
 
-![表单设计器](https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme1.png)
+![表单设计器](https://xiaojv.oss-cn-shanghai.aliyuncs.com/flow/readme/form_maker.png)
 
 #### **流程设计**
 
@@ -48,34 +48,34 @@
 > 办理节点：需要指定人办理某些线下业务时，可以使用该节点；\
 > 分支节点：支持复杂的分支条件，可根据定义的表单组件来动态匹配条件项。
 
-![流程设计器](https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme2.png)
+![流程设计器](https://xiaojv.oss-cn-shanghai.aliyuncs.com/flow/readme/flow_maker_01.png)
 
-![分支条件设置](https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme3.png)
+![分支条件设置](https://xiaojv.oss-cn-shanghai.aliyuncs.com/flow/readme/flow_maker_02.png)
 
 > 条件项支持表单必填项的文本匹配、单选多选项匹配、数字金额算术匹配、发起人来源匹配等
 
-![审批节点设置](https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme4.png)
+![审批节点设置](https://xiaojv.oss-cn-shanghai.aliyuncs.com/flow/readme/flow_maker_03.png)
 
 > 常规设置：支持固定人员、上级、部门负责人、角色等审批类型；\
 > 高级设置：多人审批时，支持会签、或签、依次审批。
 
-![抄送节点设置](https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme5.png)
+![抄送节点设置](https://xiaojv.oss-cn-shanghai.aliyuncs.com/flow/readme/flow_maker_04.png)
 
 #### **流程管理**
 
-![流程列表](https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme6.png)
+![流程列表](https://xiaojv.oss-cn-shanghai.aliyuncs.com/flow/readme/flow_list.png)
 
 #### **发起流程**
 
-![发起申请](https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme7.png)
+![发起申请](https://xiaojv.oss-cn-shanghai.aliyuncs.com/flow/readme/flow_launcher_01.png)
 
-![表单填写](https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme8.png)
+![表单填写](https://xiaojv.oss-cn-shanghai.aliyuncs.com/flow/readme/flow_launcher_02.png)
 
 > 点击流程，流程表单必填项填写完整后，预览流程审批进度。
 
 #### **审批操作**
 
-![流程详情](https://ecs-public.oss-cn-shanghai.aliyuncs.com/readme9.png)
+![流程详情](https://xiaojv.oss-cn-shanghai.aliyuncs.com/flow/readme/flow_approve.png)
 
 > 流程在审批过程中，我们支持下面的这些动作
 
