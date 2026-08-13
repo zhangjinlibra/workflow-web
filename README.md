@@ -21,7 +21,7 @@
 
 🏡 访问：[官方网站](https://www.beeflow.top)
 
-👉 演示试用：[beeflow](http://49.235.72.105:8080) 👈
+👉 演示试用：[beeflow](http://114.67.115.82:8080) 👈
 
 😁 源码：[Github](https://github.com/zhangjinlibra/workflow-web.git) | [Gitee](https://gitee.com/zhangjinlibra/beeflow-engine)
 
